@@ -10,7 +10,12 @@ declare namespace Cloudflare {
 		PHOTOS: R2Bucket;
 		DB: D1Database;
 		ASSETS: Fetcher;
+		SESSION_SECRET: string;
 		APP_URL: string;
+		R2_ACCOUNT_ID: string;
+		R2_ACCESS_KEY_ID: string;
+		R2_SECRET_ACCESS_KEY: string;
+		EMAIL_DEV_STUB: string;
 	}
 }
 interface Env extends Cloudflare.Env {}
@@ -18,7 +23,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_URL">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "SESSION_SECRET" | "APP_URL" | "R2_ACCOUNT_ID" | "R2_ACCESS_KEY_ID" | "R2_SECRET_ACCESS_KEY" | "EMAIL_DEV_STUB">> {}
 }
 
 // Begin runtime types
