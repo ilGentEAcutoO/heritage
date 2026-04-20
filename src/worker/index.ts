@@ -17,7 +17,7 @@ import { Hono } from 'hono';
 import { treeRouter } from './routes/tree';
 import imgRouter from './routes/img';
 import { dbMiddleware } from './middleware/db';
-import { securityHeaders } from './middleware/security-headers';
+import { securityHeaders, applySecurityHeaders } from './middleware/security-headers';
 import { getValidatedEnv } from './lib/config';
 import type { Env, HonoEnv } from './types';
 
@@ -48,6 +48,9 @@ export default {
     if (url.pathname.startsWith('/api/')) {
       return app.fetch(request, env, ctx);
     }
-    return env.ASSETS.fetch(request);
+    // SPA/static-asset path bypasses Hono middleware, so apply security
+    // headers here too (CSP/HSTS/X-CTO/Referrer-Policy/Permissions-Policy).
+    const assetRes = await env.ASSETS.fetch(request);
+    return applySecurityHeaders(assetRes);
   },
 } satisfies ExportedHandler<Env>;

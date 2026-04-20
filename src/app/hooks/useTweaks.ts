@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
-import { readLocal } from '@app/lib/storage';
+import { readLocal, writeLocal } from '@app/lib/storage';
 
 const STORAGE_KEY = 'heritage-tweaks';
 
@@ -72,11 +72,7 @@ export function useTweaks(): UseTweaksResult {
   // Apply theme classes whenever tweaks change
   useEffect(() => {
     applyThemeToBody(tweaks);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tweaks));
-    } catch {
-      // ignore storage errors
-    }
+    writeLocal(STORAGE_KEY, tweaks, TweaksSchema);
   }, [tweaks]);
 
   const setTweaks = (t: Tweaks) => setTweaksState(t);

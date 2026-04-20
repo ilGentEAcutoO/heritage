@@ -44,12 +44,26 @@ const SECURITY_HEADERS: Readonly<Record<string, string>> = Object.freeze({
 });
 
 /**
+ * Apply security headers to a Response without clobbering pre-set values.
+ * Exported separately from the middleware so the top-level fetch handler can
+ * also apply these headers to SPA/asset responses (env.ASSETS.fetch), which
+ * bypass the Hono middleware stack entirely.
+ */
+export function applySecurityHeaders(res: Response): Response {
+  // Some responses (e.g. R2 streamed bodies, ASSETS) may have immutable headers.
+  // Clone into a fresh Response to guarantee mutability.
+  const out = new Response(res.body, res);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    if (!out.headers.has(name)) {
+      out.headers.set(name, value);
+    }
+  }
+  return out;
+}
+
+/**
  * Hono middleware. Runs `await next()`, then layers security headers over the
  * response without clobbering anything a route already set.
- *
- * We must never mutate the Response object a route returned directly — some
- * responses (e.g. R2 streamed bodies) have locked headers. `c.res = new
- * Response(...)` on Hono re-wraps the response so mutations are safe.
  */
 export const securityHeaders: MiddlewareHandler<HonoEnv> = async (c, next) => {
   await next();
