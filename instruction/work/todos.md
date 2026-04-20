@@ -1,10 +1,18 @@
 # Active Tasks — Security Remediation & Login Removal
 
-> Last updated: 2026-04-20 09:55 (+07)
+> Last updated: 2026-04-20 10:18 (+07)
 > Plan: `./plan.md`
 > Requirements: `./requirements.md`
 
 Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 blocked · ⚫ deleted
+
+## PR-1 status (2026-04-20 10:18)
+
+- **All 7 PR-1 tasks complete**; typecheck green; 80/80 tests pass.
+- Diff: **+38 / −3563 LOC across 27 files** (13 deleted, 14 modified, 4 new).
+- New file: `src/worker/middleware/db.ts` (extracted `dbMiddleware` cleanly).
+- Main agent fixup: `tree.ts:32` `data.meta.isPublic` → `data.tree.isPublic` (caught by tester).
+- Ready for commit to `feat/remove-login-and-mutations`; awaiting user approval before push.
 
 ---
 
@@ -24,7 +32,7 @@ Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 
 > PR acceptance criteria: see `plan.md` § PR-1 Exit criteria.
 
 ### TASK-101: Delete worker auth routes & middleware
-- Status: ⚪ pending
+- Status: 🟢 completed (2026-04-20 10:18)
 - Owner: Sub-agent B1 (Sonnet 4.6)
 - Files: `src/worker/routes/auth.ts`, `src/worker/middleware/session.ts`, `src/worker/middleware/csrf.ts`, `src/worker/lib/tokens.ts`, `src/worker/lib/email.ts`, `src/worker/index.ts`, `src/worker/types.ts`
 - Sub-tasks:
@@ -40,7 +48,7 @@ Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 
 - Dependencies: none
 
 ### TASK-102: Trim tree routes to read-only
-- Status: ⚪ pending
+- Status: 🟢 completed (2026-04-20 10:18)
 - Owner: Sub-agent B2 (Sonnet 4.6)
 - Files: `src/worker/routes/tree.ts`, `src/shared/schemas.ts`
 - Sub-tasks:
@@ -53,7 +61,7 @@ Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 
 - Dependencies: TASK-101 (needs updated index.ts shape)
 
 ### TASK-103: Delete upload route
-- Status: ⚪ pending
+- Status: 🟢 completed (2026-04-20 10:18)
 - Owner: Sub-agent B3 (Sonnet 4.6)
 - Files: `src/worker/routes/upload.ts`, `src/worker/index.ts`
 - Sub-tasks:
@@ -64,7 +72,7 @@ Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 
 - Dependencies: TASK-101 (for index.ts)
 
 ### TASK-104: Delete frontend auth + mutation UI
-- Status: ⚪ pending
+- Status: 🟢 completed (2026-04-20 10:18)
 - Owner: Sub-agent C1 (Sonnet 4.6)
 - Files: `src/app/pages/Login.tsx`, `src/app/pages/AuthVerify.tsx`, `src/app/hooks/useSession.ts`, `src/app/hooks/useUpload.ts`, `src/app/App.tsx`, `src/app/pages/Landing.tsx`, `src/app/pages/TreeView.tsx`, `src/app/lib/api.ts`
 - Sub-tasks:
@@ -79,7 +87,7 @@ Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 
 - Dependencies: none (file-disjoint from B1/B2/B3)
 
 ### TASK-105: Update wrangler/dev-vars config and regenerate types
-- Status: ⚪ pending
+- Status: 🟢 completed (2026-04-20 10:18)
 - Owner: Sub-agent D1 (Sonnet 4.6)
 - Files: `wrangler.jsonc`, `.dev.vars.example`, `worker-configuration.d.ts`
 - Sub-tasks:
@@ -92,7 +100,7 @@ Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 
 - Dependencies: none (can run in parallel with 101–104)
 
 ### TASK-106: Refactor and trim test suite
-- Status: ⚪ pending
+- Status: 🟢 completed (2026-04-20 10:18)
 - Owner: Sub-agent T1 (Sonnet 4.6)
 - Files: `tests/integration/auth.test.ts` (delete), `tests/integration/upload.test.ts` (delete), `tests/unit/tokens.test.ts` (delete), `tests/integration/tree-api.test.ts` → `tree-read.test.ts`, `tests/integration/surface.test.ts` (new), `tests/integration/img-read.test.ts` (new), `tests/helpers/mock-env.ts`
 - Sub-tasks:
@@ -107,7 +115,7 @@ Legend: ⚪ pending · 🔵 in_progress · ✅ tested · 🟢 completed · 🔴 
 - Dependencies: TASK-101, TASK-102, TASK-103, TASK-104, TASK-105
 
 ### TASK-107: PR-1 final verification + docs
-- Status: ⚪ pending
+- Status: 🟢 completed (2026-04-20 10:18)
 - Owner: Main agent (Opus)
 - Files: `README.md`, `CLAUDE.md`, other docs
 - Sub-tasks:

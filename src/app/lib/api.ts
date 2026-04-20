@@ -1,8 +1,8 @@
 /**
  * api.ts — typed fetch wrapper with credentials: 'include'
  *
- * All requests include cookies (HttpOnly session cookie forwarded by browser).
- * Errors are thrown as { error: string; status: number }.
+ * Read-only API client. Mutations have been removed; this module only
+ * exposes getTree and the adaptTree data adapter.
  */
 
 import type { TreeData, Person } from './types';
@@ -14,12 +14,6 @@ import type { TreeData, Person } from './types';
 export interface ApiError {
   error: string;
   status: number;
-}
-
-export interface SessionUser {
-  id: string;
-  email: string;
-  displayName: string | null;
 }
 
 /** Shape returned by GET /api/tree/:slug — mirrors TreeQueryResult from tree-query.ts */
@@ -79,14 +73,6 @@ export interface ApiTreeResponse {
   photoCounts: Record<string, number>;
 }
 
-export interface Photo {
-  id: string;
-  personId: string;
-  url: string;
-  mime: string;
-  bytes: number;
-}
-
 // ---------------------------------------------------------------------------
 // Core fetch wrapper
 // ---------------------------------------------------------------------------
@@ -119,63 +105,8 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 export const apiClient = {
   health: () => api<{ ok: boolean }>('/api/health'),
 
-  /** Returns null on 401, throws on other errors */
-  me: () =>
-    api<{ user: SessionUser }>('/api/auth/me').catch((e: ApiError) =>
-      e.status === 401 ? null : Promise.reject(e),
-    ),
-
-  requestMagicLink: (email: string) =>
-    api<void>('/api/auth/request', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    }),
-
-  logout: () =>
-    api<void>('/api/auth/logout', { method: 'POST' }),
-
   getTree: (slug: string) =>
     api<ApiTreeResponse>(`/api/tree/${encodeURIComponent(slug)}`),
-
-  createTree: (body: { slug: string; name: string; name_en?: string; is_public?: boolean }) =>
-    api<{ tree: unknown }>('/api/tree', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    }),
-
-  saveOverrides: (slug: string, overrides: Array<{ personId: string; dx: number; dy: number }>) =>
-    api<void>(`/api/tree/${encodeURIComponent(slug)}/overrides`, {
-      method: 'PUT',
-      body: JSON.stringify({ overrides }),
-    }),
-
-  addStory: (
-    slug: string,
-    story: { personId: string; year?: number; title?: string; body: string },
-  ) =>
-    api<{ story: unknown }>(`/api/tree/${encodeURIComponent(slug)}/stories`, {
-      method: 'POST',
-      body: JSON.stringify(story),
-    }),
-
-  uploadPhoto: async (file: File, personId: string): Promise<Photo> => {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('personId', personId);
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      credentials: 'include',
-      body: form,
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({ error: 'unknown' }));
-      throw {
-        error: (body as { error?: string }).error ?? 'unknown',
-        status: res.status,
-      } as ApiError;
-    }
-    return ((await res.json()) as { photo: Photo }).photo;
-  },
 };
 
 // ---------------------------------------------------------------------------

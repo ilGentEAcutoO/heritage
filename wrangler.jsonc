@@ -36,13 +36,6 @@
     }
   ],
 
-  "send_email": [
-    {
-      "name": "EMAIL",
-      "remote": true
-    }
-  ],
-
   "routes": [
     {
       "pattern": "heritage.jairukchan.com",
@@ -51,9 +44,7 @@
   ],
 
   "vars": {
-    "APP_URL": "https://heritage.jairukchan.com",
-    "EMAIL_FROM": "noreply@jairukchan.com",
-    "EMAIL_DEV_STUB": "0"
+    "APP_URL": "https://heritage.jairukchan.com"
   },
 
   "observability": { "enabled": true }

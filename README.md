@@ -1,6 +1,8 @@
 # Heritage — Family Tree on Cloudflare Workers
 
-A multi-tenant family tree application built on Cloudflare Workers, D1, R2, and KV.
+A read-only family-tree viewer built on Cloudflare Workers, D1, R2, and KV.
+
+> **Current posture:** read-only. The login/authentication layer has been removed — see `instruction/security-review.md` and `instruction/work/plan.md` for the remediation roadmap. A future phase will reintroduce auth with request-binding.
 
 ## Quick Start
 
@@ -16,17 +18,22 @@ pnpm dev
 
 # Visit http://localhost:5173
 # API health: http://localhost:5173/api/health
+# Demo tree:  http://localhost:5173/demo/wongsuriya
 ```
+
+## API surface (post-refactor)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/health` | liveness probe |
+| GET | `/api/tree/:slug` | public trees only (`is_public` gated); 404 for private |
+| GET | `/api/img/:key` | public-tree photos; 403 for private; KV rate-limited |
+
+All mutation and authentication endpoints have been removed.
 
 ## Cloudflare Resources
 
-| Resource | Name | ID |
-|---|---|---|
-| D1 | `heritage-d1-main` | `3ef17b93-e7ff-4631-8ffe-9ab9f6cc8694` |
-| R2 | `heritage-r2-photos` | (name binding) |
-| KV | `heritage-kv-ratelimit` | `d3a23a837d0a486d81575ebaf23b88cb` |
-
-Custom domain: `heritage.jairukchan.com`
+Resource IDs and bindings are declared in `wrangler.jsonc` (the authoritative source). Custom domain: `heritage.jairukchan.com`.
 
 ## Scripts
 
@@ -41,18 +48,18 @@ Custom domain: `heritage.jairukchan.com`
 | `pnpm db:migrate:local` | Apply migrations locally |
 | `pnpm db:migrate:remote` | Apply migrations to CF D1 |
 | `pnpm db:seed:local` | Seed demo Wongsuriya data locally |
-| `pnpm cf-typegen` | Generate worker-configuration.d.ts |
+| `pnpm cf-typegen` | Generate `worker-configuration.d.ts` |
 
 ## Local Dev Setup
 
-1. Copy `.dev.vars.example` → `.dev.vars` and fill in secrets
+1. Copy `.dev.vars.example` → `.dev.vars`
 2. `pnpm install`
 3. `pnpm db:migrate:local` (apply D1 schema locally)
 4. `pnpm db:seed:local` (load Wongsuriya demo data)
 5. `pnpm dev`
 
-Set `EMAIL_DEV_STUB=1` in `.dev.vars` to log magic links to console instead of sending real emails.
+## Security
 
-## Plan
-
-See `instruction/work/plan.md` for full architecture, data model, API surface, and implementation roadmap.
+- Threat model and findings: `instruction/security-review.md`
+- Remediation plan: `instruction/work/plan.md`
+- Previous build baseline: `instruction/archive/01-heritage-initial-build/`

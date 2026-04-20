@@ -95,24 +95,6 @@ export function Landing() {
           ดู demo tree
         </Link>
 
-        <Link
-          to="/login"
-          style={{
-            padding: '0.65rem 1.5rem',
-            borderRadius: '6px',
-            border: '1.5px solid var(--ink, #2a1f14)',
-            color: 'var(--ink, #2a1f14)',
-            textDecoration: 'none',
-            fontWeight: 500,
-            fontSize: '0.95rem',
-            transition: 'opacity 0.15s',
-            background: 'transparent',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-        >
-          เริ่ม tree ของคุณ
-        </Link>
       </div>
     </div>
   );

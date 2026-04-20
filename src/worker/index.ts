@@ -6,18 +6,13 @@
  * this routing deterministic even when the asset path matches.
  *
  * Middleware order is significant:
- *   1. dbMiddleware      — every request gets c.var.db
- *   2. sessionMiddleware — opportunistically populates c.var.user
- *   3. csrf              — guards mutation verbs on /api/*
- *   4. route handlers
+ *   1. dbMiddleware — every request gets c.var.db
+ *   2. route handlers
  */
 import { Hono } from 'hono';
-import { auth } from './routes/auth';
 import { treeRouter } from './routes/tree';
-import uploadRouter from './routes/upload';
 import imgRouter from './routes/img';
-import { csrf } from './middleware/csrf';
-import { dbMiddleware, sessionMiddleware } from './middleware/session';
+import { dbMiddleware } from './middleware/db';
 import type { Env, HonoEnv } from './types';
 
 export type { Env } from './types';
@@ -25,14 +20,10 @@ export type { Env } from './types';
 const app = new Hono<HonoEnv>();
 
 app.use('*', dbMiddleware);
-app.use('*', sessionMiddleware);
-app.use('/api/*', csrf);
 
 app.get('/api/health', (c) => c.json({ ok: true, name: 'heritage', ts: Date.now() }));
 
-app.route('/api/auth', auth);
 app.route('/api/tree', treeRouter);
-app.route('/api/upload', uploadRouter);
 app.route('/api/img', imgRouter);
 
 export default {

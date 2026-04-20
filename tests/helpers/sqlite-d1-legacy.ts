@@ -194,11 +194,7 @@ export function buildMockEnv(overrides?: {
       DB: {} as D1Database,
       PHOTOS: r2 as unknown as R2Bucket,
       KV_RL: kv as unknown as KVNamespace,
-      EMAIL: {} as SendEmail,
       APP_URL: 'http://localhost:8787',
-      EMAIL_FROM: 'test@example.com',
-      EMAIL_DEV_STUB: '1',
-      SESSION_SECRET: 'test-session-secret-for-tests-only',
     },
   };
 }

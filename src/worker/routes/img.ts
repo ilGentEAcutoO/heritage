@@ -1,22 +1,20 @@
 /**
- * Gated image proxy:
- *   GET /api/img/*  — serve R2 object; gated by tree visibility / auth
+ * Image proxy:
+ *   GET /api/img/*  — serve R2 object; gated by tree visibility
  *
  * Access rules:
- *   - If photo's tree is_public → serve to anyone (with KV rate-limit)
- *   - Else → require valid session with tree membership
+ *   - If photo's tree is_public → serve (with KV rate-limit)
+ *   - Else → 403 (auth has been removed; private trees are inaccessible)
  *
  * Key is the full path after /api/img/ (may contain slashes, e.g. photos/abc/XYZ.jpg).
  *
  * Cache headers:
  *   - Public tree:   Cache-Control: public, max-age=86400
- *   - Authed access: Cache-Control: private, max-age=3600
  */
 
 import { Hono } from 'hono';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { HonoEnv } from '../types';
-import { sessionMiddleware } from '../middleware/session';
 import { schema } from '../../db/client';
 
 // ---------------------------------------------------------------------------
@@ -44,9 +42,6 @@ async function checkPublicRateLimit(
 // ---------------------------------------------------------------------------
 
 const img = new Hono<HonoEnv>();
-
-// Optionally load session (but don't require it — anon may access public trees)
-img.use('*', sessionMiddleware);
 
 /**
  * GET /api/img/:key{.+}
@@ -95,33 +90,15 @@ img.get('/:key{.+}', async (c) => {
     return c.json({ error: 'not_found' }, 404);
   }
 
-  const isPublic = tree.is_public;
+  if (!tree.is_public) {
+    return c.json({ error: 'forbidden' }, 403);
+  }
 
-  if (isPublic) {
-    // Rate-limit public access by IP
-    const ip = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';
-    const allowed = await checkPublicRateLimit(c.env.KV_RL, ip);
-    if (!allowed) {
-      return c.json({ error: 'rate_limited' }, 429);
-    }
-  } else {
-    // Private tree: require auth + membership
-    const user = c.var.user;
-    if (!user) {
-      return c.json({ error: 'unauthenticated' }, 401);
-    }
-
-    const membership = await db.query.tree_members.findFirst({
-      where: and(
-        eq(schema.tree_members.tree_id, tree.id),
-        eq(schema.tree_members.user_id, user.id),
-      ),
-      columns: { role: true },
-    });
-
-    if (!membership) {
-      return c.json({ error: 'forbidden' }, 403);
-    }
+  // Rate-limit public access by IP
+  const ip = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';
+  const allowed = await checkPublicRateLimit(c.env.KV_RL, ip);
+  if (!allowed) {
+    return c.json({ error: 'rate_limited' }, 429);
   }
 
   // Fetch from R2
@@ -130,7 +107,6 @@ img.get('/:key{.+}', async (c) => {
     return c.json({ error: 'not_found' }, 404);
   }
 
-  const cacheControl = isPublic ? 'public, max-age=86400' : 'private, max-age=3600';
   const mime = photo.mime ?? 'application/octet-stream';
   const etag = obj.httpEtag;
 
@@ -138,7 +114,7 @@ img.get('/:key{.+}', async (c) => {
     status: 200,
     headers: {
       'Content-Type': mime,
-      'Cache-Control': cacheControl,
+      'Cache-Control': 'public, max-age=86400',
       ...(etag ? { ETag: etag } : {}),
     },
   });
