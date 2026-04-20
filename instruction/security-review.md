@@ -429,6 +429,23 @@ frame-ancestors 'none';
 
 ---
 
+## Low-severity remediation status (PR-1 / PR-3 / PR-4)
+
+| ID  | Finding | Status |
+|-----|---------|--------|
+| L1  | Weak user-enumeration timing signal on `/auth/request` | **deferred** — weak signal, low exploitability; consider later |
+| L2  | `Number(relId)` returns 500 instead of 400 | **obsolete** — relations route deleted in PR-1 |
+| L3  | Raw R2 error messages leak via response | **obsolete** — upload route deleted in PR-1 |
+| L4  | `PersonInput` string fields unbounded | **obsolete** — `PersonInputSchema` and shared schemas deleted in PR-1 |
+| L5  | `credentials: 'include'` unconditional | **documented** — invariant comment added above `api<T>()` in `src/app/lib/api.ts` |
+| L6  | `multipart/form-data` wrapper mismatch risk | **obsolete** — `uploadPhoto` and the upload route deleted in PR-1 |
+| L7  | Invite-code format in test fixture | **obsolete** — login / fixture approach aborted; no action per user decision |
+| L8  | Future-dated `compatibility_date` | **documented** — explanatory comment added to `wrangler.jsonc` |
+| L9  | `drizzle/seed.sql` not in `.gitignore` | **fixed** — `drizzle/seed.sql` added to `.gitignore` in PR-1 |
+| L10 | `img.ts` rate-limit double read of KV on miss | **fixed** — addressed inside PR-2 `img.ts` hardening |
+
+---
+
 ## Methodology
 
 This audit was performed by four specialized sub-agents working in parallel:

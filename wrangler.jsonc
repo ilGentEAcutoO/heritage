@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "heritage-worker-api",
   "main": "./src/worker/index.ts",
-  "compatibility_date": "2026-04-01",
+  "compatibility_date": "2026-04-01", // intentionally future-dated to match the workerd version pinned in wrangler@4.x — update when upgrading wrangler
   "compatibility_flags": ["nodejs_compat"],
   "account_id": "a24ce30584273b42333051f1cdec48e2",
 

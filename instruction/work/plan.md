@@ -136,7 +136,7 @@ Per decision #7, these tests must exist as **failing** tests before implementati
 - `photos.object_key/mime/bytes` notNull (M9):
   - Drizzle migration test: inserting with `mime = null` fails
 - CF ID scrub (M16):
-  - CI grep: `grep -r "a24ce30584273b42" README.md instruction/` must be empty
+  - CI grep over README.md, CLAUDE.md, instruction/work/ must find no CF resource IDs
 - `.playwright-mcp/` gitignored (M17):
   - CI: `git check-ignore .playwright-mcp/foo` must succeed
 

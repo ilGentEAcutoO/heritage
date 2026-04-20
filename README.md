@@ -31,6 +31,15 @@ pnpm dev
 
 All mutation and authentication endpoints have been removed.
 
+## Threat model & scope
+
+- Read-only public tree viewer; no user data is collected; no authentication layer.
+- Attack surface: three GET endpoints (`/api/health`, `/api/tree/:slug`, `/api/img/:key`) plus the static SPA.
+- Security posture documented in `instruction/security-review.md` (post-remediation audit) and `instruction/work/plan.md`.
+- Dependency CVEs gated by CI via `pnpm audit --prod`; see `.github/workflows/ci.yml`.
+
+For responsible disclosure, see [SECURITY.md](./SECURITY.md).
+
 ## Cloudflare Resources
 
 Resource IDs and bindings are declared in `wrangler.jsonc` (the authoritative source). Custom domain: `heritage.jairukchan.com`.
@@ -61,6 +70,8 @@ Resource IDs and bindings are declared in `wrangler.jsonc` (the authoritative so
 After install, husky runs a pre-commit guard that blocks build artefacts (`dist/`, `.wrangler/`, `.playwright-mcp/`).
 
 ## Security
+
+See [SECURITY.md](./SECURITY.md) for the responsible disclosure process, threat model summary, and current controls.
 
 - Threat model and findings: `instruction/security-review.md`
 - Remediation plan: `instruction/work/plan.md`

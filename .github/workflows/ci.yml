@@ -1,0 +1,38 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: pnpm audit (prod)
+        run: pnpm audit --prod
+      - name: Block CF resource IDs in docs
+        run: |
+          if grep -rE "a24ce30584273b42|3ef17b93-e7ff-4631|d3a23a837d0a486d" \
+              README.md CLAUDE.md instruction/work/ 2>/dev/null; then
+            echo "CF resource IDs must not appear in docs. See wrangler.jsonc."
+            exit 1
+          fi
+      - name: Block stale secret/binding names in types
+        run: |
+          if grep -E "SESSION_SECRET|R2_ACCESS_KEY_ID|R2_SECRET_ACCESS_KEY" worker-configuration.d.ts; then
+            echo "Stale auth/R2 bindings leaked into worker-configuration.d.ts."
+            exit 1
+          fi

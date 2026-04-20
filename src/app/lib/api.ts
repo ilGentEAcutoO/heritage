@@ -77,6 +77,9 @@ export interface ApiTreeResponse {
 // Core fetch wrapper
 // ---------------------------------------------------------------------------
 
+// credentials: 'include' is safe because every API URL in this client is
+// same-origin (relative path). If you ever pass an absolute URL, audit the
+// cookie-leak risk first.
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     credentials: 'include',
