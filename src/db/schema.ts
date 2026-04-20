@@ -143,9 +143,9 @@ export const photos = sqliteTable('photos', {
   person_id: text('person_id')
     .notNull()
     .references(() => people.id, { onDelete: 'cascade' }),
-  object_key: text('object_key'),
-  mime: text('mime'),
-  bytes: integer('bytes'),
+  object_key: text('object_key').notNull(),
+  mime: text('mime').notNull(),
+  bytes: integer('bytes').notNull(),
   uploaded_by: text('uploaded_by').references(() => users.id),
   created_at: integer('created_at', { mode: 'timestamp' })
     .notNull()

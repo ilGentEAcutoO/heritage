@@ -185,9 +185,9 @@ const INLINE_DDL = `
   CREATE TABLE IF NOT EXISTS photos (
     id TEXT PRIMARY KEY,
     person_id TEXT NOT NULL REFERENCES people(id) ON DELETE CASCADE,
-    object_key TEXT,
-    mime TEXT,
-    bytes INTEGER,
+    object_key TEXT NOT NULL,
+    mime TEXT NOT NULL,
+    bytes INTEGER NOT NULL,
     uploaded_by TEXT REFERENCES users(id),
     created_at INTEGER NOT NULL DEFAULT (unixepoch())
   );

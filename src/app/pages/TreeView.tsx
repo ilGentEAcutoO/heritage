@@ -8,7 +8,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 
 import { useTree } from '@app/hooks/useTree';
 import { useTweaks } from '@app/hooks/useTweaks';
@@ -139,8 +139,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   }
 
   if (error || !data) {
-    const is403 = error?.status === 403;
-    const is404 = error?.status === 404;
+    const is404 = !error || error.status === 404;
     return (
       <div
         style={{
@@ -151,19 +150,47 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           justifyContent: 'center',
           fontFamily: 'Sarabun, serif',
           background: 'var(--bg, #faf8f4)',
-          gap: '0.75rem',
+          color: 'var(--ink, #2a1f14)',
+          gap: '1rem',
+          padding: '2rem',
+          textAlign: 'center',
         }}
       >
-        <p style={{ opacity: 0.6 }}>
-          {is403
-            ? 'คุณไม่มีสิทธิ์เข้าถึง tree นี้'
-            : is404
-            ? 'ไม่พบ tree นี้'
-            : 'เกิดข้อผิดพลาดในการโหลดข้อมูล'}
+        <h1
+          style={{
+            fontFamily: 'Cormorant Garamond, serif',
+            fontSize: '2rem',
+            fontWeight: 600,
+            margin: 0,
+          }}
+        >
+          ต้นไม้ไม่พบ / Tree not found
+        </h1>
+        <p style={{ margin: 0, opacity: 0.6, fontSize: '1rem', maxWidth: '360px' }}>
+          {is404
+            ? 'ไม่พบต้นไม้ที่ขอ — ลองดูตัวอย่างต้นไม้วงศ์สุริยะได้เลย'
+            : 'เกิดข้อผิดพลาดในการโหลดข้อมูล — ลองดูตัวอย่างต้นไม้วงศ์สุริยะได้เลย'}
         </p>
-        <a href="/" style={{ color: 'var(--leaf, #6b8f5e)' }}>
+        <Link
+          to="/demo/wongsuriya"
+          style={{
+            padding: '0.65rem 1.5rem',
+            borderRadius: '6px',
+            background: 'var(--leaf, #6b8f5e)',
+            color: '#fff',
+            textDecoration: 'none',
+            fontWeight: 500,
+            fontSize: '0.95rem',
+          }}
+        >
+          ดู demo tree → วงศ์สุริยะ
+        </Link>
+        <Link
+          to="/"
+          style={{ color: 'var(--leaf, #6b8f5e)', fontSize: '0.9rem', opacity: 0.8 }}
+        >
           กลับหน้าหลัก
-        </a>
+        </Link>
       </div>
     );
   }

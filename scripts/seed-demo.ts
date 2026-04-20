@@ -19,7 +19,53 @@
 import { execFileSync } from 'child_process';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { createInterface } from 'node:readline/promises';
 import { newId } from '../src/worker/lib/ids';
+
+// ---------------------------------------------------------------------------
+// Production guard — exported for unit tests
+// ---------------------------------------------------------------------------
+
+/**
+ * Enforces explicit consent before seeding production D1.
+ *
+ * @param argv   - process.argv-like array
+ * @param env    - process.env-like record
+ * @param isTTY  - whether stdin is a real terminal
+ * @param prompt - async function that prints a question and returns user input;
+ *                 callers may inject a mock for tests
+ */
+export async function assertRemoteConsent(
+  argv: string[],
+  env: Record<string, string | undefined>,
+  isTTY: boolean,
+  prompt: (question: string) => Promise<string>,
+): Promise<void> {
+  if (!argv.includes('--remote')) return; // local path — no guard needed
+
+  // Fast path: CONFIRM env var already set
+  if (env['CONFIRM'] === 'yes') return;
+
+  // Non-interactive: no TTY and no env var → abort immediately
+  if (!isTTY) {
+    console.error(
+      'Refusing to seed production. Set CONFIRM=yes or answer yes at the prompt.',
+    );
+    process.exit(1);
+  }
+
+  // Interactive: ask the operator
+  console.warn(
+    '\n⚠️  You are about to seed PRODUCTION D1 with demo data. This will OVERWRITE existing rows.\n',
+  );
+  const answer = await prompt('Are you sure? (yes/NO): ');
+  if (answer !== 'yes') {
+    console.error(
+      'Refusing to seed production. Set CONFIRM=yes or answer yes at the prompt.',
+    );
+    process.exit(1);
+  }
+}
 
 const isRemote = process.argv.includes('--remote');
 const flag = isRemote ? '--remote' : '--local';
@@ -251,6 +297,23 @@ function buildSeedSql(): string {
 
 const projectRoot = new URL('..', import.meta.url).pathname;
 const sqlPath = join(projectRoot, 'drizzle', 'seed.sql');
+
+// Build a readline prompt backed by real stdin/stdout
+async function readlinePrompt(question: string): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await rl.question(question);
+  } finally {
+    rl.close();
+  }
+}
+
+await assertRemoteConsent(
+  process.argv,
+  process.env as Record<string, string | undefined>,
+  Boolean(process.stdin.isTTY),
+  readlinePrompt,
+);
 
 // Ensure drizzle dir exists
 mkdirSync(join(projectRoot, 'drizzle'), { recursive: true });

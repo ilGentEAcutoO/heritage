@@ -12,10 +12,12 @@
  */
 
 import { useState, useMemo, useRef } from 'react';
+import { z } from 'zod';
 import type { TreeData } from '@app/lib/types';
 import { layoutTree, branchPath, toLayoutPerson } from '@app/lib/layout';
 import type { LayoutPerson, Lineage as LayoutLineage } from '@app/lib/layout';
 import { computeRelation } from '@app/lib/kinship';
+import { readLocal, writeLocal } from '@app/lib/storage';
 import { PersonNode } from './PersonNode';
 import { LineageNode } from './LineageNode';
 
@@ -58,6 +60,9 @@ interface PanDragState {
 
 type Overrides = Record<string, { dx: number; dy: number }>;
 
+const OVERRIDES_KEY = 'heritage-node-overrides';
+const OverridesSchema = z.record(z.string(), z.object({ dx: z.number(), dy: z.number() }));
+
 // ────────────────────────────────────────────────────────────────────────────
 // Component
 // ────────────────────────────────────────────────────────────────────────────
@@ -98,15 +103,9 @@ export function TreeCanvas({
   const [nodeDrag, setNodeDrag] = useState<NodeDragState | null>(null);
 
   // ── Position overrides (persisted) ────────────────────────────────────────
-  const [overrides, setOverrides] = useState<Overrides>(() => {
-    try {
-      return JSON.parse(
-        localStorage.getItem('heritage-node-overrides') || '{}',
-      ) as Overrides;
-    } catch {
-      return {};
-    }
-  });
+  const [overrides, setOverrides] = useState<Overrides>(
+    () => readLocal(OVERRIDES_KEY, OverridesSchema) ?? {},
+  );
 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -123,11 +122,7 @@ export function TreeCanvas({
   // ── Save overrides helper ─────────────────────────────────────────────────
   const saveOverrides = (next: Overrides) => {
     setOverrides(next);
-    try {
-      localStorage.setItem('heritage-node-overrides', JSON.stringify(next));
-    } catch {
-      // ignore storage errors (e.g. private browsing quota)
-    }
+    writeLocal(OVERRIDES_KEY, next, OverridesSchema);
   };
 
   // ── Event handlers ────────────────────────────────────────────────────────
@@ -177,11 +172,7 @@ export function TreeCanvas({
       if (nodeDrag.moved) {
         // Persist final overrides state after React commits
         setOverrides(cur => {
-          try {
-            localStorage.setItem('heritage-node-overrides', JSON.stringify(cur));
-          } catch {
-            // ignore
-          }
+          writeLocal(OVERRIDES_KEY, cur, OverridesSchema);
           return cur;
         });
       }

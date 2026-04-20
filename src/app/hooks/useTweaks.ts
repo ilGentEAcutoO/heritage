@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
+import { readLocal } from '@app/lib/storage';
 
 const STORAGE_KEY = 'heritage-tweaks';
 
@@ -29,19 +30,7 @@ const DEFAULTS: Tweaks = {
 };
 
 export function loadFromStorage(): Tweaks {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULTS;
-    const parsed: unknown = JSON.parse(raw);
-    const result = TweaksSchema.safeParse(parsed);
-    if (!result.success) {
-      localStorage.removeItem(STORAGE_KEY);
-      return DEFAULTS;
-    }
-    return result.data;
-  } catch {
-    return DEFAULTS;
-  }
+  return readLocal(STORAGE_KEY, TweaksSchema) ?? DEFAULTS;
 }
 
 export function loadFromWindowDefaults(): Tweaks | null {

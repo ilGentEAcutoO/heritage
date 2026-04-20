@@ -126,9 +126,9 @@ export class KVNamespaceStub {
 export interface PhotoRecord {
   id: string;
   person_id: string;
-  object_key: string | null;
-  mime: string | null;
-  bytes: number | null;
+  object_key: string;
+  mime: string;
+  bytes: number;
   uploaded_by: string | null;
   created_at: Date;
 }
