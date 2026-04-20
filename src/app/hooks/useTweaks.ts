@@ -1,10 +1,10 @@
 /**
  * useTweaks — localStorage-backed theme/nodeShape/showTrunk settings.
  * Syncs theme classes to document.body.
- * Handles postMessage edit-mode protocol from prototype.
  */
 
 import { useState, useEffect } from 'react';
+import { z } from 'zod';
 
 const STORAGE_KEY = 'heritage-tweaks';
 
@@ -14,24 +14,45 @@ export interface Tweaks {
   showTrunk: boolean;
 }
 
+export const TweaksSchema = z
+  .object({
+    theme: z.enum(['paper', 'forest', 'blueprint']),
+    nodeShape: z.enum(['circle', 'polaroid', 'square']),
+    showTrunk: z.boolean(),
+  })
+  .strict();
+
 const DEFAULTS: Tweaks = {
   theme: 'paper',
   nodeShape: 'circle',
   showTrunk: true,
 };
 
-function loadFromStorage(): Tweaks {
+export function loadFromStorage(): Tweaks {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULTS;
-    const parsed = JSON.parse(raw) as Partial<Tweaks>;
-    return {
-      theme: parsed.theme ?? DEFAULTS.theme,
-      nodeShape: parsed.nodeShape ?? DEFAULTS.nodeShape,
-      showTrunk: parsed.showTrunk ?? DEFAULTS.showTrunk,
-    };
+    const parsed: unknown = JSON.parse(raw);
+    const result = TweaksSchema.safeParse(parsed);
+    if (!result.success) {
+      localStorage.removeItem(STORAGE_KEY);
+      return DEFAULTS;
+    }
+    return result.data;
   } catch {
     return DEFAULTS;
+  }
+}
+
+export function loadFromWindowDefaults(): Tweaks | null {
+  try {
+    const win = window as unknown as { TWEAK_DEFAULTS?: unknown };
+    if (!win.TWEAK_DEFAULTS) return null;
+    const result = TweaksSchema.safeParse(win.TWEAK_DEFAULTS);
+    if (!result.success) return null;
+    return result.data;
+  } catch {
+    return null;
   }
 }
 
@@ -53,16 +74,9 @@ export function useTweaks(): UseTweaksResult {
   const [tweaks, setTweaksState] = useState<Tweaks>(() => {
     // Server-side guard (should not happen in Vite/browser context)
     if (typeof window === 'undefined') return DEFAULTS;
-    // Prefer window.TWEAK_DEFAULTS injected by prototype HTML, then localStorage
-    const win = window as unknown as { TWEAK_DEFAULTS?: Partial<Tweaks> };
-    const fromWindow = win.TWEAK_DEFAULTS;
-    if (fromWindow) {
-      return {
-        theme: fromWindow.theme ?? DEFAULTS.theme,
-        nodeShape: fromWindow.nodeShape ?? DEFAULTS.nodeShape,
-        showTrunk: fromWindow.showTrunk ?? DEFAULTS.showTrunk,
-      };
-    }
+    // Prefer window.TWEAK_DEFAULTS injected by host page, validated via Zod
+    const fromWindow = loadFromWindowDefaults();
+    if (fromWindow) return fromWindow;
     return loadFromStorage();
   });
 
@@ -76,30 +90,10 @@ export function useTweaks(): UseTweaksResult {
     }
   }, [tweaks]);
 
-  // Edit-mode postMessage protocol (preserved from prototype; no-op in production)
-  useEffect(() => {
-    const onMsg = (e: MessageEvent) => {
-      const d = e.data as { type?: string; edits?: Partial<Tweaks> } | null;
-      if (!d) return;
-      if (d.type === '__activate_edit_mode') {
-        // handled externally via tweaksOpen state in TreeView
-      }
-    };
-    window.addEventListener('message', onMsg);
-    // Announce availability to parent frame (design-tool iframe protocol)
-    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-    return () => window.removeEventListener('message', onMsg);
-  }, []);
-
   const setTweaks = (t: Tweaks) => setTweaksState(t);
 
   const updateTweak = <K extends keyof Tweaks>(key: K, value: Tweaks[K]) => {
-    setTweaksState((prev) => {
-      const next = { ...prev, [key]: value };
-      // Notify parent frame (design-tool protocol)
-      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: value } }, '*');
-      return next;
-    });
+    setTweaksState((prev) => ({ ...prev, [key]: value }));
   };
 
   return { tweaks, updateTweak, setTweaks };

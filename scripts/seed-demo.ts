@@ -8,11 +8,18 @@
  *
  * Strategy: generates drizzle/seed.sql then runs
  *   wrangler d1 execute heritage-d1-main [--local|--remote] --file=drizzle/seed.sql
+ *
+ * R2 key layout: photos/{treeId}/{personId}/{ULID}.{jpg|jpeg|png|webp}
+ *   treeId    — lowercase alphanumeric + dash (e.g. "tree-wongsuriya")
+ *   personId  — lowercase alphanumeric + dash (e.g. "p1")
+ *   ULID      — 26-char uppercase Crockford base32 (e.g. "01HXYZ...")
+ *   ext       — jpg | jpeg | png | webp
  */
 
 import { execFileSync } from 'child_process';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { newId } from '../src/worker/lib/ids';
 
 const isRemote = process.argv.includes('--remote');
 const flag = isRemote ? '--remote' : '--local';
@@ -179,9 +186,11 @@ function buildSeedSql(): string {
   ];
 
   for (const p of PEOPLE) {
+    // R2 key: photos/{treeId}/{personId}/{ULID}.jpg
+    const avatarKey = `photos/${TREE_ID}/${p.id}/${newId()}.jpg`;
     lines.push(
       `INSERT OR IGNORE INTO people (id, tree_id, name, name_en, nick, born, died, gender, hometown, is_me, external, avatar_key) VALUES ` +
-      `(${esc(p.id)}, ${esc(TREE_ID)}, ${esc(p.name)}, ${esc(p.name_en)}, ${esc(p.nick)}, ${esc(p.born)}, ${esc(p.died)}, ${esc(p.gender)}, ${esc(p.hometown)}, ${p.is_me}, ${p.external}, NULL);`,
+      `(${esc(p.id)}, ${esc(TREE_ID)}, ${esc(p.name)}, ${esc(p.name_en)}, ${esc(p.nick)}, ${esc(p.born)}, ${esc(p.died)}, ${esc(p.gender)}, ${esc(p.hometown)}, ${p.is_me}, ${p.external}, ${esc(avatarKey)});`,
     );
   }
   lines.push('');

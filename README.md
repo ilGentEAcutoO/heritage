@@ -58,6 +58,8 @@ Resource IDs and bindings are declared in `wrangler.jsonc` (the authoritative so
 4. `pnpm db:seed:local` (load Wongsuriya demo data)
 5. `pnpm dev`
 
+After install, husky runs a pre-commit guard that blocks build artefacts (`dist/`, `.wrangler/`, `.playwright-mcp/`).
+
 ## Security
 
 - Threat model and findings: `instruction/security-review.md`

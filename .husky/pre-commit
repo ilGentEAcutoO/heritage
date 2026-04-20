@@ -1,0 +1,20 @@
+#!/bin/sh
+# Pre-commit hook: block build/dev artefacts from being staged.
+# Husky v9 runs hooks with `sh -e`, so `grep` with no match (exit 1) would
+# kill the script before the check — hence the `|| true` to allow an empty match.
+# This guard covers paths that slip past .gitignore (e.g. force-added files).
+
+blocked=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(dist|\.wrangler|\.playwright-mcp)/' || true)
+
+if [ -n "$blocked" ]; then
+  echo ""
+  echo "ERROR: Attempt to commit build/dev artefacts — commit aborted."
+  echo "The following staged paths are not allowed:"
+  echo "$blocked" | sed 's/^/  /'
+  echo ""
+  echo "Remove them from staging with: git reset HEAD <file>"
+  echo ""
+  exit 1
+fi
+
+exit 0
