@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@oslojs/crypto": "^1",
-    "drizzle-orm": "^0.36",
+    "drizzle-orm": "^0.45",
     "hono": "^4",
     "react": "^18.3",
     "react-dom": "^18.3",
@@ -39,7 +39,7 @@
     "drizzle-kit": "^0.27",
     "tsx": "^4.21.0",
     "typescript": "^5.4",
-    "vite": "^6.1",
+    "vite": "^7.3",
     "vitest": "^2",
     "wrangler": "^4.34"
   },
