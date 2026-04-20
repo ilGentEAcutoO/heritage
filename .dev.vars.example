@@ -1,0 +1,12 @@
+# Copy to .dev.vars for `wrangler dev` secret injection
+# Session signing (generate: openssl rand -hex 32)
+SESSION_SECRET=replace-me-generate-with-openssl-rand-hex-32
+
+# APP_URL override for local dev — CSRF middleware compares the request Origin
+# against this value, and the magic-link builder embeds it in emails.
+# Must match the origin your browser hits (vite dev defaults to port 5173).
+APP_URL=http://localhost:5173
+
+# Set to 1 to log magic links to console instead of sending via CF Email Service.
+# Useful for local dev before Workers Paid is enabled or domain is onboarded.
+EMAIL_DEV_STUB=1
