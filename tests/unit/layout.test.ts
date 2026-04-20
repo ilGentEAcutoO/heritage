@@ -361,3 +361,23 @@ describe('toLayoutPerson', () => {
     expect(result!.nick).toBe('p66');
   });
 });
+
+// ---------------------------------------------------------------------------
+// describe('layoutBaseTree — mutual-spouse cycle safety')
+// ---------------------------------------------------------------------------
+
+describe('layoutBaseTree — mutual-spouse cycle safety', () => {
+  test('does not stack-overflow on mutual spouseOf with no parents', () => {
+    // Regression: p1.spouseOf=p2 and p2.spouseOf=p1 with neither having parents
+    // used to recurse depth(p1) -> depth(p2) -> depth(p1) -> ...
+    const mutual = [
+      { id: 'p1', nick: 'A', born: 1900, died: null, gender: 'm' as const, spouseOf: 'p2' },
+      { id: 'p2', nick: 'B', born: 1900, died: null, gender: 'f' as const, spouseOf: 'p1' },
+    ].map(toLayoutPerson).filter((p): p is NonNullable<typeof p> => p !== null);
+
+    expect(() => layoutBaseTree(mutual)).not.toThrow();
+    const { positions } = layoutBaseTree(mutual);
+    expect(positions.p1).toBeDefined();
+    expect(positions.p2).toBeDefined();
+  });
+});

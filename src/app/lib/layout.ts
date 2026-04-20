@@ -121,22 +121,33 @@ export function layoutBaseTree(people: LayoutPerson[]): BaseTreeResult {
   const byGen: LayoutPerson[][] = [[], [], [], []];
   const idToPerson = Object.fromEntries(people.map(p => [p.id, p]));
 
-  // Compute generation depth = longest parent chain
+  // Compute generation depth = longest parent chain.
+  // `visiting` guards the spouseOf fallback against mutual-spouse cycles
+  // (e.g. p1.spouseOf=p2 AND p2.spouseOf=p1 with neither having parents) —
+  // without it, depth(p1) would recurse into depth(p2) which recurses back
+  // into depth(p1) and blow the call stack.
   const depthCache: Record<string, number> = {};
+  const visiting = new Set<string>();
   function depth(p: LayoutPerson): number {
     if (p.id in depthCache) return depthCache[p.id];
-    if (!p.parents || p.parents.length === 0) {
-      // Spouse inherits from partner
-      if (p.spouseOf && idToPerson[p.spouseOf]) {
-        depthCache[p.id] = depth(idToPerson[p.spouseOf]);
-        return depthCache[p.id];
+    if (visiting.has(p.id)) return 0;
+    visiting.add(p.id);
+    try {
+      if (!p.parents || p.parents.length === 0) {
+        // Spouse inherits from partner (bounded by visiting set above)
+        if (p.spouseOf && idToPerson[p.spouseOf]) {
+          depthCache[p.id] = depth(idToPerson[p.spouseOf]);
+          return depthCache[p.id];
+        }
+        depthCache[p.id] = 0;
+        return 0;
       }
-      depthCache[p.id] = 0;
-      return 0;
+      const parentDepths = p.parents.map(pid => idToPerson[pid] ? depth(idToPerson[pid]) : 0);
+      depthCache[p.id] = 1 + Math.max(...parentDepths);
+      return depthCache[p.id];
+    } finally {
+      visiting.delete(p.id);
     }
-    const parentDepths = p.parents.map(pid => idToPerson[pid] ? depth(idToPerson[pid]) : 0);
-    depthCache[p.id] = 1 + Math.max(...parentDepths);
-    return depthCache[p.id];
   }
 
   const depths: Record<string, number> = {};
