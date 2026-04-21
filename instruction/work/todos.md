@@ -1,6 +1,6 @@
 # Active Tasks
 
-> Last updated: 2026-04-21 10:55 (+07)
+> Last updated: 2026-04-21 13:27 (+07)
 
 No active feature work. Prior session archived at
 `instruction/archive/02-security-remediation-login-removal/`.
@@ -32,6 +32,14 @@ No active feature work. Prior session archived at
   silently polluting local D1 on dev boxes. After: main runs only under
   CLI invocation; imports are pure.
 - Local `pnpm typecheck` + `pnpm test` (13 files, 161 tests) both green.
+- **Fix 3** `worker-configuration.d.ts`: cleaned local `.dev.vars` to match
+  `.dev.vars.example` (APP_URL only) and regenerated with `pnpm cf-typegen`.
+  The Env interface had been carrying `SESSION_SECRET`, `R2_ACCOUNT_ID`,
+  `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `EMAIL_DEV_STUB` as stale
+  drift from the pre-login-removal state — CI's "Block stale secret/binding
+  names" gate correctly caught it. Remote `SESSION_SECRET` secret is
+  preserved (cleanup of remote is a separate prod decision).
+- **Final CI run (`24707531734`): all steps green, 26s.** ✅
 
 Start a new session with `/workflow-plan` (for a new feature/task) or
 `/workflow-todo` (to resume an in-flight plan if one exists).
