@@ -1,6 +1,6 @@
 # Active Tasks
 
-> Last updated: 2026-04-21 13:27 (+07)
+> Last updated: 2026-04-21 13:33 (+07)
 
 No active feature work. Prior session archived at
 `instruction/archive/02-security-remediation-login-removal/`.
@@ -40,6 +40,11 @@ No active feature work. Prior session archived at
   names" gate correctly caught it. Remote `SESSION_SECRET` secret is
   preserved (cleanup of remote is a separate prod decision).
 - **Final CI run (`24707531734`): all steps green, 26s.** ✅
+- **Remote secret cleanup**: ran `pnpm wrangler secret delete SESSION_SECRET`
+  to retire the dead auth secret from the `heritage-worker-api` Worker.
+  `wrangler secret list` now returns `[]`; `https://heritage.jairukchan.com/`
+  still returns HTTP 200 (smoke check). Worker Env surface now matches
+  deployed binding set 1:1.
 
 Start a new session with `/workflow-plan` (for a new feature/task) or
 `/workflow-todo` (to resume an in-flight plan if one exists).
