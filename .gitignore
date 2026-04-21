@@ -9,3 +9,7 @@ coverage/
 .playwright-mcp/
 drizzle/seed.sql
 *.tsbuildinfo
+
+# Agent scratch space — content ignored, folder preserved via .gitkeep
+agent-temp/*
+!agent-temp/.gitkeep
