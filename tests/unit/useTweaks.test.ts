@@ -159,21 +159,20 @@ describe('loadFromWindowDefaults — validation', () => {
 });
 
 describe('useTweaks source — postMessage and listener removal verification', () => {
+  // Resolve relative to this test file so the path works on any checkout
+  // (dev machine, CI runner, teammate's laptop). import.meta.url is the
+  // file URL of THIS test; useTweaks.ts sits two levels up in src/app/hooks.
+  const USE_TWEAKS_URL = new URL('../../src/app/hooks/useTweaks.ts', import.meta.url);
+
   test('useTweaks module source contains no postMessage calls', async () => {
     const fs = await import('node:fs');
-    const src = fs.readFileSync(
-      '/Users/suansinphut/jairukchan/heritage/src/app/hooks/useTweaks.ts',
-      'utf8',
-    );
+    const src = fs.readFileSync(USE_TWEAKS_URL, 'utf8');
     expect(src).not.toContain('postMessage');
   });
 
   test('useTweaks module source contains no window.addEventListener("message",...) calls', async () => {
     const fs = await import('node:fs');
-    const src = fs.readFileSync(
-      '/Users/suansinphut/jairukchan/heritage/src/app/hooks/useTweaks.ts',
-      'utf8',
-    );
+    const src = fs.readFileSync(USE_TWEAKS_URL, 'utf8');
     expect(src).not.toContain("addEventListener('message'");
     expect(src).not.toContain('addEventListener("message"');
   });

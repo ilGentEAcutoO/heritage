@@ -18,7 +18,8 @@
 
 import { execFileSync } from 'child_process';
 import { writeFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
+import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline/promises';
 import { newId } from '../src/worker/lib/ids';
 
@@ -308,23 +309,33 @@ async function readlinePrompt(question: string): Promise<string> {
   }
 }
 
-await assertRemoteConsent(
-  process.argv,
-  process.env as Record<string, string | undefined>,
-  Boolean(process.stdin.isTTY),
-  readlinePrompt,
-);
+async function main(): Promise<void> {
+  await assertRemoteConsent(
+    process.argv,
+    process.env as Record<string, string | undefined>,
+    Boolean(process.stdin.isTTY),
+    readlinePrompt,
+  );
 
-// Ensure drizzle dir exists
-mkdirSync(join(projectRoot, 'drizzle'), { recursive: true });
+  // Ensure drizzle dir exists
+  mkdirSync(join(projectRoot, 'drizzle'), { recursive: true });
 
-const sql = buildSeedSql();
-writeFileSync(sqlPath, sql, 'utf8');
-console.log(`[seed] Written SQL to ${sqlPath}`);
+  const sql = buildSeedSql();
+  writeFileSync(sqlPath, sql, 'utf8');
+  console.log(`[seed] Written SQL to ${sqlPath}`);
 
-// Use execFileSync with array args (no shell injection possible — all args are constants)
-const args = ['d1', 'execute', DB_NAME, flag, `--file=${sqlPath}`];
-console.log(`[seed] Running: pnpm wrangler ${args.join(' ')}`);
+  // Use execFileSync with array args (no shell injection possible — all args are constants)
+  const args = ['d1', 'execute', DB_NAME, flag, `--file=${sqlPath}`];
+  console.log(`[seed] Running: pnpm wrangler ${args.join(' ')}`);
 
-execFileSync('pnpm', ['wrangler', ...args], { stdio: 'inherit', cwd: projectRoot });
-console.log('[seed] Done.');
+  execFileSync('pnpm', ['wrangler', ...args], { stdio: 'inherit', cwd: projectRoot });
+  console.log('[seed] Done.');
+}
+
+// Only run the CLI flow when invoked directly (not when imported from tests).
+// Without this guard, `import { assertRemoteConsent }` from the guard test
+// would trigger wrangler d1 execute at module load time.
+const isDirectCLI = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '');
+if (isDirectCLI) {
+  await main();
+}

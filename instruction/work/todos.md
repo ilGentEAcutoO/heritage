@@ -1,6 +1,6 @@
 # Active Tasks
 
-> Last updated: 2026-04-21 10:40 (+07)
+> Last updated: 2026-04-21 10:55 (+07)
 
 No active feature work. Prior session archived at
 `instruction/archive/02-security-remediation-login-removal/`.
@@ -17,6 +17,21 @@ No active feature work. Prior session archived at
   scratch output must live under `./agent-temp/` and be removed before
   task end.
 - Saved feedback to project memory (`feedback_agent_temp_files.md`).
+
+## CI repair (2026-04-21) — green again ✅
+
+- **Fix 1** `tests/unit/useTweaks.test.ts`: replaced hardcoded absolute
+  dev path with `new URL('../../src/app/hooks/useTweaks.ts', import.meta.url)`
+  so the source-scanning tests work on any machine (dev laptop + CI runner).
+- **Fix 2** `scripts/seed-demo.ts`: wrapped top-level side effects
+  (assertRemoteConsent call, mkdirSync, writeFileSync, `execFileSync wrangler
+  d1 execute`) in `async function main()`, guarded by
+  `fileURLToPath(import.meta.url) === resolve(process.argv[1])`.
+  Before: every `import { assertRemoteConsent }` from the guard test
+  triggered wrangler d1 execute, blowing up on CI (no worker env) and
+  silently polluting local D1 on dev boxes. After: main runs only under
+  CLI invocation; imports are pure.
+- Local `pnpm typecheck` + `pnpm test` (13 files, 161 tests) both green.
 
 Start a new session with `/workflow-plan` (for a new feature/task) or
 `/workflow-todo` (to resume an in-flight plan if one exists).
