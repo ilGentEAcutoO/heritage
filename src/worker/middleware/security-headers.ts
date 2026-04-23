@@ -18,13 +18,23 @@
 import type { MiddlewareHandler } from 'hono';
 import type { HonoEnv } from '../types';
 
+// CSP notes:
+//  - 'unsafe-inline' on script-src is required because Cloudflare auto-injects
+//    the Bot Management / JavaScript Detection inline <script> tag into HTML
+//    responses. The inlined blob contains per-request nonces (r:, t:) so a
+//    static sha256 hash won't match. The injection is zone-level, outside our
+//    Worker. Without 'unsafe-inline' every page load logs a CSP violation.
+//    Same-origin still covers our own bundle via 'self'.
+//  - static.cloudflareinsights.com hosts the Web Analytics beacon (auto-injected
+//    when observability is enabled on the account).
+//  - cdn-cgi paths are served from our own origin so 'self' covers them.
 const CSP = [
   "default-src 'self'",
   "img-src 'self' blob: data:",
   "font-src 'self' fonts.gstatic.com",
   "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-  "script-src 'self'",
-  "connect-src 'self'",
+  "script-src 'self' 'unsafe-inline' static.cloudflareinsights.com",
+  "connect-src 'self' static.cloudflareinsights.com",
   "frame-ancestors 'none'",
   "base-uri 'none'",
   "form-action 'self'",

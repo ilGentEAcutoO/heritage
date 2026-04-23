@@ -257,6 +257,7 @@ export function TreeCanvas({
   return (
     <div
       className="tree-canvas"
+      data-testid="tree-canvas"
       onWheel={onWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}

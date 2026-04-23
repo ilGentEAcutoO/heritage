@@ -56,14 +56,17 @@ async function hit(
   return handler.fetch(req, env, {} as ExecutionContext);
 }
 
-// The exact header values the middleware is specified to emit.
+// The exact header values the middleware is specified to emit. script-src
+// includes 'unsafe-inline' + static.cloudflareinsights.com because Cloudflare
+// auto-injects the Bot Management / Web Analytics scripts at the zone layer;
+// see security-headers.ts for the full rationale.
 const EXPECTED_CSP = [
   "default-src 'self'",
   "img-src 'self' blob: data:",
   "font-src 'self' fonts.gstatic.com",
   "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-  "script-src 'self'",
-  "connect-src 'self'",
+  "script-src 'self' 'unsafe-inline' static.cloudflareinsights.com",
+  "connect-src 'self' static.cloudflareinsights.com",
   "frame-ancestors 'none'",
   "base-uri 'none'",
   "form-action 'self'",

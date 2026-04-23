@@ -3,11 +3,24 @@
  * Logo, tagline, session-aware CTAs.
  */
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSession } from '@app/hooks/useSession';
 
 export function Landing() {
-  const { user, loading } = useSession();
+  const { user, loading, logout } = useSession();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } catch {
+      // Best-effort — even on error the local session cache is cleared
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   return (
     <div
@@ -134,6 +147,29 @@ export function Landing() {
           >
             เข้าสู่ระบบ →
           </Link>
+        )}
+
+        {/* Logout for authenticated users */}
+        {!loading && user && (
+          <button
+            type="button"
+            data-testid="logout-button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: loggingOut ? 'wait' : 'pointer',
+              color: 'var(--leaf, #6b8f5e)',
+              textDecoration: 'none',
+              fontSize: '0.85rem',
+              opacity: loggingOut ? 0.4 : 0.75,
+              padding: 0,
+              fontFamily: 'Sarabun, serif',
+            }}
+          >
+            {loggingOut ? 'กำลังออก…' : 'ออกจากระบบ'}
+          </button>
         )}
       </div>
     </div>
