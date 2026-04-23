@@ -1,7 +1,7 @@
 # Security Review — heritage
 
-> **Remediated 2026-04-23 — TASK-S1…S6 (plan `instruction/work/plan.md`).**
-> H1 + P0 cleanup (S1, S2) shipped in code; P1 invariant regression + `CHECK` constraints (S2-T2 + S3 migration 0004) shipped; P2 cron (S4) + cache-key narrowing (S5) shipped; patch-level dep audit (S6) preserves 0 vulns. Migrations `0003_blushing_ender_wiggin.sql` (drop `is_public`) and `0004_enum_check_constraints.sql` (enum CHECKs on 6 tables) apply locally; remote apply is user-gated per D7. The Durable-Object rate-limiter (P2) remains an open follow-up — intentionally deferred to its own planning round per decision D5.
+> **Remediated 2026-04-23 — TASK-S1…S6 (plan `instruction/work/plan.md`), commit `e95bfc9`.**
+> H1 + P0 cleanup (S1, S2) shipped in code; P1 invariant regression + `CHECK` constraints (S2-T2 + S3 migration 0004) shipped; P2 cron (S4) + cache-key narrowing (S5) shipped; patch-level dep audit (S6) preserves 0 vulns. Deployed to prod via GitHub Actions (CI run `24827044433`, Deploy run `24827108752`). Migrations `0003_blushing_ender_wiggin.sql` (drop `is_public`) and `0004_enum_check_constraints.sql` (enum CHECKs on 6 tables) applied to remote D1 at `2026-04-23 09:19:55 UTC`; post-migration schema verified (no `is_public` column on `trees`; CHECK constraints live on all 6 rebuilt tables; row counts preserved). `pnpm e2e` 18/18 green against prod post-deploy. The Durable-Object rate-limiter (P2) remains an open follow-up — intentionally deferred to its own planning round per decision D5.
 
 **Scope:** full codebase audit (all apps — worker, frontend, schema, config, scripts). Not diff-limited.
 **Date:** 2026-04-23
