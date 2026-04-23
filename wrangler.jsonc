@@ -40,7 +40,8 @@
 
   "send_email": [
     {
-      "name": "EMAIL"
+      "name": "EMAIL",
+      "remote": true
     }
   ],
 

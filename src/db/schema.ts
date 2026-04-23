@@ -232,8 +232,8 @@ export const auth_tokens = sqliteTable(
     created_at: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
-    // kind distinguishes signup-verification vs password-reset tokens
-    kind: text('kind', { enum: ['verify', 'reset'] }).notNull().default('verify'),
+    // kind distinguishes signup-verification, password-reset, and magic-link tokens
+    kind: text('kind', { enum: ['verify', 'reset', 'magic'] }).notNull().default('verify'),
   },
   (t) => ({
     hashIdx: index('idx_auth_tokens_hash').on(t.token_hash),

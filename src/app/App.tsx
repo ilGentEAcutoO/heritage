@@ -5,6 +5,7 @@ import { NotFound } from './pages/NotFound';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Verify } from './pages/Verify';
+import { Magic } from './pages/Magic';
 import { ResetRequest } from './pages/ResetRequest';
 import { ResetPassword } from './pages/ResetPassword';
 import { Trees } from './pages/Trees';
@@ -22,6 +23,7 @@ export function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/auth/verify" element={<Verify />} />
+        <Route path="/auth/magic" element={<Magic />} />
         <Route path="/auth/reset" element={<ResetRequest />} />
         <Route path="/auth/reset/confirm" element={<ResetPassword />} />
 

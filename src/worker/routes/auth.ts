@@ -15,6 +15,8 @@
  *   POST /request-reset   — Trigger password reset email
  *   POST /reset           — Apply new password from reset token
  *   GET  /me              — Return authenticated user info
+ *   POST /magic/request   — Issue a magic-link token (enumeration-safe)
+ *   POST /magic/consume   — Consume magic-link token, issue session
  */
 
 import { Hono } from 'hono';
@@ -24,7 +26,7 @@ import { z } from 'zod';
 import { eq, and, gt, isNull, sql } from 'drizzle-orm';
 import type { HonoEnv } from '../types';
 import { hashPassword, verifyPassword, dummyVerifyPassword } from '../lib/password';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../lib/email';
+import { sendVerificationEmail, sendPasswordResetEmail, sendMagicLinkEmail } from '../lib/email';
 import type { SendEmailBinding } from '../lib/email';
 import { createSessionToken, createEmailToken, hashToken } from '../lib/tokens';
 import { users, auth_tokens, sessions, tree_shares } from '../../db/schema';
@@ -62,6 +64,14 @@ const requestResetSchema = z.object({
 const resetSchema = z.object({
   token: z.string().min(1),
   newPassword: z.string().min(12, 'Password must be at least 12 characters'),
+});
+
+const magicRequestSchema = z.object({
+  email: z.string().email().transform((e) => e.toLowerCase().trim()),
+});
+
+const magicConsumeSchema = z.object({
+  token: z.string().min(32).max(128),
 });
 
 // ---------------------------------------------------------------------------
@@ -520,4 +530,155 @@ authRouter.get('/me', (c) => {
     return c.json({ error: 'unauthorized' }, 401);
   }
   return c.json({ user });
+});
+
+// ---------------------------------------------------------------------------
+// POST /magic/request
+// ---------------------------------------------------------------------------
+//
+// Neutral response always 200 regardless of whether the email exists — no
+// enumeration. Rate-limited per-email (RL_LOGIN) then per-IP (RL_LOGIN_IP).
+//
+// On the no-user / unverified path we still call hashToken() with a synthetic
+// value to approximately match the crypto cost of the happy path (constant-
+// time neutrality at our scale).
+
+authRouter.post('/magic/request', async (c) => {
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'invalid_json' }, 400);
+  }
+
+  const parsed = magicRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: 'validation_error', details: parsed.error.flatten() }, 400);
+  }
+
+  const { email } = parsed.data;
+
+  // Rate limit: per email first (RL_LOGIN), then per IP (RL_LOGIN_IP)
+  const { success: emailOk } = await c.env.RL_LOGIN.limit({ key: email });
+  if (!emailOk) return c.json({ error: 'too_many_attempts' }, 429);
+
+  const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
+  const { success: ipOk } = await c.env.RL_LOGIN_IP.limit({ key: ip });
+  if (!ipOk) return c.json({ error: 'too_many_attempts' }, 429);
+
+  const db = c.var.db;
+  const appUrl = c.env?.APP_URL ?? 'http://localhost:5173';
+
+  const NEUTRAL_MESSAGE = 'If an account exists with that email, we sent a sign-in link.';
+
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .get();
+
+  // Happy path: verified user exists — create token and send email
+  if (user && user.email_verified_at) {
+    const { raw, hash: tokenHash } = createEmailToken();
+    const now = Math.floor(Date.now() / 1000);
+
+    await db.insert(auth_tokens).values({
+      token_hash: tokenHash,
+      email,
+      kind: 'magic',
+      expires_at: now + 15 * 60, // 15-minute TTL
+    });
+
+    try {
+      await sendMagicLinkEmail(c.env.EMAIL as unknown as SendEmailBinding, {
+        to: email,
+        token: raw,
+        appUrl,
+      });
+    } catch {
+      // Swallow — don't fail the request if email send errors in dev/test
+    }
+  } else {
+    // Constant-time filler: run hashToken() to approximate the crypto cost of
+    // the happy path and prevent trivial timing enumeration.
+    hashToken('constant-time-filler-32chars-minimum-pad');
+    await Promise.resolve();
+  }
+
+  return c.json({ message: NEUTRAL_MESSAGE });
+});
+
+// ---------------------------------------------------------------------------
+// POST /magic/consume
+// ---------------------------------------------------------------------------
+//
+// Consumes a magic-link token via atomic CAS UPDATE ... RETURNING.
+// Filters by kind='magic' so verify/reset tokens cannot be replayed here.
+// On success: issues a session cookie and returns { user }.
+// All failure modes return the same neutral 400 to prevent information leakage.
+
+authRouter.post('/magic/consume', async (c) => {
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'invalid_json' }, 400);
+  }
+
+  const parsed = magicConsumeSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: 'validation_error', details: parsed.error.flatten() }, 400);
+  }
+
+  const { token } = parsed.data;
+  const db = c.var.db;
+  const tokenHash = hashToken(token);
+  const now = Math.floor(Date.now() / 1000);
+
+  const FAILURE_RESPONSE = { message: 'Link expired or already used' } as const;
+
+  // Atomic CAS: only the first caller with a valid, unused, unexpired magic token wins.
+  const consumed = await db
+    .update(auth_tokens)
+    .set({ used_at: now })
+    .where(
+      and(
+        eq(auth_tokens.token_hash, tokenHash),
+        eq(auth_tokens.kind, 'magic'),
+        isNull(auth_tokens.used_at),
+        gt(auth_tokens.expires_at, now),
+      ),
+    )
+    .returning({ id: auth_tokens.id, email: auth_tokens.email })
+    .all();
+
+  const authToken = consumed[0];
+  if (!authToken || !authToken.email) {
+    return c.json(FAILURE_RESPONSE, 400);
+  }
+
+  const userEmail = authToken.email;
+
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, userEmail))
+    .get();
+
+  if (!user) {
+    // Should not happen (token references a valid email), but guard defensively
+    return c.json(FAILURE_RESPONSE, 400);
+  }
+
+  // Issue session cookie
+  await issueSession(c, user.id);
+
+  c.header('Cache-Control', 'no-store');
+  return c.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      email_verified_at: user.email_verified_at,
+    },
+  });
 });

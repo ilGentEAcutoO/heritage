@@ -158,6 +158,14 @@ export interface ResetBody {
   newPassword: string;
 }
 
+export interface MagicRequestResponse {
+  message: string;
+}
+
+export interface MagicConsumeResponse {
+  user: AuthUser;
+}
+
 // ---------------------------------------------------------------------------
 // API client methods
 // ---------------------------------------------------------------------------
@@ -204,6 +212,18 @@ export const apiClient = {
 
   me: () =>
     api<{ user: AuthUser }>('/api/auth/me'),
+
+  requestMagicLink: (email: string) =>
+    api<MagicRequestResponse>('/api/auth/magic/request', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  consumeMagicLink: (token: string) =>
+    api<MagicConsumeResponse>('/api/auth/magic/consume', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
 
   // Trees list — requires auth
   listTrees: () =>

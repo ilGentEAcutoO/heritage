@@ -2,8 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   sendVerificationEmail,
   sendPasswordResetEmail,
+  sendMagicLinkEmail,
   FROM_ADDRESS,
   FROM_NAME,
+  REPLY_TO,
   type SendEmailBinding,
 } from '../../src/worker/lib/email';
 
@@ -69,5 +71,80 @@ describe('sendPasswordResetEmail', () => {
     expect(msg.text).toContain('https://a.com/auth/reset/confirm?token=t');
     // Expire wording
     expect(msg.text).toMatch(/1 ชั่วโมง|1 hour/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// M5 regression + new tests
+// ---------------------------------------------------------------------------
+
+describe('M5-T0: sender regression — all existing emails use heritage@ + replyTo', () => {
+  it('sendVerificationEmail uses heritage@ sender and has replyTo', async () => {
+    const b = makeMockBinding();
+    await sendVerificationEmail(b, { to: 'a@b.com', token: 'tok', appUrl: 'https://a.com' });
+    const [msg] = b.send.mock.calls[0];
+    expect((msg.from as { email: string }).email).toBe('heritage@jairukchan.com');
+    expect(msg.replyTo).toBe('heritage@jairukchan.com');
+  });
+
+  it('sendPasswordResetEmail uses heritage@ sender and has replyTo', async () => {
+    const b = makeMockBinding();
+    await sendPasswordResetEmail(b, { to: 'a@b.com', token: 'tok', appUrl: 'https://a.com' });
+    const [msg] = b.send.mock.calls[0];
+    expect((msg.from as { email: string }).email).toBe('heritage@jairukchan.com');
+    expect(msg.replyTo).toBe('heritage@jairukchan.com');
+  });
+});
+
+describe('M5-T1: sendMagicLinkEmail — basic shape', () => {
+  it('calls send once with correct to, from, subject, and link', async () => {
+    const b = makeMockBinding();
+    const to = 'user@example.com';
+    const token = 'abc123';
+    const appUrl = 'https://heritage.jairukchan.com';
+    await sendMagicLinkEmail(b, { to, token, appUrl });
+    expect(b.send).toHaveBeenCalledTimes(1);
+    const [msg] = b.send.mock.calls[0];
+    expect(msg.to).toBe(to);
+    expect((msg.from as { email: string }).email).toBe('heritage@jairukchan.com');
+    expect((msg.from as { email: string; name?: string }).name).toBe('Heritage');
+    // Subject must have both Thai and English phrasing
+    expect(msg.subject).toMatch(/ลิงก์|magic/i);
+    expect(msg.subject).toMatch(/เข้าสู่ระบบ|sign.?in/i);
+    // Link in text and html
+    const link = `${appUrl}/auth/magic?token=${encodeURIComponent(token)}`;
+    expect(msg.text).toContain(link);
+    expect(msg.html).toContain(encodeURIComponent(token));
+    // replyTo
+    expect(msg.replyTo).toBe('heritage@jairukchan.com');
+  });
+});
+
+describe('M5-T2: sendMagicLinkEmail — special chars are percent-encoded', () => {
+  it('encodes + / = in token in both text and html', async () => {
+    const b = makeMockBinding();
+    const token = 'abc+def/ghi=jkl';
+    const appUrl = 'https://a.com';
+    await sendMagicLinkEmail(b, { to: 'u@x.com', token, appUrl });
+    const [msg] = b.send.mock.calls[0];
+    const encoded = encodeURIComponent(token);
+    expect(msg.text).toContain(`${appUrl}/auth/magic?token=${encoded}`);
+    expect(msg.html).toContain(encoded);
+    // Raw special chars must NOT appear literally in the link
+    expect(msg.text).not.toContain(`token=${token}`);
+    expect(msg.html).not.toContain(`token=${token}`);
+  });
+});
+
+describe('M5-T3: sendMagicLinkEmail — no XSS via token', () => {
+  it('script tag in token is percent-encoded, never rendered raw in HTML', async () => {
+    const b = makeMockBinding();
+    const token = '"><script>alert(1)</script>';
+    await sendMagicLinkEmail(b, { to: 'u@x.com', token, appUrl: 'https://a.com' });
+    const [msg] = b.send.mock.calls[0];
+    // The literal <script> must not appear in HTML output
+    expect(msg.html).not.toContain('<script>');
+    // The token must appear encoded (the percent-encoded version should be present)
+    expect(msg.html).toContain(encodeURIComponent(token));
   });
 });

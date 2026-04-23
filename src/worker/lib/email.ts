@@ -36,10 +36,13 @@ export interface PasswordResetEmailOptions {
 }
 
 /** Canonical sender address — must be an onboarded domain on Cloudflare Email Service. */
-export const FROM_ADDRESS = 'noreply@jairukchan.com';
+export const FROM_ADDRESS = 'heritage@jairukchan.com';
 
 /** Display name shown in email clients. */
 export const FROM_NAME = 'Heritage';
+
+/** Reply-To address — forwards to owner via CF Email Routing catch-all. */
+export const REPLY_TO = 'heritage@jairukchan.com';
 
 // ---------------------------------------------------------------------------
 // Verification email
@@ -113,6 +116,7 @@ export async function sendVerificationEmail(
   await binding.send({
     to: opts.to,
     from: { email: FROM_ADDRESS, name: FROM_NAME },
+    replyTo: REPLY_TO,
     subject: 'Heritage — ยืนยันอีเมล / Verify your email',
     text,
     html,
@@ -197,7 +201,100 @@ export async function sendPasswordResetEmail(
   await binding.send({
     to: opts.to,
     from: { email: FROM_ADDRESS, name: FROM_NAME },
+    replyTo: REPLY_TO,
     subject: 'Heritage — รีเซ็ตรหัสผ่าน / Reset your password',
+    text,
+    html,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Magic-link email
+// ---------------------------------------------------------------------------
+
+export interface MagicLinkEmailOptions {
+  to: string;
+  token: string;
+  appUrl: string;
+}
+
+export async function sendMagicLinkEmail(
+  binding: SendEmailBinding,
+  opts: MagicLinkEmailOptions,
+): Promise<void> {
+  const magicUrl = `${opts.appUrl}/auth/magic?token=${encodeURIComponent(opts.token)}`;
+
+  const text = [
+    'สวัสดีครับ,',
+    '',
+    'คุณได้ขอลิงก์เข้าสู่ระบบ Heritage ลิงก์จะหมดอายุใน 15 นาที:',
+    '',
+    magicUrl,
+    '',
+    '—',
+    '',
+    'Hi,',
+    '',
+    'You requested a sign-in link for your Heritage account. This link expires in 15 minutes:',
+    '',
+    magicUrl,
+    '',
+    'ถ้าคุณไม่ได้ขอลิงก์นี้ ให้ละเว้นอีเมลนี้ได้เลย.',
+    "If you didn't request this, you can safely ignore this email.",
+  ].join('\n');
+
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heritage — ลิงก์เข้าสู่ระบบ / Your sign-in link</title>
+</head>
+<body style="margin:0;padding:0;background:#f9f7f4;font-family:sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f7f4;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#4a7fa8;padding:24px 32px;">
+              <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:0.5px;">Heritage</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="margin:0 0 8px;font-size:20px;color:#2d2d2d;">ลิงก์เข้าสู่ระบบ / Your sign-in link</h1>
+              <p style="margin:0 0 4px;font-size:14px;color:#555;">สวัสดีครับ,</p>
+              <p style="margin:0 0 4px;font-size:14px;color:#555;">คุณได้ขอลิงก์เข้าสู่ระบบ Heritage ลิงก์จะหมดอายุใน <strong>15 นาที</strong></p>
+              <p style="margin:0 0 24px;font-size:14px;color:#555;">You requested a sign-in link for your Heritage account. This link expires in <strong>15 minutes</strong>.</p>
+              <p style="margin:0 0 24px;">
+                <a href="${magicUrl}"
+                   style="display:inline-block;padding:12px 28px;background:#4a7fa8;color:#ffffff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">
+                  เข้าสู่ระบบ / Sign in
+                </a>
+              </p>
+              <p style="margin:0 0 24px;font-size:13px;color:#777;">
+                หรือคัดลอกลิงก์นี้ / Or copy this link:<br>
+                <a href="${magicUrl}" style="color:#4a7fa8;word-break:break-all;">${magicUrl}</a>
+              </p>
+              <hr style="border:none;border-top:1px solid #ebebeb;margin:0 0 24px;">
+              <p style="margin:0;font-size:12px;color:#aaa;">
+                ถ้าคุณไม่ได้ขอลิงก์นี้ ให้ละเว้นอีเมลนี้ได้เลย.<br>
+                If you didn't request this, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  await binding.send({
+    to: opts.to,
+    from: { email: FROM_ADDRESS, name: FROM_NAME },
+    replyTo: REPLY_TO,
+    subject: 'Heritage — ลิงก์เข้าสู่ระบบ / Your sign-in link',
     text,
     html,
   });
