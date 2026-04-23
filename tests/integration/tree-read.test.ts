@@ -143,6 +143,59 @@ describe('GET /api/tree/:slug — demo (public)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Suite: N-R3-5 — ownerId redaction for anonymous public reads
+// ---------------------------------------------------------------------------
+
+describe('N-R3-5 — ownerId redaction on public GET', () => {
+  let d1: SqliteD1Database;
+  let env: Record<string, unknown>;
+
+  beforeEach(() => {
+    d1 = createSqliteD1();
+    env = makeEnv(d1);
+    const sq = d1._sqlite;
+    sq.prepare(
+      "INSERT INTO users (id, email, display_name, created_at) VALUES ('owner-visible', 'owner@test.com', 'Owner', unixepoch())"
+    ).run();
+    sq.prepare(
+      "INSERT INTO trees (id, slug, name, name_en, owner_id, is_public, visibility, created_at) VALUES ('pub-tree-1', 'pub-tree', 'Public Tree', NULL, 'owner-visible', 1, 'public', unixepoch())"
+    ).run();
+  });
+
+  test('anonymous GET of public tree → ownerId === null in body', async () => {
+    const app = makeApp(d1);
+    const res = await req(app, '/api/tree/pub-tree', env);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { tree: { ownerId: string | null } };
+    expect(data.tree.ownerId).toBeNull();
+  });
+
+  test('authed GET of own public tree → ownerId preserved', async () => {
+    // Wire a custom app with a fake authed user set on c.var.user.
+    const app = new Hono<HonoEnv>();
+    app.use('*', dbMiddleware);
+    app.use('*', async (c, next) => {
+      c.set('user', {
+        id: 'owner-visible',
+        email: 'owner@test.com',
+        email_verified_at: 1,
+      });
+      return next();
+    });
+    app.route('/api/tree', treeRouter);
+
+    const request = new Request('http://localhost/api/tree/pub-tree', {
+      method: 'GET',
+      headers: { Cookie: '__Host-session=fake-session-for-auth-branch' },
+    });
+    const res = await app.fetch(request, env);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { tree: { ownerId: string | null } };
+    expect(data.tree.ownerId).toBe('owner-visible');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Suite: private tree → 404 (is_public gate, no auth)
 // ---------------------------------------------------------------------------
 
@@ -157,10 +210,10 @@ describe('GET /api/tree/:slug — private tree returns 404', () => {
 
     const sq = d1._sqlite;
     sq.prepare(
-      "INSERT INTO users VALUES ('owner1', 'owner@test.com', 'Owner', unixepoch())"
+      "INSERT INTO users (id, email, display_name, created_at) VALUES ('owner1', 'owner@test.com', 'Owner', unixepoch())"
     ).run();
     sq.prepare(
-      "INSERT INTO trees VALUES ('priv-tree-1', 'priv-tree', 'Private Tree', NULL, 'owner1', 0, unixepoch())"
+      "INSERT INTO trees (id, slug, name, name_en, owner_id, is_public, visibility, created_at) VALUES ('priv-tree-1', 'priv-tree', 'Private Tree', NULL, 'owner1', 0, 'private', unixepoch())"
     ).run();
     sq.prepare(
       "INSERT INTO tree_members VALUES ('mb1', 'priv-tree-1', 'owner1', 'owner', unixepoch())"

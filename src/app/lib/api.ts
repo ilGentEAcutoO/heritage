@@ -16,6 +16,32 @@ export interface ApiError {
   status: number;
 }
 
+// ---------------------------------------------------------------------------
+// Sharing types (GET /api/trees, /api/tree/:slug/shares, etc.)
+// ---------------------------------------------------------------------------
+
+export interface TreeSummary {
+  id: string;
+  slug: string;
+  name: string;
+  name_en: string | null;
+  visibility: 'public' | 'private' | 'shared';
+  owner_id: string | null;
+  role: 'owner' | 'viewer' | 'editor';
+  created_at: number;
+}
+
+export interface Share {
+  id: string;
+  email: string;
+  role: 'viewer' | 'editor';
+  status: 'pending' | 'accepted' | 'revoked';
+  user_id: string | null;
+  invited_by: string;
+  created_at: number;
+  accepted_at: number | null;
+}
+
 /** Shape returned by GET /api/tree/:slug — mirrors TreeQueryResult from tree-query.ts */
 export interface ApiTreeResponse {
   tree: {
@@ -23,6 +49,7 @@ export interface ApiTreeResponse {
     name: string;
     nameEn: string | null;
     isPublic: boolean;
+    visibility: 'public' | 'private' | 'shared';
     ownerId: string | null;
   };
   people: Array<{
@@ -105,11 +132,107 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 // API client methods
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Auth types
+// ---------------------------------------------------------------------------
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+  emailVerified: boolean;
+}
+
+export interface SignupBody {
+  email: string;
+  password: string;
+  displayName?: string;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface ResetBody {
+  token: string;
+  newPassword: string;
+}
+
+// ---------------------------------------------------------------------------
+// API client methods
+// ---------------------------------------------------------------------------
+
 export const apiClient = {
   health: () => api<{ ok: boolean }>('/api/health'),
 
   getTree: (slug: string) =>
     api<ApiTreeResponse>(`/api/tree/${encodeURIComponent(slug)}`),
+
+  // Auth
+  signup: (body: SignupBody) =>
+    api<{ ok: boolean }>('/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  verify: (token: string) =>
+    api<{ ok: boolean; user: AuthUser }>('/api/auth/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
+  login: (body: LoginBody) =>
+    api<{ ok: boolean; user: AuthUser }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  logout: () =>
+    api<void>('/api/auth/logout', { method: 'POST' }),
+
+  requestReset: (email: string) =>
+    api<void>('/api/auth/request-reset', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  reset: (body: ResetBody) =>
+    api<void>('/api/auth/reset', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  me: () =>
+    api<{ user: AuthUser }>('/api/auth/me'),
+
+  // Trees list — requires auth
+  listTrees: () =>
+    api<{ trees: TreeSummary[] }>('/api/trees'),
+
+  // Shares — owner-only
+  getShares: (slug: string) =>
+    api<{ shares: Share[] }>(`/api/tree/${encodeURIComponent(slug)}/shares`),
+
+  addShare: (slug: string, body: { email: string; role?: 'viewer' | 'editor' }) =>
+    api<{ share: Share }>(`/api/tree/${encodeURIComponent(slug)}/shares`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  revokeShare: (slug: string, shareId: string) =>
+    api<void>(`/api/tree/${encodeURIComponent(slug)}/shares/${encodeURIComponent(shareId)}`, {
+      method: 'DELETE',
+    }),
+
+  setVisibility: (slug: string, visibility: 'public' | 'private' | 'shared') =>
+    api<{ visibility: 'public' | 'private' | 'shared' }>(
+      `/api/tree/${encodeURIComponent(slug)}/visibility`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ visibility }),
+      },
+    ),
 };
 
 // ---------------------------------------------------------------------------
@@ -186,6 +309,7 @@ export function adaptTree(raw: ApiTreeResponse): TreeData {
       treeName: raw.tree.name,
       treeNameEn: raw.tree.nameEn ?? undefined,
       ownerId: raw.tree.ownerId ?? '',
+      visibility: raw.tree.visibility,
     },
     people,
     stories,

@@ -37,7 +37,11 @@ async function makeSeededEnv() {
     ASSETS: {
       fetch: async () => new Response('not found', { status: 404 }),
     } as unknown as Fetcher,
+    EMAIL: {} as SendEmail,
+    RL_LOGIN: {} as RateLimit,
+    RL_LOGIN_IP: {} as RateLimit,
     APP_URL: 'http://localhost:5173',
+    SESSION_SECRET: 'test-secret-at-least-thirty-two-characters-long-padding',
   };
   return { env, d1, r2, kv };
 }

@@ -119,7 +119,12 @@ const INLINE_DDL = `
     id TEXT PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     display_name TEXT,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    password_hash TEXT,
+    password_salt TEXT,
+    failed_login_count INTEGER NOT NULL DEFAULT 0,
+    locked_until INTEGER,
+    email_verified_at INTEGER
   );
   CREATE TABLE IF NOT EXISTS trees (
     id TEXT PRIMARY KEY,
@@ -128,7 +133,8 @@ const INLINE_DDL = `
     name_en TEXT,
     owner_id TEXT REFERENCES users(id),
     is_public INTEGER NOT NULL DEFAULT 0,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    visibility TEXT NOT NULL DEFAULT 'public'
   );
   CREATE INDEX IF NOT EXISTS idx_trees_slug ON trees(slug);
   CREATE TABLE IF NOT EXISTS tree_members (
@@ -204,6 +210,7 @@ const INLINE_DDL = `
     lineage_id TEXT NOT NULL REFERENCES lineages(id) ON DELETE CASCADE,
     person_data TEXT
   );
+  CREATE INDEX IF NOT EXISTS idx_lineage_members_lineage_id ON lineage_members(lineage_id);
   CREATE TABLE IF NOT EXISTS position_overrides (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL REFERENCES users(id),
@@ -220,7 +227,8 @@ const INLINE_DDL = `
     email TEXT,
     expires_at INTEGER,
     used_at INTEGER,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    kind TEXT NOT NULL DEFAULT 'verify'
   );
   CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
@@ -231,6 +239,21 @@ const INLINE_DDL = `
     user_agent TEXT,
     ip TEXT
   );
+  CREATE TABLE IF NOT EXISTS tree_shares (
+    id TEXT PRIMARY KEY,
+    tree_id TEXT NOT NULL REFERENCES trees(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    role TEXT NOT NULL DEFAULT 'viewer',
+    status TEXT NOT NULL DEFAULT 'pending',
+    invited_by TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    accepted_at INTEGER
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_tree_shares_tree_email ON tree_shares (tree_id, lower(email));
+  CREATE INDEX IF NOT EXISTS idx_tree_shares_tree_id ON tree_shares (tree_id);
+  CREATE INDEX IF NOT EXISTS idx_tree_shares_user_id ON tree_shares (user_id);
+  CREATE INDEX IF NOT EXISTS idx_tree_shares_email_lower ON tree_shares (lower(email));
 `;
 
 function applyMigrations(sqlite: Database.Database): void {

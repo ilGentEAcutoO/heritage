@@ -5,7 +5,7 @@
  * The returned shape is used directly by GET /api/tree/:slug.
  */
 
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { DB } from '../../db/client';
 import {
   trees,
@@ -23,9 +23,13 @@ import {
 // ---------------------------------------------------------------------------
 
 export interface TreeMeta {
+  id: string;
   slug: string;
   name: string;
   nameEn: string | null;
+  /** Visibility enum — canonical access-control field (Phase 0+). */
+  visibility: 'public' | 'private' | 'shared';
+  /** Backward-compat shim: true when visibility === 'public'. */
   isPublic: boolean;
   ownerId: string | null;
 }
@@ -177,17 +181,12 @@ export async function getTreeData(
   const lineageIds = lineageRows.map((r) => r.lineages.id);
   let lineageMemberRows: Array<{ lineage_id: string; person_data: unknown }> = [];
   if (lineageIds.length > 0) {
-    // D1 supports parameterized IN queries through individual selects batched
-    const memberResults = await Promise.all(
-      lineageIds.map((lid) =>
-        db
-          .select({ lineage_id: lineage_members.lineage_id, person_data: lineage_members.person_data })
-          .from(lineage_members)
-          .where(eq(lineage_members.lineage_id, lid))
-          .all(),
-      ),
-    );
-    lineageMemberRows = memberResults.flat();
+    // Single IN query — one D1 round-trip regardless of lineage count (Perf Fix 3).
+    lineageMemberRows = await db
+      .select({ lineage_id: lineage_members.lineage_id, person_data: lineage_members.person_data })
+      .from(lineage_members)
+      .where(inArray(lineage_members.lineage_id, lineageIds))
+      .all();
   }
 
   // 4. Build relation lookup for people aggregation
@@ -303,12 +302,20 @@ export async function getTreeData(
     };
   }
 
+  // Normalise visibility: prefer the enum column; fall back to is_public for
+  // rows that predate the Phase 0 migration (shouldn't exist after backfill).
+  const visibility: 'public' | 'private' | 'shared' =
+    (treeRow.visibility as 'public' | 'private' | 'shared' | null | undefined) ??
+    (treeRow.is_public ? 'public' : 'private');
+
   return {
     tree: {
+      id: treeRow.id,
       slug: treeRow.slug,
       name: treeRow.name,
       nameEn: treeRow.name_en,
-      isPublic: treeRow.is_public,
+      visibility,
+      isPublic: visibility === 'public',
       ownerId: treeRow.owner_id,
     },
     people: shapedPeople,

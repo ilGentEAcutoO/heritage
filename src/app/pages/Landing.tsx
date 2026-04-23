@@ -1,11 +1,14 @@
 /**
  * Landing.tsx — Marketing landing page.
- * Logo, tagline, two CTAs.
+ * Logo, tagline, session-aware CTAs.
  */
 
 import { Link } from 'react-router-dom';
+import { useSession } from '@app/hooks/useSession';
 
 export function Landing() {
+  const { user, loading } = useSession();
+
   return (
     <div
       style={{
@@ -67,34 +70,71 @@ export function Landing() {
         Heritage · เก็บเรื่องราวของครอบครัว
       </p>
 
-      {/* CTAs */}
+      {/* CTAs — session-aware */}
       <div
         style={{
           display: 'flex',
-          gap: '1rem',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.85rem',
           marginTop: '0.5rem',
         }}
       >
-        <Link
-          to="/demo/wongsuriya"
-          style={{
-            padding: '0.65rem 1.5rem',
-            borderRadius: '6px',
-            background: 'var(--leaf, #6b8f5e)',
-            color: '#fff',
-            textDecoration: 'none',
-            fontWeight: 500,
-            fontSize: '0.95rem',
-            transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-        >
-          ดู demo tree
-        </Link>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {/* Primary CTA: "My Trees" for logged-in users, demo for guests */}
+          {!loading && user ? (
+            <Link
+              to="/trees"
+              style={{
+                padding: '0.65rem 1.5rem',
+                borderRadius: '6px',
+                background: 'var(--leaf, #6b8f5e)',
+                color: '#fff',
+                textDecoration: 'none',
+                fontWeight: 500,
+                fontSize: '0.95rem',
+                transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              ดูต้นไม้ของฉัน
+            </Link>
+          ) : (
+            <Link
+              to="/demo/wongsuriya"
+              style={{
+                padding: '0.65rem 1.5rem',
+                borderRadius: '6px',
+                background: 'var(--leaf, #6b8f5e)',
+                color: '#fff',
+                textDecoration: 'none',
+                fontWeight: 500,
+                fontSize: '0.95rem',
+                transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              ดู demo tree
+            </Link>
+          )}
+        </div>
 
+        {/* Secondary link for guests */}
+        {!loading && !user && (
+          <Link
+            to="/login"
+            style={{
+              fontSize: '0.85rem',
+              color: 'var(--leaf, #6b8f5e)',
+              textDecoration: 'none',
+              opacity: 0.75,
+            }}
+          >
+            เข้าสู่ระบบ →
+          </Link>
+        )}
       </div>
     </div>
   );

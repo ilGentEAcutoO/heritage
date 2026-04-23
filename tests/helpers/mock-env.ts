@@ -10,6 +10,7 @@
  * Exposes legacy shapes (R2BucketStub, KVNamespaceStub, buildMockEnv) used by
  * earlier agents' tests.
  */
+import { vi } from 'vitest';
 import { createSqliteD1, type SqliteD1Database } from './sqlite-d1';
 import type { Env } from '../../src/worker/types';
 
@@ -55,6 +56,10 @@ export function createMockEnv(opts: MockEnvOptions = {}): MockEnvHandle {
     PHOTOS: r2 as unknown as R2Bucket,
     ASSETS: {} as Fetcher,
     APP_URL: opts.appUrl ?? 'http://localhost:5173',
+    SESSION_SECRET: 'test-secret-at-least-thirty-two-characters-long-padding',
+    EMAIL: { send: vi.fn(async () => undefined) } as unknown as SendEmail,
+    RL_LOGIN: { limit: vi.fn(async () => ({ success: true })) } as unknown as RateLimit,
+    RL_LOGIN_IP: { limit: vi.fn(async () => ({ success: true })) } as unknown as RateLimit,
   };
 
   return { env, d1, kv, r2 };

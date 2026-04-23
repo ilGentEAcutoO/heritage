@@ -11,8 +11,18 @@ export interface Env {
   PHOTOS: R2Bucket;
   KV_RL: KVNamespace;
 
+  // Email sending binding (Cloudflare Email Workers)
+  EMAIL: SendEmail;
+
+  // Rate-limit bindings
+  RL_LOGIN: RateLimit;
+  RL_LOGIN_IP: RateLimit;
+
   // Vars (public config)
   APP_URL: string;
+
+  // Secrets (not in wrangler.jsonc; set via wrangler secret put or .dev.vars)
+  SESSION_SECRET: string;
 }
 
 /**
@@ -24,5 +34,6 @@ export type HonoEnv = {
   Bindings: Env;
   Variables: {
     db: DB;
+    user: { id: string; email: string; email_verified_at: number | null } | null;
   };
 };

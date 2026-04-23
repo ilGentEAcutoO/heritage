@@ -48,7 +48,7 @@ export const wongsuriya: TreeData = {
     treeName: 'บ้านวงศ์สุริยา',
     treeNameEn: 'Wongsuriya Family',
     ownerId: 'p12',
-    inviteCode: 'SURIYA-2K26-M4PL',
+    visibility: 'public',
   },
   people,
   stories: {

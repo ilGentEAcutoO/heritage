@@ -16,7 +16,12 @@
 import { Hono } from 'hono';
 import { treeRouter } from './routes/tree';
 import imgRouter from './routes/img';
+import { authRouter } from './routes/auth';
+import { sharesRouter } from './routes/shares';
+import { treesRouter } from './routes/trees';
 import { dbMiddleware } from './middleware/db';
+import { sessionMiddleware } from './middleware/session';
+import { originCheck } from './middleware/origin-check';
 import { securityHeaders, applySecurityHeaders } from './middleware/security-headers';
 import { getValidatedEnv } from './lib/config';
 import type { Env, HonoEnv } from './types';
@@ -25,14 +30,24 @@ export type { Env } from './types';
 
 const app = new Hono<HonoEnv>();
 
-// Outermost: security headers. Must run before dbMiddleware so it wraps every
-// downstream response including DB-error paths.
+// Middleware stack:
+//   1. securityHeaders — outermost
+//   2. dbMiddleware — c.var.db
+//   3. sessionMiddleware — reads __Host-session cookie, sets c.var.user | null
+//   4. originCheck — N-R3-2: CSRF defense-in-depth on mutation methods.
+//      No-op on GET/HEAD/OPTIONS, so read traffic is unaffected.
+//   5. routes
 app.use('*', securityHeaders);
 app.use('*', dbMiddleware);
+app.use('*', sessionMiddleware);
+app.use('*', originCheck);
 
 app.get('/api/health', (c) => c.json({ ok: true, name: 'heritage', ts: Date.now() }));
 
-app.route('/api/tree', treeRouter);
+app.route('/api/auth', authRouter);
+app.route('/api/tree', sharesRouter); // paths: /api/tree/:slug/shares, /:slug/visibility
+app.route('/api/tree', treeRouter);   // paths: /api/tree/:slug (gated read)
+app.route('/api/trees', treesRouter);
 app.route('/api/img', imgRouter);
 
 export default {
@@ -51,6 +66,18 @@ export default {
     // SPA/static-asset path bypasses Hono middleware, so apply security
     // headers here too (CSP/HSTS/X-CTO/Referrer-Policy/Permissions-Policy).
     const assetRes = await env.ASSETS.fetch(request);
-    return applySecurityHeaders(assetRes);
+    const secured = applySecurityHeaders(assetRes);
+
+    // Versioned assets under /assets/* are content-addressed (Vite adds a
+    // content hash to filenames), so they are safe to cache indefinitely.
+    // Override Cache-Control here; security headers from applySecurityHeaders
+    // are already present on `secured` and must not be disturbed.
+    if (url.pathname.startsWith('/assets/')) {
+      const out = new Response(secured.body, secured);
+      out.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+      return out;
+    }
+
+    return secured;
   },
 } satisfies ExportedHandler<Env>;

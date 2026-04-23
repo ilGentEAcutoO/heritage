@@ -15,6 +15,13 @@
       "when": 1776658376573,
       "tag": "0001_daffy_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1776774842493,
+      "tag": "0002_odd_molecule_man",
+      "breakpoints": true
     }
   ]
 }

@@ -13,10 +13,12 @@ import { useParams, Link } from 'react-router-dom';
 import { useTree } from '@app/hooks/useTree';
 import { useTweaks } from '@app/hooks/useTweaks';
 import { computeRelation, findPath } from '@app/lib/kinship';
+import { useSession } from '@app/hooks/useSession';
 
 import { TreeCanvas } from '@app/components/TreeCanvas';
 import { ProfileDrawer } from '@app/components/ProfileDrawer';
 import { PathFinder } from '@app/components/PathFinder';
+import { ShareDialog } from '@app/components/ShareDialog';
 
 // Components that may not yet be in the barrel — import directly
 import { Sidebar } from '@app/components/Sidebar';
@@ -35,6 +37,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
 
   const { data, loading, error } = useTree(slug);
   const { tweaks, updateTweak } = useTweaks();
+  const { user } = useSession();
 
   // UI state
   const [selectedId, setSelectedId] = useState<string | null>('p12');
@@ -43,6 +46,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const [pathTarget, setPathTarget] = useState<string | null>(null);
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [expandedLineages, setExpandedLineages] = useState<Set<string>>(new Set());
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Derived from data
   const meId = useMemo(
@@ -243,6 +247,17 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           >
             <span style={{ opacity: 0.6 }}>◈</span> เราเกี่ยวกันยังไง?
           </button>
+          {/* Share button — shown only to the tree owner */}
+          {user && data?.meta.ownerId && user.id === data.meta.ownerId && (
+            <button
+              className="header-btn"
+              onClick={() => setShareOpen(true)}
+              title="จัดการการแชร์"
+              style={{ color: 'var(--leaf, #6b8f5e)' }}
+            >
+              แชร์
+            </button>
+          )}
           <button
             className="header-btn"
             onClick={() => setTweaksOpen((s) => !s)}
@@ -320,6 +335,16 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           updateTweak(key as keyof typeof tweaks, value as never)
         }
       />
+
+      {/* Share dialog — owner only; only rendered when data is available */}
+      {shareOpen && data && slug && (
+        <ShareDialog
+          slug={slug}
+          currentVisibility={data.meta.visibility ?? 'public'}
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </div>
   );
 }

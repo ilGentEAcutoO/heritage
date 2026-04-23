@@ -2,3 +2,7 @@
 # APP_URL override for local dev — must match the origin your browser hits
 # (vite dev defaults to port 5173).
 APP_URL=http://localhost:5173
+
+# 32+ random bytes (generate: openssl rand -hex 32)
+# In production set via: wrangler secret put SESSION_SECRET
+SESSION_SECRET=

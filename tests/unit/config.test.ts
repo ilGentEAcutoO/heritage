@@ -24,7 +24,11 @@ function makeEnv(overrides: Partial<Env> = {}): Env {
     PHOTOS: {} as R2Bucket,
     KV_RL: {} as KVNamespace,
     ASSETS: {} as Fetcher,
+    EMAIL: {} as SendEmail,
+    RL_LOGIN: {} as RateLimit,
+    RL_LOGIN_IP: {} as RateLimit,
     APP_URL: 'https://heritage.example.com',
+    SESSION_SECRET: 'test-secret-at-least-thirty-two-characters-long-padding',
     ...overrides,
   } as Env;
 }

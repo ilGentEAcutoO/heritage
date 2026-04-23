@@ -19,6 +19,12 @@ export const users = sqliteTable('users', {
   created_at: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
+  // Auth columns added in migration 0002
+  password_hash: text('password_hash'),
+  password_salt: text('password_salt'),
+  failed_login_count: integer('failed_login_count').notNull().default(0),
+  locked_until: integer('locked_until'),
+  email_verified_at: integer('email_verified_at'),
 });
 
 export const trees = sqliteTable(
@@ -33,6 +39,10 @@ export const trees = sqliteTable(
     created_at: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
+    // Visibility replaces is_public (is_public retained for backward compat — drop deferred)
+    visibility: text('visibility', { enum: ['public', 'private', 'shared'] })
+      .notNull()
+      .default('public'),
   },
   (t) => ({
     slugIdx: index('idx_trees_slug').on(t.slug),
@@ -167,13 +177,19 @@ export const lineages = sqliteTable('lineages', {
   linked_tree_id: text('linked_tree_id').references(() => trees.id),
 });
 
-export const lineage_members = sqliteTable('lineage_members', {
-  id: text('id').primaryKey(),
-  lineage_id: text('lineage_id')
-    .notNull()
-    .references(() => lineages.id, { onDelete: 'cascade' }),
-  person_data: text('person_data', { mode: 'json' }),
-});
+export const lineage_members = sqliteTable(
+  'lineage_members',
+  {
+    id: text('id').primaryKey(),
+    lineage_id: text('lineage_id')
+      .notNull()
+      .references(() => lineages.id, { onDelete: 'cascade' }),
+    person_data: text('person_data', { mode: 'json' }),
+  },
+  (t) => ({
+    lineageIdIdx: index('idx_lineage_members_lineage_id').on(t.lineage_id),
+  }),
+);
 
 // ---------------------------------------------------------------------------
 // Position Overrides
@@ -218,6 +234,8 @@ export const auth_tokens = sqliteTable(
     created_at: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
+    // kind distinguishes signup-verification vs password-reset tokens
+    kind: text('kind', { enum: ['verify', 'reset'] }).notNull().default('verify'),
   },
   (t) => ({
     hashIdx: index('idx_auth_tokens_hash').on(t.token_hash),
@@ -241,5 +259,39 @@ export const sessions = sqliteTable(
   },
   (t) => ({
     tokenHashIdx: index('idx_sessions_token_hash').on(t.token_hash),
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Sharing
+// ---------------------------------------------------------------------------
+
+export const tree_shares = sqliteTable(
+  'tree_shares',
+  {
+    id: text('id').primaryKey(),
+    tree_id: text('tree_id')
+      .notNull()
+      .references(() => trees.id, { onDelete: 'cascade' }),
+    // email stored lowercase by app convention
+    email: text('email').notNull(),
+    user_id: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+    role: text('role', { enum: ['viewer', 'editor'] }).notNull().default('viewer'),
+    status: text('status', { enum: ['pending', 'accepted', 'revoked'] })
+      .notNull()
+      .default('pending'),
+    invited_by: text('invited_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    created_at: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    accepted_at: integer('accepted_at'),
+  },
+  (t) => ({
+    // Note: the UNIQUE INDEX on (tree_id, lower(email)) is a SQLite expression index
+    // and cannot be expressed in drizzle-kit schema — it is hand-written in the migration SQL.
+    treeIdIdx: index('idx_tree_shares_tree_id').on(t.tree_id),
+    userIdIdx: index('idx_tree_shares_user_id').on(t.user_id),
   }),
 );

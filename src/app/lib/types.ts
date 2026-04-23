@@ -78,7 +78,7 @@ export interface Tree {
   name: string;
   nameEn?: string;
   ownerId: string;
-  isPublic: boolean;
+  visibility: 'public' | 'private' | 'shared';
   createdAt?: string;
 }
 
@@ -88,7 +88,7 @@ export interface TreeData {
     treeName: string;
     treeNameEn?: string;
     ownerId: string;
-    inviteCode?: string;
+    visibility?: 'public' | 'private' | 'shared';
   };
   people: Person[];
   stories?: Record<string, Array<{ year: number; title: string; body: string }>>;

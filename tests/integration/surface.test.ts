@@ -27,7 +27,11 @@ function makeEnv() {
     ASSETS: {
       fetch: async () => new Response('not found', { status: 404 }),
     } as unknown as Fetcher,
+    EMAIL: {} as SendEmail,
+    RL_LOGIN: {} as RateLimit,
+    RL_LOGIN_IP: {} as RateLimit,
     APP_URL: 'http://localhost:5173',
+    SESSION_SECRET: 'test-secret-at-least-thirty-two-characters-long-padding',
   };
 }
 
@@ -45,24 +49,32 @@ async function hit(
 describe('deleted routes → 404', () => {
   const env = makeEnv();
 
-  test('GET /api/auth/me → 404', async () => {
+  // /api/auth/me is now a live route — unauthenticated requests get 401.
+  test('GET /api/auth/me → 401 (route live, no session)', async () => {
     const res = await hit('GET', '/api/auth/me', env);
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
   });
 
-  test('POST /api/auth/request → 404', async () => {
+  // /api/auth/request is NOT a real route (only /request-reset is). Since
+  // originCheck middleware allows missing-Origin requests (N-R3-2), this
+  // falls through to Hono's 404.
+  test('POST /api/auth/request → 404 (no matching handler)', async () => {
     const res = await hit('POST', '/api/auth/request', env);
     expect(res.status).toBe(404);
   });
 
+  // GET /api/auth/verify is not a route (only POST is) — still 404.
   test('GET /api/auth/verify → 404', async () => {
     const res = await hit('GET', '/api/auth/verify?tk=x', env);
     expect(res.status).toBe(404);
   });
 
-  test('POST /api/auth/logout → 404', async () => {
+  // /api/auth/logout is a live route. With no Origin header (server-side /
+  // curl / test harness) the originCheck middleware allows it through; the
+  // handler returns 204 because there's no cookie to invalidate.
+  test('POST /api/auth/logout → 204 (no-op logout, no Origin + no session)', async () => {
     const res = await hit('POST', '/api/auth/logout', env);
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(204);
   });
 
   test('POST /api/upload → 404', async () => {

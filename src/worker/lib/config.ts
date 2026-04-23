@@ -53,6 +53,10 @@ export function assertEnv(env: Env): void {
       `APP_URL must use https in production (got ${parsed.protocol}//${parsed.hostname})`,
     );
   }
+
+  if (!env.SESSION_SECRET || env.SESSION_SECRET.length < 32) {
+    throw new Error('SESSION_SECRET must be set and at least 32 chars');
+  }
 }
 
 // ---------------------------------------------------------------------------
