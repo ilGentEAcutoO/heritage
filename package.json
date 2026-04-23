@@ -27,28 +27,28 @@
     "hono": "^4",
     "react": "^18.3",
     "react-dom": "^18.3",
-    "react-router-dom": "^7.14.1",
+    "react-router-dom": "^7.14.2",
     "zod": "^3"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1",
-    "@cloudflare/workers-types": "^4",
+    "@cloudflare/vite-plugin": "^1.33.1",
+    "@cloudflare/workers-types": "^4.20260423.1",
     "@playwright/test": "^1.59.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/ui": "^4.1.4",
+    "@vitest/ui": "^4.1.5",
     "better-sqlite3": "^12.9.0",
     "drizzle-kit": "^0.31.10",
     "husky": "^9",
     "playwright": "^1.59.1",
     "tsx": "^4.21.0",
     "typescript": "^5.4",
-    "vite": "^8.0.8",
-    "vitest": "^4.1.4",
-    "wrangler": "^4.34"
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5",
+    "wrangler": "^4.84.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

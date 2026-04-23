@@ -55,8 +55,11 @@ treeRouter.get('/:slug', async (c) => {
   const authed = hasSessionCookie(cookieHeader);
 
   // Build cache key for caches.default (Workers Cache API).
-  // Only attempt cache lookup for requests that could be cached (no session cookie).
-  const cacheKey = new Request(c.req.url);
+  // Strip query string so all variants of the same path share one cache entry,
+  // and purgeTreeCache (which also strips search) reliably invalidates them.
+  const cacheUrl = new URL(c.req.url);
+  cacheUrl.search = '';
+  const cacheKey = new Request(cacheUrl.toString());
 
   // 1. For public-eligible requests (no session cookie), try cache first.
   if (!authed && typeof caches !== 'undefined') {

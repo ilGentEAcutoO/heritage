@@ -35,11 +35,9 @@ export const trees = sqliteTable(
     name: text('name').notNull(),
     name_en: text('name_en'),
     owner_id: text('owner_id').references(() => users.id),
-    is_public: integer('is_public', { mode: 'boolean' }).notNull().default(false),
     created_at: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
-    // Visibility replaces is_public (is_public retained for backward compat — drop deferred)
     visibility: text('visibility', { enum: ['public', 'private', 'shared'] })
       .notNull()
       .default('public'),

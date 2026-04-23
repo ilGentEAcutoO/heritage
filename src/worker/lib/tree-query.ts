@@ -27,10 +27,8 @@ export interface TreeMeta {
   slug: string;
   name: string;
   nameEn: string | null;
-  /** Visibility enum — canonical access-control field (Phase 0+). */
+  /** Visibility enum — canonical access-control field. */
   visibility: 'public' | 'private' | 'shared';
-  /** Backward-compat shim: true when visibility === 'public'. */
-  isPublic: boolean;
   ownerId: string | null;
 }
 
@@ -302,11 +300,7 @@ export async function getTreeData(
     };
   }
 
-  // Normalise visibility: prefer the enum column; fall back to is_public for
-  // rows that predate the Phase 0 migration (shouldn't exist after backfill).
-  const visibility: 'public' | 'private' | 'shared' =
-    (treeRow.visibility as 'public' | 'private' | 'shared' | null | undefined) ??
-    (treeRow.is_public ? 'public' : 'private');
+  const visibility = treeRow.visibility;
 
   return {
     tree: {
@@ -315,7 +309,6 @@ export async function getTreeData(
       name: treeRow.name,
       nameEn: treeRow.name_en,
       visibility,
-      isPublic: visibility === 'public',
       ownerId: treeRow.owner_id,
     },
     people: shapedPeople,

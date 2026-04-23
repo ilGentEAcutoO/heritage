@@ -22,7 +22,7 @@ and are deployed directly — no embargo period is maintained by this project.
 Heritage is a read-only family-tree viewer. The public attack surface is:
 
 - `GET /api/health` — liveness
-- `GET /api/tree/:slug` — public trees only; `is_public = false` rows return 404
+- `GET /api/tree/:slug` — public trees only; rows with `visibility !== 'public'` return 404
 - `GET /api/img/:key` — rate-limited, with strict R2 key shape enforcement
 
 There is currently **no authentication** on the application. Any feature that

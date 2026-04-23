@@ -18,8 +18,15 @@ import { createDb } from '@db/client';
 import { users, trees, tree_members, people, photos } from '@db/schema';
 import imgRouter from '@worker/routes/img';
 import { dbMiddleware } from '@worker/middleware/db';
+import { sessionMiddleware } from '@worker/middleware/session';
 import type { HonoEnv } from '@worker/types';
 import { R2BucketStub, KVNamespaceStub } from '../helpers/mock-env';
+import {
+  seedUser,
+  seedSession,
+  seedPrivateTree as fixturesSeedPrivateTree,
+  seedSharedTree,
+} from '../helpers/fixtures';
 
 // ---------------------------------------------------------------------------
 // App factory
@@ -28,6 +35,7 @@ import { R2BucketStub, KVNamespaceStub } from '../helpers/mock-env';
 function makeApp(_d1: SqliteD1Database, _r2: R2BucketStub, _kv: KVNamespaceStub) {
   const app = new Hono<HonoEnv>();
   app.use('*', dbMiddleware);
+  app.use('*', sessionMiddleware); // so c.var.user is populated from __Host-session cookie
   app.route('/api/img', imgRouter);
   return app;
 }
@@ -43,6 +51,7 @@ function makeEnv(
     KV_RL: kv as unknown as KVNamespace,
     ASSETS: null,
     APP_URL: 'http://localhost:5173',
+    SESSION_SECRET: 'test-secret-at-least-thirty-two-characters-long-padding',
   };
 }
 
@@ -80,7 +89,7 @@ async function seedPublicTree(d1: SqliteD1Database): Promise<void> {
     slug: TREE_SLUG,
     name: 'Public Tree',
     owner_id: OWNER_ID,
-    is_public: true,
+    visibility: 'public',
   });
   await db.insert(tree_members).values({
     id: 'mb-img-001',
@@ -97,7 +106,7 @@ async function seedPublicTree(d1: SqliteD1Database): Promise<void> {
   });
 }
 
-async function seedPrivateTree(d1: SqliteD1Database): Promise<void> {
+async function seedPrivateTreeLocal(d1: SqliteD1Database): Promise<void> {
   const db = createDb(d1 as unknown as D1Database);
   await db.insert(users).values({ id: OWNER_ID, email: 'owner@test.com', display_name: 'Owner' });
   await db.insert(trees).values({
@@ -105,7 +114,7 @@ async function seedPrivateTree(d1: SqliteD1Database): Promise<void> {
     slug: 'priv-tree',
     name: 'Private Tree',
     owner_id: OWNER_ID,
-    is_public: false,
+    visibility: 'private',
   });
   await db.insert(tree_members).values({
     id: 'mb-img-001',
@@ -213,7 +222,7 @@ describe('GET /api/img/:key', () => {
   });
 
   test('private tree → 403', async () => {
-    await seedPrivateTree(d1);
+    await seedPrivateTreeLocal(d1);
     await insertPhoto(d1, 'photo-priv', VALID_KEY);
     r2.seed(VALID_KEY, new Uint8Array(16));
 
@@ -303,5 +312,239 @@ describe('GET /api/img/:key', () => {
       'cf-connecting-ip': '192.0.2.250',
     });
     expect(res.status).toBe(429);
+  });
+
+  // ------------------------------------------------------------------
+  // visibility gate (H1) — IDOR fix S1-T1…S1-T8
+  // ------------------------------------------------------------------
+
+  describe('visibility gate (H1)', () => {
+    // Helpers: unique IDs per test to avoid conflicts with existing seed data
+    const newUlid = '01J0000000000000000000000B';
+    const newKey = (treeId: string, personId: string) =>
+      `photos/${treeId}/${personId}/${newUlid}.jpg`;
+
+    async function insertPersonAndPhoto(
+      d1: SqliteD1Database,
+      treeId: string,
+      personId: string,
+      photoId: string,
+      objectKey: string,
+    ) {
+      const db = createDb(d1 as unknown as D1Database);
+      await db.insert(people).values({
+        id: personId,
+        tree_id: treeId,
+        name: 'Subject',
+        is_me: false,
+        external: false,
+      });
+      await db.insert(photos).values({
+        id: photoId,
+        person_id: personId,
+        object_key: objectKey,
+        mime: 'image/jpeg',
+        bytes: 16,
+        uploaded_by: null,
+      });
+    }
+
+    // S1-T1: visibility=private, anonymous → 403 (IDOR regression guard)
+    // After S2: is_public column is dropped. Security intent is preserved:
+    // a private tree must return 403 for anonymous requests regardless of any
+    // legacy is_public value that may have existed before the migration.
+    test('S1-T1: visibility=private, anonymous → 403 (IDOR regression guard)', async () => {
+      const u1 = await seedUser(d1, { email: 's1t1-owner@test.com' });
+      const { treeId } = await fixturesSeedPrivateTree(d1, {
+        ownerId: u1.id,
+        treeId: 's1t1-tree',
+        slug: 's1t1-tree',
+      });
+      const personId = 's1t1-person';
+      const key = newKey(treeId, personId);
+
+      await insertPersonAndPhoto(d1, treeId, personId, 's1t1-photo', key);
+      r2.seed(key, new Uint8Array(16));
+
+      // Anonymous GET → must be 403 (visibility=private)
+      const res = await getImg(app, key, env);
+      expect(res.status).toBe(403);
+    });
+
+    // S1-T2: private + owner session → 200
+    test('S1-T2: private tree + owner session → 200', async () => {
+      const u1 = await seedUser(d1, { email: 's1t2-owner@test.com' });
+      const { treeId } = await fixturesSeedPrivateTree(d1, { ownerId: u1.id, treeId: 's1t2-tree', slug: 's1t2-tree' });
+      const personId = 's1t2-person';
+      const key = newKey(treeId, personId);
+      await insertPersonAndPhoto(d1, treeId, personId, 's1t2-photo', key);
+      r2.seed(key, new Uint8Array(16));
+
+      const { cookieHeader } = await seedSession(d1, u1.id);
+      const res = await getImg(app, key, env, { Cookie: cookieHeader });
+      expect(res.status).toBe(200);
+    });
+
+    // S1-T3: private + non-owner session → 403
+    test('S1-T3: private tree + non-owner session → 403', async () => {
+      const u1 = await seedUser(d1, { email: 's1t3-owner@test.com' });
+      const u2 = await seedUser(d1, { email: 's1t3-other@test.com' });
+      const { treeId } = await fixturesSeedPrivateTree(d1, { ownerId: u1.id, treeId: 's1t3-tree', slug: 's1t3-tree' });
+      const personId = 's1t3-person';
+      const key = newKey(treeId, personId);
+      await insertPersonAndPhoto(d1, treeId, personId, 's1t3-photo', key);
+      r2.seed(key, new Uint8Array(16));
+
+      const { cookieHeader } = await seedSession(d1, u2.id);
+      const res = await getImg(app, key, env, { Cookie: cookieHeader });
+      expect(res.status).toBe(403);
+    });
+
+    // S1-T4: shared tree + accepted share (by user_id) → 200
+    test('S1-T4: shared tree + accepted share user → 200', async () => {
+      const u1 = await seedUser(d1, { email: 's1t4-owner@test.com' });
+      const u2 = await seedUser(d1, { email: 's1t4-viewer@test.com' });
+      const { treeId } = await seedSharedTree(d1, {
+        ownerId: u1.id,
+        treeId: 's1t4-tree',
+        slug: 's1t4-tree',
+        acceptedShareUserIds: [u2.id],
+      });
+      const personId = 's1t4-person';
+      const key = newKey(treeId, personId);
+      await insertPersonAndPhoto(d1, treeId, personId, 's1t4-photo', key);
+      r2.seed(key, new Uint8Array(16));
+
+      const { cookieHeader } = await seedSession(d1, u2.id);
+      const res = await getImg(app, key, env, { Cookie: cookieHeader });
+      expect(res.status).toBe(200);
+    });
+
+    // S1-T5: shared tree + pending share → 403
+    test('S1-T5: shared tree + pending share → 403', async () => {
+      const u1 = await seedUser(d1, { email: 's1t5-owner@test.com' });
+      const u2 = await seedUser(d1, { email: 's1t5-pending@test.com' });
+      const { treeId } = await seedSharedTree(d1, {
+        ownerId: u1.id,
+        treeId: 's1t5-tree',
+        slug: 's1t5-tree',
+        pendingShareUserIds: [u2.id],
+      });
+      const personId = 's1t5-person';
+      const key = newKey(treeId, personId);
+      await insertPersonAndPhoto(d1, treeId, personId, 's1t5-photo', key);
+      r2.seed(key, new Uint8Array(16));
+
+      const { cookieHeader } = await seedSession(d1, u2.id);
+      const res = await getImg(app, key, env, { Cookie: cookieHeader });
+      expect(res.status).toBe(403);
+    });
+
+    // S1-T6: shared tree + anonymous → 403
+    test('S1-T6: shared tree + anonymous → 403', async () => {
+      const u1 = await seedUser(d1, { email: 's1t6-owner@test.com' });
+      const { treeId } = await seedSharedTree(d1, {
+        ownerId: u1.id,
+        treeId: 's1t6-tree',
+        slug: 's1t6-tree',
+      });
+      const personId = 's1t6-person';
+      const key = newKey(treeId, personId);
+      await insertPersonAndPhoto(d1, treeId, personId, 's1t6-photo', key);
+      r2.seed(key, new Uint8Array(16));
+
+      const res = await getImg(app, key, env);
+      expect(res.status).toBe(403);
+    });
+
+    // S1-T7: public tree + anonymous → 200 (regression guard with explicit visibility='public')
+    test('S1-T7: public tree (visibility=public) + anonymous → 200', async () => {
+      const db = createDb(d1 as unknown as D1Database);
+      const u1 = await seedUser(d1, { email: 's1t7-owner@test.com' });
+      const treeId = 's1t7-tree';
+      const personId = 's1t7-person';
+      const key = newKey(treeId, personId);
+
+      await db.insert(trees).values({
+        id: treeId,
+        slug: 's1t7-tree',
+        name: 'Public Tree',
+        owner_id: u1.id,
+        visibility: 'public',
+      });
+      await db.insert(tree_members).values({
+        id: 's1t7-mb',
+        tree_id: treeId,
+        user_id: u1.id,
+        role: 'owner',
+      });
+      await insertPersonAndPhoto(d1, treeId, personId, 's1t7-photo', key);
+      r2.seed(key, new Uint8Array(16));
+
+      const res = await getImg(app, key, env);
+      expect(res.status).toBe(200);
+    });
+
+    // S1-T8: Cache-Control header varies by visibility
+    test('S1-T8: Cache-Control is private for private/shared trees, public for public trees', async () => {
+      // Part A: private + owner → 'private, max-age=60, must-revalidate'
+      const u1a = await seedUser(d1, { email: 's1t8a-owner@test.com' });
+      const { treeId: privTreeId } = await fixturesSeedPrivateTree(d1, {
+        ownerId: u1a.id,
+        treeId: 's1t8a-tree',
+        slug: 's1t8a-tree',
+      });
+      const privPersonId = 's1t8a-person';
+      const privKey = newKey(privTreeId, privPersonId);
+      await insertPersonAndPhoto(d1, privTreeId, privPersonId, 's1t8a-photo', privKey);
+      r2.seed(privKey, new Uint8Array(16));
+      const { cookieHeader: cookieA } = await seedSession(d1, u1a.id);
+      const resA = await getImg(app, privKey, env, { Cookie: cookieA });
+      expect(resA.status).toBe(200);
+      expect(resA.headers.get('cache-control')).toBe('private, max-age=60, must-revalidate');
+
+      // Part B: shared + accepted share → 'private, max-age=60, must-revalidate'
+      const u1b = await seedUser(d1, { email: 's1t8b-owner@test.com' });
+      const u2b = await seedUser(d1, { email: 's1t8b-viewer@test.com' });
+      const { treeId: sharedTreeId } = await seedSharedTree(d1, {
+        ownerId: u1b.id,
+        treeId: 's1t8b-tree',
+        slug: 's1t8b-tree',
+        acceptedShareUserIds: [u2b.id],
+      });
+      const sharedPersonId = 's1t8b-person';
+      const sharedKey = newKey(sharedTreeId, sharedPersonId);
+      await insertPersonAndPhoto(d1, sharedTreeId, sharedPersonId, 's1t8b-photo', sharedKey);
+      r2.seed(sharedKey, new Uint8Array(16));
+      const { cookieHeader: cookieB } = await seedSession(d1, u2b.id);
+      const resB = await getImg(app, sharedKey, env, { Cookie: cookieB });
+      expect(resB.status).toBe(200);
+      expect(resB.headers.get('cache-control')).toBe('private, max-age=60, must-revalidate');
+
+      // Part C: public + anonymous → 'public, max-age=60'
+      const db = createDb(d1 as unknown as D1Database);
+      const u1c = await seedUser(d1, { email: 's1t8c-owner@test.com' });
+      const pubTreeId = 's1t8c-tree';
+      const pubPersonId = 's1t8c-person';
+      const pubKey = newKey(pubTreeId, pubPersonId);
+      await db.insert(trees).values({
+        id: pubTreeId,
+        slug: 's1t8c-tree',
+        name: 'Public Tree C',
+        owner_id: u1c.id,
+        visibility: 'public',
+      });
+      await db.insert(tree_members).values({
+        id: 's1t8c-mb',
+        tree_id: pubTreeId,
+        user_id: u1c.id,
+        role: 'owner',
+      });
+      await insertPersonAndPhoto(d1, pubTreeId, pubPersonId, 's1t8c-photo', pubKey);
+      r2.seed(pubKey, new Uint8Array(16));
+      const resC = await getImg(app, pubKey, env);
+      expect(resC.status).toBe(200);
+      expect(resC.headers.get('cache-control')).toBe('public, max-age=60');
+    });
   });
 });

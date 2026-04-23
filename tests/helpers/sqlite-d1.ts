@@ -132,7 +132,6 @@ const INLINE_DDL = `
     name TEXT NOT NULL,
     name_en TEXT,
     owner_id TEXT REFERENCES users(id),
-    is_public INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch()),
     visibility TEXT NOT NULL DEFAULT 'public'
   );

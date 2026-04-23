@@ -233,7 +233,7 @@ export async function seedDemo(
       name: 'บ้านวงศ์สุริยา',
       name_en: 'Wongsuriya Family',
       owner_id: null,
-      is_public: true,
+      visibility: 'public',
     }),
   ]);
 

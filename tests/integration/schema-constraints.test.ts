@@ -27,7 +27,6 @@ async function seedMinimal(d1: SqliteD1Database): Promise<void> {
     slug: 'sc-tree',
     name: 'SC Tree',
     owner_id: OWNER_ID,
-    is_public: false,
   });
   await db.insert(people).values({
     id: PERSON_ID,

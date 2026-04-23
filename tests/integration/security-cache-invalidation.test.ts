@@ -136,6 +136,82 @@ describe('N-R3-3 remediation — visibility PATCH purges the edge cache', () => 
     expect(res.headers.get('x-cache')).toBe('MISS');
   });
 
+  test('S5-T1 — query-string variants hit the same cache entry', async () => {
+    const d1Local = createSqliteD1();
+    const db = drizzle(d1Local as unknown as D1Database, { schema });
+    db.insert(schema.users).values({ id: 'owner-s5t1', email: 's5t1@x.com', email_verified_at: 1 }).run();
+    db.insert(schema.trees).values({
+      id: 'tree-s5t1',
+      slug: 's5t1-tree',
+      name: 'S5T1Tree',
+      owner_id: 'owner-s5t1',
+      visibility: 'public',
+    }).run();
+
+    const anonApp = makeApp(d1Local, null);
+
+    // First GET with ?foo=1 — cache MISS
+    const res1 = await anonApp.fetch(
+      new Request('http://localhost/api/tree/s5t1-tree?foo=1', { method: 'GET' }),
+      env(d1Local),
+    );
+    expect(res1.status).toBe(200);
+    expect(res1.headers.get('x-cache')).toBe('MISS');
+
+    // Second GET with ?bar=2 — MUST be a cache HIT (same path-only key)
+    const res2 = await anonApp.fetch(
+      new Request('http://localhost/api/tree/s5t1-tree?bar=2', { method: 'GET' }),
+      env(d1Local),
+    );
+    expect(res2.status).toBe(200);
+    expect(res2.headers.get('x-cache')).toBe('HIT');
+
+    // Exactly 1 entry in the cache store
+    expect((cacheStore as unknown as { store: Map<string, unknown> }).store.size).toBe(1);
+  });
+
+  test('S5-T2 — purge clears every query-string variant', async () => {
+    const d1Local = createSqliteD1();
+    const db = drizzle(d1Local as unknown as D1Database, { schema });
+    db.insert(schema.users).values({ id: 'owner-s5t2', email: 's5t2@x.com', email_verified_at: 1 }).run();
+    db.insert(schema.trees).values({
+      id: 'tree-s5t2',
+      slug: 's5t2-tree',
+      name: 'S5T2Tree',
+      owner_id: 'owner-s5t2',
+      visibility: 'public',
+    }).run();
+
+    const anonApp = makeApp(d1Local, null);
+
+    // Populate cache via ?a=1
+    const res1 = await anonApp.fetch(
+      new Request('http://localhost/api/tree/s5t2-tree?a=1', { method: 'GET' }),
+      env(d1Local),
+    );
+    expect(res1.status).toBe(200);
+
+    // Owner flips visibility to private (triggers purgeTreeCache)
+    const ownerApp = makeApp(d1Local, { id: 'owner-s5t2', email: 's5t2@x.com' });
+    const patchRes = await ownerApp.fetch(
+      new Request('http://localhost/api/tree/s5t2-tree/visibility', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visibility: 'private' }),
+      }),
+      env(d1Local),
+    );
+    expect(patchRes.status).toBe(200);
+    expect(cacheStore.deleteCallCount).toBe(1);
+
+    // Follow-up anon GET with DIFFERENT query string — must be 404 (not a stale cached 200)
+    const res2 = await anonApp.fetch(
+      new Request('http://localhost/api/tree/s5t2-tree?b=2', { method: 'GET' }),
+      env(d1Local),
+    );
+    expect(res2.status).toBe(404);
+  });
+
   test('owner PATCHes visibility public → private → cache is purged + anon sees 404', async () => {
     // Populate cache via an anonymous read
     const anonApp = makeApp(d1, null);

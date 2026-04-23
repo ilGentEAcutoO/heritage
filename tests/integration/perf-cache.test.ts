@@ -127,8 +127,8 @@ function seedPublicTree(d1: SqliteD1Database, slug = 'pub-cache-tree') {
     "INSERT OR IGNORE INTO users (id, email, display_name, created_at) VALUES ('cache-owner', 'cache@test.com', 'Owner', unixepoch())"
   ).run();
   sq.prepare(
-    `INSERT OR IGNORE INTO trees (id, slug, name, owner_id, is_public, visibility, created_at)
-     VALUES ('tree-pub-cache', ?, 'Cache Tree', 'cache-owner', 1, 'public', unixepoch())`
+    `INSERT OR IGNORE INTO trees (id, slug, name, owner_id, visibility, created_at)
+     VALUES ('tree-pub-cache', ?, 'Cache Tree', 'cache-owner', 'public', unixepoch())`
   ).run(slug);
 }
 
@@ -138,8 +138,8 @@ function seedPrivateTree(d1: SqliteD1Database, slug = 'priv-cache-tree') {
     "INSERT OR IGNORE INTO users (id, email, display_name, created_at) VALUES ('cache-owner', 'cache@test.com', 'Owner', unixepoch())"
   ).run();
   sq.prepare(
-    `INSERT OR IGNORE INTO trees (id, slug, name, owner_id, is_public, visibility, created_at)
-     VALUES ('tree-priv-cache', ?, 'Private Cache Tree', 'cache-owner', 0, 'private', unixepoch())`
+    `INSERT OR IGNORE INTO trees (id, slug, name, owner_id, visibility, created_at)
+     VALUES ('tree-priv-cache', ?, 'Private Cache Tree', 'cache-owner', 'private', unixepoch())`
   ).run(slug);
 }
 

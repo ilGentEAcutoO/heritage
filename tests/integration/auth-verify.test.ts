@@ -272,7 +272,6 @@ describe('POST /api/auth/verify', () => {
       slug: 'test-tree',
       name: 'Test Tree',
       owner_id: inviterId,
-      is_public: false,
       visibility: 'shared',
     });
 

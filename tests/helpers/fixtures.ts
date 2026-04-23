@@ -159,6 +159,149 @@ export interface SeedShareOptions {
  * @param d1 - the SqliteD1Database shim
  * @param opts - treeId, email, and invitedBy are required
  */
+// ---------------------------------------------------------------------------
+// seedPrivateTree
+// ---------------------------------------------------------------------------
+
+export interface SeedPrivateTreeOptions {
+  treeId?: string;
+  slug?: string;
+  name?: string;
+  /** Required — user must already exist */
+  ownerId: string;
+}
+
+export interface SeededTree {
+  treeId: string;
+  slug: string;
+}
+
+/**
+ * Insert a trees row with visibility='private', plus a tree_members owner row.
+ */
+export async function seedPrivateTree(
+  d1: SqliteD1Database,
+  opts: SeedPrivateTreeOptions,
+): Promise<SeededTree> {
+  const db: DrizzleDB = drizzle(d1 as unknown as D1Database, { schema });
+
+  const treeId = opts.treeId ?? crypto.randomUUID();
+  const slug = opts.slug ?? `priv-${treeId.slice(0, 8)}`;
+  const name = opts.name ?? 'Private Tree';
+
+  await db.insert(schema.trees).values({
+    id: treeId,
+    slug,
+    name,
+    owner_id: opts.ownerId,
+    visibility: 'private',
+  });
+
+  await db.insert(schema.tree_members).values({
+    id: crypto.randomUUID(),
+    tree_id: treeId,
+    user_id: opts.ownerId,
+    role: 'owner',
+  });
+
+  return { treeId, slug };
+}
+
+// ---------------------------------------------------------------------------
+// seedSharedTree
+// ---------------------------------------------------------------------------
+
+export interface SeedSharedTreeOptions {
+  treeId?: string;
+  slug?: string;
+  name?: string;
+  /** Required — user must already exist */
+  ownerId: string;
+  /** Users who already accepted a share (have user_id + status='accepted') */
+  acceptedShareUserIds?: string[];
+  /** Users with status='pending' */
+  pendingShareUserIds?: string[];
+  /** Email-only accepted shares (no user_id) */
+  acceptedShareEmails?: string[];
+}
+
+/**
+ * Insert a trees row with visibility='shared', tree_members owner row, and
+ * tree_shares rows per the accepted/pending arrays.
+ */
+export async function seedSharedTree(
+  d1: SqliteD1Database,
+  opts: SeedSharedTreeOptions,
+): Promise<SeededTree> {
+  const db: DrizzleDB = drizzle(d1 as unknown as D1Database, { schema });
+
+  const treeId = opts.treeId ?? crypto.randomUUID();
+  const slug = opts.slug ?? `shared-${treeId.slice(0, 8)}`;
+  const name = opts.name ?? 'Shared Tree';
+
+  await db.insert(schema.trees).values({
+    id: treeId,
+    slug,
+    name,
+    owner_id: opts.ownerId,
+    visibility: 'shared',
+  });
+
+  await db.insert(schema.tree_members).values({
+    id: crypto.randomUUID(),
+    tree_id: treeId,
+    user_id: opts.ownerId,
+    role: 'owner',
+  });
+
+  const now = Math.floor(Date.now() / 1000);
+
+  for (const userId of opts.acceptedShareUserIds ?? []) {
+    await db.insert(schema.tree_shares).values({
+      id: crypto.randomUUID(),
+      tree_id: treeId,
+      email: `${userId}@share.test`,
+      user_id: userId,
+      role: 'viewer',
+      status: 'accepted',
+      invited_by: opts.ownerId,
+      accepted_at: now,
+    });
+  }
+
+  for (const userId of opts.pendingShareUserIds ?? []) {
+    await db.insert(schema.tree_shares).values({
+      id: crypto.randomUUID(),
+      tree_id: treeId,
+      email: `${userId}@share.test`,
+      user_id: userId,
+      role: 'viewer',
+      status: 'pending',
+      invited_by: opts.ownerId,
+      accepted_at: null,
+    });
+  }
+
+  for (const email of opts.acceptedShareEmails ?? []) {
+    await db.insert(schema.tree_shares).values({
+      id: crypto.randomUUID(),
+      tree_id: treeId,
+      email,
+      user_id: null,
+      role: 'viewer',
+      status: 'accepted',
+      invited_by: opts.ownerId,
+      accepted_at: now,
+    });
+  }
+
+  return { treeId, slug };
+}
+
+// ---------------------------------------------------------------------------
+// seedShare
+// ---------------------------------------------------------------------------
+
 export async function seedShare(
   d1: SqliteD1Database,
   opts: SeedShareOptions,

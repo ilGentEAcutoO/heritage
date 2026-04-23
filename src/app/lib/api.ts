@@ -48,7 +48,6 @@ export interface ApiTreeResponse {
     slug: string;
     name: string;
     nameEn: string | null;
-    isPublic: boolean;
     visibility: 'public' | 'private' | 'shared';
     ownerId: string | null;
   };

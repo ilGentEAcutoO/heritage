@@ -75,10 +75,17 @@ describe('GET /api/tree/:slug — demo (public)', () => {
   test('GET /api/tree/wongsuriya includes tree metadata', async () => {
     const res = await req(app, '/api/tree/wongsuriya', env);
     const data = await res.json() as {
-      tree: { slug: string; name: string; isPublic: boolean };
+      tree: { slug: string; name: string };
     };
     expect(data.tree.slug).toBe('wongsuriya');
-    expect(data.tree.isPublic).toBe(true);
+  });
+
+  // S2-T4 — API contract: isPublic must NOT appear in the response
+  test('S2-T4: GET /api/tree/wongsuriya body.tree.isPublic === undefined', async () => {
+    const res = await req(app, '/api/tree/wongsuriya', env);
+    expect(res.status).toBe(200);
+    const data = await res.json() as { tree: Record<string, unknown> };
+    expect(data.tree.isPublic).toBeUndefined();
   });
 
   test('GET /api/tree/wongsuriya includes >= 22 relations', async () => {
@@ -158,7 +165,7 @@ describe('N-R3-5 — ownerId redaction on public GET', () => {
       "INSERT INTO users (id, email, display_name, created_at) VALUES ('owner-visible', 'owner@test.com', 'Owner', unixepoch())"
     ).run();
     sq.prepare(
-      "INSERT INTO trees (id, slug, name, name_en, owner_id, is_public, visibility, created_at) VALUES ('pub-tree-1', 'pub-tree', 'Public Tree', NULL, 'owner-visible', 1, 'public', unixepoch())"
+      "INSERT INTO trees (id, slug, name, name_en, owner_id, visibility, created_at) VALUES ('pub-tree-1', 'pub-tree', 'Public Tree', NULL, 'owner-visible', 'public', unixepoch())"
     ).run();
   });
 
@@ -213,7 +220,7 @@ describe('GET /api/tree/:slug — private tree returns 404', () => {
       "INSERT INTO users (id, email, display_name, created_at) VALUES ('owner1', 'owner@test.com', 'Owner', unixepoch())"
     ).run();
     sq.prepare(
-      "INSERT INTO trees (id, slug, name, name_en, owner_id, is_public, visibility, created_at) VALUES ('priv-tree-1', 'priv-tree', 'Private Tree', NULL, 'owner1', 0, 'private', unixepoch())"
+      "INSERT INTO trees (id, slug, name, name_en, owner_id, visibility, created_at) VALUES ('priv-tree-1', 'priv-tree', 'Private Tree', NULL, 'owner1', 'private', unixepoch())"
     ).run();
     sq.prepare(
       "INSERT INTO tree_members VALUES ('mb1', 'priv-tree-1', 'owner1', 'owner', unixepoch())"

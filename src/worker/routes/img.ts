@@ -3,8 +3,9 @@
  *   GET /api/img/*  — serve R2 object; gated by tree visibility
  *
  * Access rules:
- *   - If photo's tree is_public → serve (with KV rate-limit)
- *   - Else → 403 (auth has been removed; private trees are inaccessible)
+ *   - Delegated to canAccessTree(): public→always, private→owner only,
+ *     shared→owner or accepted tree_share. Anonymous requests (no session
+ *     cookie) are treated as userId=null and fail closed for non-public trees.
  *
  * Key is the full path after /api/img/ (may contain slashes, e.g. photos/<treeId>/<personId>/<ULID>.jpg).
  *
@@ -25,14 +26,17 @@
  *     are accepted. Older pre-PR-2 keys (`photos/<personId>/<ULID>.<ext>`) now
  *     return 404 — the demo seed has been migrated in TASK-202/203.
  *   - H6: Hardened response headers on 200: `X-Content-Type-Options: nosniff`,
- *     `Content-Disposition: inline; filename="<sanitized>"`,
- *     `Cache-Control: public, max-age=60`, `Vary: Cookie`.
+ *     `Content-Disposition: inline; filename="<sanitized>"`, `Vary: Cookie`,
+ *     and a visibility-aware `Cache-Control`: `public, max-age=60` for public
+ *     trees; `private, max-age=60, must-revalidate` for private/shared so a
+ *     shared CDN can't replay one user's response to another.
  */
 
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import type { HonoEnv } from '../types';
 import { schema } from '../../db/client';
+import { canAccessTree } from '../lib/can-access-tree';
 
 // ---------------------------------------------------------------------------
 // Rate-limit config
@@ -162,7 +166,7 @@ img.get('/:key{.+}', async (c) => {
     return c.json({ error: 'not_found' }, 404);
   }
 
-  // Resolve the tree to check is_public
+  // Resolve the tree to apply the visibility gate
   const person = await db.query.people.findFirst({
     where: eq(schema.people.id, photo.person_id),
     columns: { tree_id: true },
@@ -174,14 +178,20 @@ img.get('/:key{.+}', async (c) => {
 
   const tree = await db.query.trees.findFirst({
     where: eq(schema.trees.id, person.tree_id),
-    columns: { id: true, is_public: true },
+    columns: { id: true, visibility: true, owner_id: true },
   });
 
   if (!tree) {
     return c.json({ error: 'not_found' }, 404);
   }
 
-  if (!tree.is_public) {
+  const userId = c.var.user?.id ?? null;
+  const allowed = await canAccessTree(
+    db,
+    { id: tree.id, visibility: tree.visibility, owner_id: tree.owner_id },
+    userId,
+  );
+  if (!allowed) {
     return c.json({ error: 'forbidden' }, 403);
   }
 
@@ -209,6 +219,9 @@ img.get('/:key{.+}', async (c) => {
   const mime = photo.mime ?? 'application/octet-stream';
   const etag = obj.httpEtag;
   const filename = sanitizeFilename(key);
+  const cacheControl = tree.visibility === 'public'
+    ? 'public, max-age=60'
+    : 'private, max-age=60, must-revalidate';
 
   return new Response(obj.body, {
     status: 200,
@@ -216,7 +229,7 @@ img.get('/:key{.+}', async (c) => {
       'Content-Type': mime,
       'X-Content-Type-Options': 'nosniff',
       'Content-Disposition': `inline; filename="${filename}"`,
-      'Cache-Control': 'public, max-age=60',
+      'Cache-Control': cacheControl,
       Vary: 'Cookie',
       ...(etag ? { ETag: etag } : {}),
     },

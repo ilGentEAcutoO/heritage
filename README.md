@@ -26,7 +26,7 @@ pnpm dev
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/api/health` | liveness probe |
-| GET | `/api/tree/:slug` | public trees only (`is_public` gated); 404 for private |
+| GET | `/api/tree/:slug` | public trees only (`visibility='public'` required); 404 for private |
 | GET | `/api/img/:key` | public-tree photos; 403 for private; KV rate-limited |
 
 All mutation and authentication endpoints have been removed.

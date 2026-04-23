@@ -24,6 +24,8 @@ import { sessionMiddleware } from './middleware/session';
 import { originCheck } from './middleware/origin-check';
 import { securityHeaders, applySecurityHeaders } from './middleware/security-headers';
 import { getValidatedEnv } from './lib/config';
+import { deleteExpiredSessions } from './lib/session-cleanup';
+import { createDb } from '../db/client';
 import type { Env, HonoEnv } from './types';
 
 export type { Env } from './types';
@@ -79,5 +81,16 @@ export default {
     }
 
     return secured;
+  },
+
+  async scheduled(_event: ScheduledController, env: Env, _ctx: ExecutionContext): Promise<void> {
+    try {
+      getValidatedEnv(env);
+      const db = createDb(env.DB);
+      const count = await deleteExpiredSessions(db);
+      console.log(JSON.stringify({ event: 'sessions_purged', count }));
+    } catch (err) {
+      console.error('[scheduled] session cleanup failed:', err);
+    }
   },
 } satisfies ExportedHandler<Env>;

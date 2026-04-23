@@ -91,4 +91,16 @@ describe('schema round-trip after 0002 migration', () => {
     ).all();
     expect(rows.results.length).toBe(1);
   });
+
+  // S2-T1 — trees table must NOT contain is_public column after migration
+  it('S2-T1: trees table does NOT have is_public column', async () => {
+    const d1 = createSqliteD1();
+    const rows = await d1.prepare("PRAGMA table_info(trees)").all();
+    const columnNames = (rows.results as Array<{ name: string }>).map((r) => r.name);
+    expect(columnNames).not.toContain('is_public');
+    // Confirm other key columns are still present
+    expect(columnNames).toContain('id');
+    expect(columnNames).toContain('slug');
+    expect(columnNames).toContain('visibility');
+  });
 });
