@@ -16,7 +16,10 @@
     "db:migrate:local": "wrangler d1 migrations apply heritage-d1-main --local",
     "db:migrate:remote": "wrangler d1 migrations apply heritage-d1-main --remote",
     "db:seed:local": "tsx scripts/seed-demo.ts --local",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "e2e": "playwright test --config tests/e2e/playwright.config.ts",
+    "e2e:ui": "playwright test --config tests/e2e/playwright.config.ts --ui",
+    "e2e:cleanup": "tsx tests/e2e/helpers/cleanup-cli.ts"
   },
   "dependencies": {
     "@oslojs/crypto": "^1",
@@ -30,6 +33,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1",
     "@cloudflare/workers-types": "^4",
+    "@playwright/test": "^1.59.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22",
     "@types/react": "^18",
@@ -39,6 +43,7 @@
     "better-sqlite3": "^12.9.0",
     "drizzle-kit": "^0.31.10",
     "husky": "^9",
+    "playwright": "^1.59.1",
     "tsx": "^4.21.0",
     "typescript": "^5.4",
     "vite": "^8.0.8",

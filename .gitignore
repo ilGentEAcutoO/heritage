@@ -13,3 +13,9 @@ drizzle/seed.sql
 # Agent scratch space — content ignored, folder preserved via .gitkeep
 agent-temp/*
 !agent-temp/.gitkeep
+
+# Playwright E2E artifacts
+tests/e2e/.playwright/
+test-results/
+playwright-report/
+playwright/.cache/

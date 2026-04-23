@@ -1,16 +1,35 @@
 # Active Tasks
 
-> Last updated: 2026-04-23 10:27 (+07)
+> Last updated: 2026-04-23 11:30 (+07)
 
-## Current phase: Phase 4 ready to dispatch
+## Current phase: Phase 4 complete — V3 green 18/18 (FCP 844ms on demo tree)
 
 - Phase 0 ✅ (schema + bindings landed)
 - Phase 1 ✅ (password/email/tokens libs landed)
 - Phase 2 ✅ (session mw + auth routes + tree gate/edge cache + share routes landed)
-  - 291/291 tests green, typecheck clean, all 4 routers wired in `src/worker/index.ts`
-- Phase 3 ✅ DONE 2026-04-23 09:40
-  - TASK-P1 ✅, TASK-P2 ✅, TASK-F-AUTH ✅, TASK-F-SHARE ✅
-  - 297/297 tests green, typecheck clean
+- Phase 3 ✅ DONE 2026-04-23 09:40 — 297/297 tests green, typecheck clean
+- Phase 4: V1 ✅, V2 ✅, V2-FIX ✅ (355/355), V3 ✅ (18/18 e2e, FCP 844ms), V4 ✅
+- Phase 5: Deploy ✅ LIVE at heritage.jairukchan.com (2026-04-23 10:42 + CSP/testid re-deploy 11:12)
+  - SESSION_SECRET set on heritage-worker-api
+  - D1 migrations 0001 + 0002 applied to prod (heritage-d1-main)
+  - Smoke test: /api/health 200, /api/tree/wongsuriya cold 629ms / warm 358ms (cf-cache=HIT + x-cache=HIT), /api/auth/me 401, /api/auth/signup (forged Origin) 403 forbidden_origin
+
+---
+
+## TASK-V3 — Playwright E2E plan (awaiting user approval)
+
+See plan.md § "TASK-V3 PLAN" for the full scenario list + tooling choice.
+Summary:
+
+- Add `@playwright/test` + `playwright` as dev deps; chromium only for v1.
+- `tests/e2e/` config + specs; `baseURL=https://heritage.jairukchan.com`.
+- 18 scenarios grouped Tier 1 (must pass, 11) + Tier 2 (should pass, 7).
+- Email tokens read from prod D1 via `wrangler d1 execute --remote` helper.
+- Test-user emails scoped to `e2e-%@example.com`; teardown purges them.
+- Known risks: RL_LOGIN_IP is tenant-global (serialize login-failure specs);
+  no email inbox so tokens sourced from D1.
+
+**Approve to proceed** → say "ลุย" / "go" / "approve" and I execute.
 
 ---
 
@@ -155,10 +174,21 @@
 - Constraints honoured: no AI signatures, no new deps, `wrangler.jsonc` untouched (RL_WRITE deferred)
 
 ### TASK-V3: Playwright E2E
-- Status: ⚪ pending
+- Status: 🟢 implemented (2026-04-23 11:30)
+- Model: Sonnet 4.6 (execution)
+- Scenarios: **18/18 green** (S1–S18). FCP on demo tree = **844ms** (vs 4292ms baseline).
+- Tooling: `@playwright/test@1.59.1` + `playwright@1.59.1`, chromium only, targets prod URL.
+- Specs: `tests/e2e/{01-landing,02-signup,03-verify,04-login,05-logout,06-reset,07-trees,08-share,09-security}.spec.ts`.
+- Helpers: `tests/e2e/helpers/{d1,signup,cleanup,cleanup-cli,console,global-teardown}.ts`.
+- Source fixes landed mid-run (re-deployed via `pnpm wrangler deploy`):
+  - `src/worker/middleware/security-headers.ts` — CSP updated to allow Cloudflare-injected Bot Management inline script + Web Analytics beacon (`'unsafe-inline'` on script-src, `static.cloudflareinsights.com` allow-listed). Without this, every page load in Chrome logged 2 CSP violations.
+  - `src/app/components/TreeCanvas.tsx` — added `data-testid="tree-canvas"` for spec S2.
+  - `src/app/pages/Landing.tsx` — added logout button (product gap: no logout UI existed; required for S9).
+  - `tests/integration/{security-headers,asset-cache}.test.ts` — updated CSP expectations to match new policy.
+- Report: `agent-temp/e2e-run-2026-04-23.md`.
 
 ### TASK-V4: Perf re-measurement
-- Status: ⚪ pending
+- Status: 🟢 implemented (2026-04-23 11:35) — warm TTFB 258–358ms (median 282ms), 4/5 cache-hit rate; cold median 488ms vs 2500ms baseline (~5× improvement); assets now immutable. Full report: `agent-temp/perf-after.md`.
 
 ---
 

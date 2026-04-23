@@ -166,8 +166,82 @@ PHASE 3  Parallel perf-only + frontend (4 agents parallel, after Phase 2)
 PHASE 4  Verification (serial, after Phase 3)
   ├── TASK-V1  surface.test.ts + regression coverage update
   ├── TASK-V2  Security review consult (Opus, cross-check all threat rows)
-  ├── TASK-V3  Playwright E2E on changed pages
+  ├── TASK-V3  Playwright E2E on changed pages  ← see TASK-V3 PLAN below
   └── TASK-V4  Perf re-measurement (FCP, API TTFB before/after table)
+
+---
+
+## TASK-V3 PLAN — Playwright E2E (added 2026-04-23, awaiting approval)
+
+**Tooling:** Add `@playwright/test` + `playwright` as dev dependencies. No MCP
+Playwright / claude-in-chrome is available in this session, so the durable
+path is to land a real Playwright config in-repo. Same config runs locally
+and in CI later.
+
+- `tests/e2e/playwright.config.ts` — `baseURL` from env (default
+  `https://heritage.jairukchan.com`), `use: { storageState: ... }` for authed
+  suites, chromium-only for v1.
+- `tests/e2e/*.spec.ts` — one file per scenario group.
+- `pnpm playwright install chromium` (first run).
+- Email verify: no inbox available (CF Email not onboarded yet). The specs
+  read the raw verify token directly from D1 via a tiny helper that shells to
+  `wrangler d1 execute --remote --command "SELECT token_hash, email …"` and
+  matches by the most-recent `kind='verify'` row for the test email. This is
+  test-scaffolding only; it lives under `tests/e2e/helpers/`.
+- Test user hygiene: each spec generates `e2e-${uuid}@example.com` so D1 is
+  not polluted by stale rows. Teardown prunes users whose email matches
+  `e2e-%@example.com` after each suite.
+
+**Scenarios (Tier 1 = must pass, Tier 2 = should pass):**
+
+| # | Tier | Scenario | Assert |
+|---|---|---|---|
+| S1 | 1 | Landing (anon) | CTA "ดู demo tree" → /demo/wongsuriya; "เข้าสู่ระบบ" link visible |
+| S2 | 1 | Demo tree (/demo/wongsuriya) | Canvas renders ≥ 1 person; no console errors/warnings; FCP measured |
+| S3 | 1 | Signup with valid email+password | UI shows "check inbox" copy; 201 from API |
+| S4 | 1 | Signup short password (<12) | Inline validation error; no POST fired (or 422) |
+| S5 | 1 | Verify flow | Fetch token from D1 → visit /auth/verify?token=… → redirect to /trees logged-in; `GET /api/auth/me` → 200 |
+| S6 | 1 | Login valid | /login → right creds → /trees; session cookie `__Host-session` set |
+| S7 | 1 | Login wrong password | Generic error copy; stays on /login |
+| S8 | 1 | Login unknown email | Same generic error (no enumeration) |
+| S9 | 1 | Logout | /api/auth/me after → 401; redirected to /login or landing |
+| S10 | 1 | Reset request | /auth/reset → submit → "if email exists" copy regardless |
+| S11 | 1 | Reset confirm | Fetch reset token from D1 → /auth/reset/confirm?token=… → submit new pw → land on /login |
+| S12 | 2 | /trees as anon | Redirect to /login (or Navigate) |
+| S13 | 2 | /tree/<bogus-slug> | 404 UI (no console error); JSON response 404 |
+| S14 | 2 | Create test tree via API | `POST /api/trees` with test session → 201; appears in /trees |
+| S15 | 2 | Share dialog opens for owner | On /tree/<owned-slug>, "แชร์" button visible → opens modal with 3 radios |
+| S16 | 2 | Visibility flip purges edge cache | Owner flips public→private; anon fetch → 404 (regression for N-R3-3) |
+| S17 | 2 | Invite email auto-accept flow | Verified user A invites verified user B by email; B sees tree in /trees immediately |
+| S18 | 2 | Forged Origin from browser console | `fetch('/api/auth/logout', {method: 'POST', headers: {Origin: 'https://evil'}})` → 403 |
+
+**Out of scope for V3** (defer to follow-up):
+- Screenshot-visual regression (looks/colors) — requires Percy/Chromatic.
+- Cross-browser (Firefox, WebKit).
+- Accessibility (axe-core) — low value while UI is still skeleton.
+- Mobile viewports — demo tree's canvas isn't responsive yet.
+
+**Risks to call out before approval:**
+1. Prod E2E creates real D1 rows in `users`, `sessions`, `auth_tokens`,
+   `tree_shares`. Cleanup runs after each suite but a crashing spec can leave
+   drift. Mitigation: teardown idempotent + a `pnpm e2e:cleanup` script that
+   purges `e2e-%@example.com` across all auth tables.
+2. Rate-limit bindings (`RL_LOGIN`: 5/min/email, `RL_LOGIN_IP`: 20/min/IP)
+   will block rapid repeated login specs. Mitigation: each spec uses a fresh
+   email; login-failure specs are scoped so the 5/min bucket for any one
+   email is not exhausted. IP limit is tenant-global though — if CI runs
+   many specs from one runner IP, we hit it. Mitigation: accept 429 as a
+   valid "rate limit is working" assertion in the one spec that tests it;
+   serialize other specs.
+3. No email inbox means we read verify / reset tokens from D1. Acceptable
+   for E2E; production verify/reset still goes through email.
+
+**What "pass" looks like for TASK-V3:**
+- All Tier 1 scenarios green on `pnpm e2e` against prod.
+- All Tier 2 scenarios green OR explicitly skipped with reason.
+- Zero uncaught console errors on any page.
+- Report in `agent-temp/e2e-run-2026-04-23.md` with timings + screenshots of
+  any failures.
 
 PHASE 5  Ship prep (serial, after Phase 4 — USER CONFIRMS BEFORE EACH)
   ├── TASK-S1  CF Email domain onboard + DNS verify
