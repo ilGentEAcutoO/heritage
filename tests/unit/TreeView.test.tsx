@@ -39,3 +39,15 @@ describe('TreeView 404 branch (source assertions)', () => {
     expect(src).not.toMatch(demoAnchor);
   });
 });
+
+describe('TreeView POV-drawer wiring (source assertions)', () => {
+  it('passes onSetActiveView={setActiveViewId} to ProfileDrawer', () => {
+    // TreeView must wire the setter directly into the drawer
+    expect(src).toMatch(/onSetActiveView=\{setActiveViewId\}/);
+  });
+
+  it('passes isActiveView={...activeViewId} to ProfileDrawer', () => {
+    // e.g. isActiveView={selected?.id === activeViewId} or isActiveView={activeViewId === selected?.id}
+    expect(src).toMatch(/isActiveView=\{[^}]*activeViewId[^}]*\}/);
+  });
+});

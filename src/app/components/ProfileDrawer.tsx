@@ -9,6 +9,8 @@ export interface ProfileDrawerProps {
   onJumpTo: (id: string) => void;
   expandedLineages: Set<string>;
   onToggleLineage: (personId: string) => void;
+  onSetActiveView?: (id: string) => void;
+  isActiveView?: boolean;
 }
 
 /**
@@ -34,6 +36,8 @@ export function ProfileDrawer({
   onJumpTo,
   expandedLineages,
   onToggleLineage,
+  onSetActiveView,
+  isActiveView,
 }: ProfileDrawerProps) {
   if (!person) return null;
 
@@ -151,6 +155,21 @@ export function ProfileDrawer({
               {person.hometown}
             </span>
           </div>
+          {onSetActiveView && (
+            isActiveView ? (
+              <span className="meta-chip">✓ กำลังดูจากมุมของคนนี้</span>
+            ) : (
+              <button
+                data-testid="profile-pov-button"
+                type="button"
+                className="btn-secondary"
+                onClick={() => onSetActiveView(person.id)}
+                title="ดูจากมุมของคนนี้"
+              >
+                👁 ดูจากมุมของ {person.nick}
+              </button>
+            )
+          )}
         </div>
       </div>
 

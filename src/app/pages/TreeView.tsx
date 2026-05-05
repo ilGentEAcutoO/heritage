@@ -24,6 +24,7 @@ import { ShareDialog } from '@app/components/ShareDialog';
 import { Sidebar } from '@app/components/Sidebar';
 import { ActiveViewPill } from '@app/components/ActiveViewPill';
 import { TweaksPanel } from '@app/components/TweaksPanel';
+import { UserMenu } from '@app/components/UserMenu';
 
 interface TreeViewProps {
   /** Passed directly for fixed-slug routes (e.g. /demo/wongsuriya). */
@@ -265,6 +266,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           >
             ⚙
           </button>
+          <UserMenu />
         </div>
       </header>
 
@@ -310,6 +312,8 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           onJumpTo={(id) => setSelectedId(id)}
           expandedLineages={expandedLineages}
           onToggleLineage={toggleLineage}
+          onSetActiveView={setActiveViewId}
+          isActiveView={selected.id === activeViewId}
         />
       )}
 

@@ -28,3 +28,6 @@ export { TweaksPanel } from './TweaksPanel';
 export type { TweaksPanelProps } from './TweaksPanel';
 
 export { Tab } from './Tab';
+
+export { UserMenu } from './UserMenu';
+export type { UserMenuProps } from './UserMenu';
