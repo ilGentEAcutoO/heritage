@@ -46,7 +46,10 @@ body {
   background: var(--paper);
   gap: 20px;
   position: relative;
-  z-index: 3;
+  /* Above the .drawer (z-index:10) so header dropdowns (UserMenu) stay clickable
+     when the drawer is open — the header bar starts the drawer's stacking context,
+     so a nested z-index on the menu can't escape this value. Below .tweaks-panel (20). */
+  z-index: 11;
 }
 
 .header-logo {
