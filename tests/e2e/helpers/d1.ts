@@ -1,11 +1,27 @@
 /**
- * d1.ts — shell-out helper for running SQL against the remote D1 database.
+ * d1.ts — shell-out helper for running SQL against the D1 database.
+ *
+ * Targets remote (prod) by default; set E2E_LOCAL_DB=1 to target the local
+ * dev D1 (when running the suite against a local `pnpm dev` server).
  *
  * All SQL is test-authored; never pass user-controlled strings.
  * Returns the first result set's `results` array, or [] if the query had no rows.
  */
 
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+
+// Resolve wrangler's own CLI entrypoint so we can run it with the current Node
+// binary directly. This sidesteps the package-manager shim (`pnpm` is `pnpm.cmd`
+// on Windows, which Node 20+/25 refuses to execFile without a shell) while still
+// passing args as an unescaped array — important because the SQL string would be
+// word-split and mangled by a shell.
+const WRANGLER_BIN = join(
+  dirname(createRequire(import.meta.url).resolve('wrangler/package.json')),
+  'bin',
+  'wrangler.js',
+);
 
 interface D1ExecResult {
   results?: unknown[];
@@ -15,15 +31,22 @@ interface D1ExecResult {
 }
 
 export function execSql(sql: string): unknown[] {
-  // Use pnpm wrangler because the project uses pnpm; --json yields machine-parseable output.
+  // Target the same D1 the app is hitting. Default is remote (prod) — the suite's
+  // normal post-deploy target. When E2E_LOCAL_DB=1 (i.e. running against a local
+  // `pnpm dev` server with E2E_BASE_URL=http://localhost:…), switch to --local so
+  // this out-of-band SQL channel (signup backchannel + teardown purge) stays in
+  // sync with the local dev server's D1 instead of mutating prod.
+  const dbScope = process.env.E2E_LOCAL_DB === '1' ? '--local' : '--remote';
+  // Run wrangler via the current Node binary (no pnpm shim / no shell); --json
+  // yields machine-parseable output.
   const stdout = execFileSync(
-    'pnpm',
+    process.execPath,
     [
-      'wrangler',
+      WRANGLER_BIN,
       'd1',
       'execute',
       'heritage-d1-main',
-      '--remote',
+      dbScope,
       '--command',
       sql,
       '--json',
