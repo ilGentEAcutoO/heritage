@@ -296,6 +296,7 @@ authRouter.post('/verify', async (c) => {
     user: {
       id: user.id,
       email: user.email,
+      displayName: user.display_name,
       email_verified_at: user.email_verified_at,
     },
   });
@@ -368,6 +369,7 @@ authRouter.post('/login', async (c) => {
     user: {
       id: user.id,
       email: user.email,
+      displayName: user.display_name,
       email_verified_at: user.email_verified_at,
     },
   });
@@ -678,6 +680,7 @@ authRouter.post('/magic/consume', async (c) => {
     user: {
       id: user.id,
       email: user.email,
+      displayName: user.display_name,
       email_verified_at: user.email_verified_at,
     },
   });

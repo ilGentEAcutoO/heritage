@@ -26,7 +26,7 @@ async function setup(asUser: { id: string; email: string } | null = null) {
     return next();
   });
   app.use(async (c, next) => {
-    c.set('user', asUser ? { ...asUser, email_verified_at: 1 } : null);
+    c.set('user', asUser ? { ...asUser, displayName: null, email_verified_at: 1 } : null);
     return next();
   });
   app.route('/api/trees', treesRouter);

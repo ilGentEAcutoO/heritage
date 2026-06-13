@@ -82,7 +82,7 @@ function removeCachesMock() {
 // App factory
 // ---------------------------------------------------------------------------
 
-type TestUser = { id: string; email: string; email_verified_at: number | null } | null;
+type TestUser = { id: string; email: string; displayName: string | null; email_verified_at: number | null } | null;
 
 function makeApp(d1: SqliteD1Database, testUser: TestUser = null) {
   const app = new Hono<HonoEnv>();
@@ -188,7 +188,7 @@ describe('Perf Fix 1 — edge cache on GET /api/tree/:slug', () => {
 
   test('public tree, with __Host-session cookie → Cache-Control: private, no-store', async () => {
     seedPublicTree(d1);
-    const app = makeApp(d1, { id: 'user-1', email: 'u@t.com', email_verified_at: 1 });
+    const app = makeApp(d1, { id: 'user-1', email: 'u@t.com', displayName: null, email_verified_at: 1 });
 
     const res = await req(app, '/api/tree/pub-cache-tree', env, {
       Cookie: '__Host-session=abc123',

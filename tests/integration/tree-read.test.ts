@@ -185,6 +185,7 @@ describe('N-R3-5 — ownerId redaction on public GET', () => {
       c.set('user', {
         id: 'owner-visible',
         email: 'owner@test.com',
+        displayName: null,
         email_verified_at: 1,
       });
       return next();

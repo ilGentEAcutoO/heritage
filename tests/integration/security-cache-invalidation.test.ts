@@ -81,7 +81,7 @@ function makeApp(d1: SqliteD1Database, user: { id: string; email: string } | nul
   const app = new Hono<HonoEnv>();
   app.use('*', dbMiddleware);
   app.use('*', async (c, next) => {
-    c.set('user', user ? { ...user, email_verified_at: 1 } : null);
+    c.set('user', user ? { ...user, displayName: null, email_verified_at: 1 } : null);
     return next();
   });
   // Order matches src/worker/index.ts

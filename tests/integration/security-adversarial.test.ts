@@ -497,7 +497,7 @@ describe('adversarial — tree enumeration returns 404 always', () => {
     const app = new Hono<HonoEnv>();
     app.use(async (c, next) => {
       c.set('db', db);
-      c.set('user', user ? { ...user, email_verified_at: 1 } : null);
+      c.set('user', user ? { ...user, displayName: null, email_verified_at: 1 } : null);
       return next();
     });
     app.route('/api/tree', treeRouter);
@@ -615,7 +615,7 @@ describe('adversarial — edge cache on /api/tree/:slug', () => {
     const app = new Hono<HonoEnv>();
     app.use(async (c, next) => {
       c.set('db', db);
-      c.set('user', user ? { ...user, email_verified_at: 1 } : null);
+      c.set('user', user ? { ...user, displayName: null, email_verified_at: 1 } : null);
       return next();
     });
     app.route('/api/tree', treeRouter);

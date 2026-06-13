@@ -26,6 +26,7 @@ interface SetupResult {
 const TEST_USER = {
   id: 'test-user-id-123',
   email: 'me@example.com',
+  displayName: null,
   email_verified_at: 1700000000 as number | null,
 };
 
@@ -97,7 +98,7 @@ describe('GET /api/auth/me', () => {
     const nullVerifiedApp = new Hono<HonoEnv>();
     nullVerifiedApp.use(async (c, next) => {
       c.set('db', db);
-      c.set('user', { id: 'u2', email: 'null-verify@example.com', email_verified_at: null });
+      c.set('user', { id: 'u2', email: 'null-verify@example.com', displayName: null, email_verified_at: null });
       return next();
     });
     nullVerifiedApp.route('/api/auth', authRouter);

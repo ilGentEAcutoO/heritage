@@ -34,6 +34,6 @@ export type HonoEnv = {
   Bindings: Env;
   Variables: {
     db: DB;
-    user: { id: string; email: string; email_verified_at: number | null } | null;
+    user: { id: string; email: string; displayName: string | null; email_verified_at: number | null } | null;
   };
 };

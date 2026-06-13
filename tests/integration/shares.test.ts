@@ -26,7 +26,7 @@ async function setup(asUser: { id: string; email: string } | null = null) {
     return next();
   });
   app.use(async (c, next) => {
-    c.set('user', asUser ? { ...asUser, email_verified_at: 1 } : null);
+    c.set('user', asUser ? { ...asUser, displayName: null, email_verified_at: 1 } : null);
     return next();
   });
   app.route('/api/tree', sharesRouter);
@@ -305,7 +305,7 @@ describe('DELETE /api/tree/:slug/shares/:shareId', () => {
     const app3 = new Hono<HonoEnv>();
     app3.use(async (c, next) => { c.set('db', db2); return next(); });
     app3.use(async (c, next) => {
-      c.set('user', { id: 'other1', email: 'other@example.com', email_verified_at: 1 });
+      c.set('user', { id: 'other1', email: 'other@example.com', displayName: null, email_verified_at: 1 });
       return next();
     });
     app3.route('/api/tree', sharesRouter);

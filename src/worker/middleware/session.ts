@@ -67,6 +67,7 @@ export const sessionMiddleware: MiddlewareHandler<HonoEnv> = async (c, next) => 
       .select({
         id: users.id,
         email: users.email,
+        display_name: users.display_name,
         email_verified_at: users.email_verified_at,
       })
       .from(users)
@@ -80,6 +81,7 @@ export const sessionMiddleware: MiddlewareHandler<HonoEnv> = async (c, next) => 
     c.set('user', {
       id: user.id,
       email: user.email,
+      displayName: user.display_name ?? null,
       email_verified_at: user.email_verified_at ?? null,
     });
 
