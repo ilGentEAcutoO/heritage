@@ -213,3 +213,32 @@ Re-verified after all fixes: **unit 415/415 pass**, **typecheck clean**, **e2e 1
 
 ### File-lock note
 TASK-004 และ TASK-009 ทั้งคู่แก้ `src/app/pages/TreeView.tsx` — **ห้ามรัน parallel** main agent ทำเองทั้งสอง task ติดกันใน wave 3
+
+---
+
+## RESUME CONTEXT
+
+> Exit time: 2026-06-13 22:32 (+07) — /workflow-exit
+> Reason: user requested save/stop
+
+### Session state: ✅ WORK COMPLETE — nothing in flight
+
+No sub-agents running · no file locks · **git tree clean** · `main` synced with
+origin at `bcd585d` · all GitHub Actions green · no dev server running.
+
+#### Shipped this session (all deployed + prod-verified)
+- **4 bug fixes** (commits `c02ffaf..36d7008`, Deploy run 27469049994):
+  UserMenu z-index stacking · displayName propagation (session+responses+type) ·
+  Windows seed tooling (`seed-demo.ts`) · e2e local-D1 backchannel (`E2E_LOCAL_DB`)
+- **Security bump** (commit `bcd585d`, Deploy run 27470955543, CI green):
+  react-router-dom 7.14.2→7.17.0 (HIGH DoS) + hono 4.12.14→4.12.25 (8 moderate);
+  `pnpm audit --prod` clean; prod smoke 200/200/401
+- **Verified**: unit 415/415 · typecheck clean · e2e 9/9 (local + prod) · MCP frontend-test clean
+
+#### Nothing to resume. ONE optional next step:
+- **workflow-end** → security review + archive `05-treeview-improvements` to
+  `instruction/archive/`. (Run `/workflow-end` or say "จบงาน" next session.)
+
+#### Known / out-of-scope (not blockers):
+- `10-magic-link M4-T3` e2e — pre-existing console-error assertion (workstream 04), separate triage
+- GitHub Actions still on Node.js 20 (deprecation; forced to Node 24 after 2026-06-16) — infra upkeep
