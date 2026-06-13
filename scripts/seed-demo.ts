@@ -296,7 +296,9 @@ function buildSeedSql(): string {
 // Main
 // ---------------------------------------------------------------------------
 
-const projectRoot = new URL('..', import.meta.url).pathname;
+// fileURLToPath (not URL.pathname) — on Windows .pathname yields "/C:/…", whose
+// leading slash makes path.join resolve to a bogus "C:\C:\…" doubled-drive path.
+const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const sqlPath = join(projectRoot, 'drizzle', 'seed.sql');
 
 // Build a readline prompt backed by real stdin/stdout
@@ -324,11 +326,18 @@ async function main(): Promise<void> {
   writeFileSync(sqlPath, sql, 'utf8');
   console.log(`[seed] Written SQL to ${sqlPath}`);
 
-  // Use execFileSync with array args (no shell injection possible — all args are constants)
-  const args = ['d1', 'execute', DB_NAME, flag, `--file=${sqlPath}`];
+  // Spawn through a shell: on Windows `pnpm` is `pnpm.cmd`, and Node 20+/25 refuses
+  // to execFile a .cmd without shell:true (CVE-2024-27980). No injection risk — every
+  // arg is a constant or derived from import.meta.url; the file path is quoted so a
+  // space anywhere in the repo path can't split the argument.
+  const args = ['d1', 'execute', DB_NAME, flag, `--file="${sqlPath}"`];
   console.log(`[seed] Running: pnpm wrangler ${args.join(' ')}`);
 
-  execFileSync('pnpm', ['wrangler', ...args], { stdio: 'inherit', cwd: projectRoot });
+  execFileSync('pnpm', ['wrangler', ...args], {
+    stdio: 'inherit',
+    cwd: projectRoot,
+    shell: true,
+  });
   console.log('[seed] Done.');
 }
 
