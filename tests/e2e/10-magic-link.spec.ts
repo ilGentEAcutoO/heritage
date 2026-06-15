@@ -172,7 +172,16 @@ test.describe('Magic link', () => {
       const href = await retryLink.getAttribute('href');
       expect(href).toMatch(/\/login\?tab=magic/);
 
-      expect(consoleMsgs.errors).toEqual([]);
+      // This test DELIBERATELY mocks /api/auth/magic/consume → 400 to exercise the
+      // expired-link path. Chrome auto-emits a resource-load console error for that
+      // 400 ("…the server responded with a status of 400…") — the same browser noise
+      // already whitelisted for 401/404 in helpers/console.ts. The app handles the 400
+      // gracefully (error UI asserted above), so that self-induced 400 is the ONLY
+      // expected error. Filter it out; keep every other console error strict.
+      const unexpectedErrors = consoleMsgs.errors.filter(
+        (e) => !e.includes('the server responded with a status of 400'),
+      );
+      expect(unexpectedErrors).toEqual([]);
       expect(consoleMsgs.warnings).toEqual([]);
     } finally {
       await ctx.close();
