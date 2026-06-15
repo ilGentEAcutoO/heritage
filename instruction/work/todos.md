@@ -24,7 +24,8 @@
   - [x] Adversarial review (silent-failure-hunter): VERDICT NOT MASKING, no fix required
 
 ### TASK-002: Clear GitHub Actions node20 runtime deprecation
-- Status: 🟢 implemented (code done + versions verified via GitHub API + typecheck/unit green; CI-on-push not yet verified)
+- Status: ✅ tested (CI run 27583339088 green on node24; ZERO annotations → node20 deprecation cleared)
+- Completed: 2026-06-16
 - Assigned: Main agent (Opus)
 - Verified versions (GitHub API, all `using: node24`): checkout v6.0.3, setup-node v6.4.0,
   pnpm/action-setup v6.0.9, wrangler-action v4.0.0. wrangler-action v4 inputs (`apiToken`/
@@ -35,12 +36,14 @@
   - [x] ci.yml: checkout@v6, setup-node@v6 (node 22→24), pnpm/action-setup@v6
   - [x] deploy.yml: same + wrangler-action@v4
   - [x] typecheck (exit 0) + unit (415/415) green — no regression
-  - [ ] Push → CI green on node24 runtime  ← REMAINING (needs push; outward-facing)
-  - [ ] (interrupted) feature-dev:code-reviewer YAML review — rejected mid-run; versions
-        were directly verified via `gh api` + action.yml `runs.using`, so low risk
+  - [x] Push → CI green on node24 runtime (run 27583339088, success in 35s, 0 annotations)
+  - [x] code-reviewer YAML review (Opus, re-run 2026-06-16): VERDICT SAFE TO PUSH, 5/5 PASS
+  - NOTE: ci.yml proven on push; deploy.yml (workflow_dispatch only) NOT exercised by this
+    push — its node24/wrangler-action@v4 changes verified offline + will run on next deploy
 
 ### TASK-003: Verify + finish
-- Status: 🔵 in-progress (RESUMED 2026-06-16 via workflow-work)
+- Status: ✅ tested (RESUMED + COMPLETED 2026-06-16 via workflow-work)
+- Completed: 2026-06-16
 - Dependencies: TASK-001 ✅, TASK-002 🟢
 - Resume checks (2026-06-16): git state matches RESUME CONTEXT (one WIP commit, clean tree,
   main +1/-0 vs origin). Re-verified action versions are current latest via gh api:
@@ -51,9 +54,9 @@
   - [x] Adversarial review — code-reviewer on YAML (Opus): VERDICT SAFE TO PUSH, 5/5 PASS,
         no blocking issues (pnpm/action-setup@v6 keeps `version:` input; wrangler-action@v4
         apiToken/accountId unchanged + command defaults to deploy; lockfileVersion 9.0 matches)
-  - [ ] git reset --soft HEAD~1 → proper conventional commit(s) via git-commit skill
-  - [ ] git-push + monitor CI green on node24 runtime  ← REMAINING (real Item-2 proof)
-  - [x] Update RESUME CONTEXT
+  - [x] reset WIP commit → 3 proper conventional commits (test / ci / docs) via git-commit
+  - [x] git-push origin main + monitor CI green on node24 (run 27583339088, 0 annotations)
+  - [x] Update RESUME CONTEXT → session complete
 
 ## File Lock Registry
 
@@ -65,36 +68,32 @@
 
 ## RESUME CONTEXT
 
-> Exit time: 2026-06-15 22:15 (+07) — /workflow-exit
-> Reason: user interrupted (requested save/stop)
+> Completed: 2026-06-16 — workstream 06 finished (resumed via workflow-work)
 
-### Session state: ⏸️ WORK ~90% DONE — saved as WIP commit, nothing in flight
+### Session state: ✅ COMPLETE — all tasks tested, pushed, CI green
 
-No sub-agents running · no dev server (killed) · no file locks. All changes captured in
-a single **WIP commit on `main`** (NOT pushed). Working tree clean after the WIP commit.
+No sub-agents running · no dev server · no file locks · working tree clean.
 
-#### What's DONE & verified this session
-- **Item 1 — M4-T3 console fix** ✅ fully done: surgical test-local filter for the
-  deliberately-mocked 400 (Chrome resource-noise; app handles 400 via error UI, no app
-  `console.error`). Proven: M4-T1..T4 pass locally; before/after temp-assertion confirmed
-  the filter is meaningful; silent-failure-hunter verdict = **NOT MASKING, no fix needed**.
-- **Item 2 — CI/Deploy node24 runtime bump** 🟢 code done & verified:
-  - `ci.yml` + `deploy.yml`: checkout@v6, setup-node@v6 (node-version 22→24),
-    pnpm/action-setup@v6 (version:9 kept), deploy.yml also wrangler-action@v3→v4.
-  - Versions verified authoritative via `gh api .../releases/latest` + each action.yml
-    `runs.using: node24`. wrangler-action v4 `apiToken`/`accountId` inputs unchanged.
-  - typecheck exit 0 · unit 415/415 green.
-- **Housekeeping**: archived completed workstream 05 → `instruction/archive/05-treeview-improvements/`
-  (+ summary.md). Created workstream 06 docs (requirements/plan/todos).
+#### What shipped (commits on `main`, pushed to origin)
+- `fdf9ba3` **test(e2e)** — M4-T3 magic-link: filter the deliberately-mocked expired-link
+  400 console noise (app handles via error UI; silent-failure-hunter = NOT MASKING).
+- `8ececd1` **ci** — node24 runtime bump: checkout@v6, pnpm/action-setup@v6 (version 9),
+  setup-node@v6 (node 22→24) in ci.yml + deploy.yml; deploy.yml also wrangler-action@v4.
+- `15be0de` **docs(work)** — archive workstream 05, add workstream 06 tracking docs.
 
-#### REMAINING to fully close (2 steps)
-1. **(optional) finish Item 2 YAML adversarial review** — the code-reviewer agent was
-   interrupted. Versions already verified directly via GitHub API, so this is a nice-to-have.
-2. **Commit properly + push + monitor CI** — current state is ONE `WIP:` commit. On resume:
-   `git reset --soft HEAD~1` then make proper conventional commit(s) via **git-commit** skill
-   (NO AI signature per CLAUDE.md #7), then **git-push** → watch the `CI` workflow go green on
-   the node24 runtime (that's the real Item-2 proof). NOTE: ci.yml does NOT run e2e — Item 1
-   was proven locally instead.
+#### Proof
+- CI run **27583339088** = success in 35s on node24, **0 annotations** → node20 deprecation
+  cleared. Steps green: checkout@v6, pnpm setup, node24, install --frozen-lockfile, typecheck,
+  test, pnpm audit, both guard steps.
+- Pre-push: Opus code-reviewer adversarial YAML review = SAFE TO PUSH (5/5 PASS).
 
-#### To resume: say "มีงานค้างไหม" or "continue"  → then "push" / "commit and push"
+#### Caveat (honest)
+- `deploy.yml` is `workflow_dispatch`-only, so the push did NOT exercise it. Its node24 +
+  wrangler-action@v4 changes are verified offline (versions current, inputs unchanged) and
+  will get real exercise on the next manual Deploy run.
+
+#### Open / next (not part of this workstream)
+- GitHub reports 2 Dependabot advisories on default branch (1 high, 1 low) — see
+  https://github.com/ilGentEAcutoO/heritage/security/dependabot
+- Clean closeout available: run **workflow-end** to security-review + archive workstream 06.
 
