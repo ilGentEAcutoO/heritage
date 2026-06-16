@@ -43,6 +43,48 @@ const VALID_1x1_PNG = Buffer.from(
   'hex',
 );
 
+/**
+ * Shared setup: signup → create tree → add a person (born 1950) → open their
+ * ProfileDrawer → open the Photos tab. Leaves `page` positioned on the Photos
+ * tab. Used by the limit-message test below (PU1–PU5 keeps its own inline flow).
+ */
+async function openPhotosTabForNewPerson(
+  ctx: import('@playwright/test').BrowserContext,
+  page: import('@playwright/test').Page,
+  tag: string,
+) {
+  const email = makeE2EEmail(tag);
+  const password = 'correctHorseBatteryStaple12';
+  const slug = `e2e-photo-${tag}-${Date.now()}`;
+  const personName = `สมหญิง ${tag}`;
+
+  await signupAndVerifyViaBackchannel(ctx.request, email, password, `${tag} Owner`);
+  await page.goto('/trees');
+
+  await page.getByTestId('create-tree-button').click();
+  await expect(page.getByTestId('create-tree-dialog')).toBeVisible({ timeout: 10_000 });
+  await page.getByTestId('create-tree-name').fill(`ครอบครัว ${tag}`);
+  await page.getByTestId('create-tree-slug').fill(slug);
+  await page.getByTestId('create-tree-submit').click();
+  await expect(page).toHaveURL(new RegExp(`/tree/${slug}$`), { timeout: 15_000 });
+  await expect(page.getByTestId('tree-canvas')).toBeVisible({ timeout: 15_000 });
+
+  await page.getByTestId('add-person-button').click();
+  const nameInput = page.getByTestId('add-person-name');
+  await expect(nameInput).toBeVisible({ timeout: 10_000 });
+  await nameInput.fill(personName);
+  await page.getByTestId('add-person-born').fill('1950');
+  await page.getByTestId('add-person-submit').click();
+  await expect(page.getByText(personName).first()).toBeVisible({ timeout: 15_000 });
+
+  await page.locator(ANY_PERSON_NODE).first().click();
+  await expect(page.locator('aside.drawer')).toBeVisible({ timeout: 10_000 });
+  const photosTabBtn = page.locator('.tab-head').filter({ hasText: 'Photos' });
+  await expect(photosTabBtn).toBeVisible({ timeout: 10_000 });
+  await photosTabBtn.click();
+  await expect(page.locator('.tab.open').filter({ hasText: 'Photos' })).toBeVisible({ timeout: 8_000 });
+}
+
 test.describe('Photo upload — owner uploads image to person ProfileDrawer', () => {
   test('PU1–PU5 — signup, create tree, add person, upload photo, assert persists', async ({
     browser,
@@ -199,6 +241,45 @@ test.describe('Photo upload — owner uploads image to person ProfileDrawer', ()
         filteredErrors.warnings,
         `console warnings: ${filteredErrors.warnings.join(' | ')}`,
       ).toEqual([]);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // PU6 — abuse-limit messaging: an oversized or wrong-type file must TELL the
+  // user why it was rejected (client-side pre-check; the file never leaves the
+  // browser, so no prod R2 write). Verifies the user-facing goal end-to-end.
+  // ---------------------------------------------------------------------------
+  test('PU6 — oversized / wrong-type file shows a clear message, no upload', async ({ browser }) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    try {
+      await openPhotosTabForNewPerson(ctx, page, 'pulimit');
+
+      const fileInput = page.getByTestId('photo-file-input');
+      await expect(fileInput).toBeAttached({ timeout: 10_000 });
+      const errBox = page.getByTestId('photo-error');
+
+      // Oversized PNG (>5 MB) → rejected with a size message, nothing uploaded.
+      await fileInput.setInputFiles({
+        name: 'big.png',
+        mimeType: 'image/png',
+        buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+      });
+      await expect(errBox).toBeVisible({ timeout: 8_000 });
+      await expect(errBox).toContainText('5 MB');
+      await expect(page.locator('img[src*="/api/img/photos/"]')).toHaveCount(0);
+
+      // Wrong type (PDF) → rejected with a supported-formats message.
+      await fileInput.setInputFiles({
+        name: 'doc.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.from('%PDF-1.4 not a real pdf', 'utf8'),
+      });
+      await expect(errBox).toBeVisible({ timeout: 8_000 });
+      await expect(errBox).toContainText('JPG');
+      await expect(page.locator('img[src*="/api/img/photos/"]')).toHaveCount(0);
     } finally {
       await ctx.close();
     }
