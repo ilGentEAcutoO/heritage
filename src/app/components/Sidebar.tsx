@@ -84,7 +84,7 @@ export function Sidebar({
               onClick={() => onSelect(p.id)}
             >
               <span className="dot" />
-              <span className="name">{p.nick}</span>
+              <span className="name">{p.nick || p.name}</span>
               <span className="yr">{p.born}</span>
             </button>
           ))}

@@ -127,6 +127,9 @@ test.describe('Build tree — owner CRUD', () => {
       const nameInput = page.getByTestId('add-person-name');
       await expect(nameInput).toBeVisible({ timeout: 10_000 });
       await nameInput.fill(addedPersonName);
+      // A birth year is required for placement on the generational canvas
+      // (born-less people are findable in the sidebar but not laid out on the tree).
+      await page.getByTestId('add-person-born').fill('1950');
 
       // Submit
       const submitBtn = page.getByTestId('add-person-submit');
@@ -188,6 +191,8 @@ test.describe('Build tree — owner CRUD', () => {
       const nameInput = page.getByTestId('add-person-name');
       await expect(nameInput).toBeVisible({ timeout: 10_000 });
       await nameInput.fill(personName);
+      // born year → placeable on the generational canvas (so the node is clickable)
+      await page.getByTestId('add-person-born').fill('1950');
       await page.getByTestId('add-person-submit').click();
 
       // Wait for person to appear on canvas
@@ -279,6 +284,8 @@ test.describe('Build tree — owner CRUD', () => {
       const nameInput = page.getByTestId('add-person-name');
       await expect(nameInput).toBeVisible({ timeout: 10_000 });
       await nameInput.fill(personName);
+      // born year → placeable on the generational canvas (so the node is clickable)
+      await page.getByTestId('add-person-born').fill('1950');
       await page.getByTestId('add-person-submit').click();
 
       // Wait for person to appear
