@@ -93,6 +93,7 @@ export interface TreeData {
     treeNameEn?: string;
     ownerId: string;
     visibility?: 'public' | 'private' | 'shared';
+    theme?: string | null;
   };
   people: Person[];
   stories?: Record<string, Array<{ year: number; title: string; body: string }>>;

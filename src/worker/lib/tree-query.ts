@@ -30,6 +30,8 @@ export interface TreeMeta {
   /** Visibility enum — canonical access-control field. */
   visibility: 'public' | 'private' | 'shared';
   ownerId: string | null;
+  /** Palette key set by the owner; null = default (paper) palette. */
+  theme: string | null;
 }
 
 export interface PersonRow {
@@ -326,6 +328,7 @@ export async function getTreeData(
       nameEn: treeRow.name_en,
       visibility,
       ownerId: treeRow.owner_id,
+      theme: treeRow.theme ?? null,
     },
     people: shapedPeople,
     relations: shapedRelations,

@@ -51,6 +51,7 @@ export interface ApiTreeResponse {
     nameEn: string | null;
     visibility: 'public' | 'private' | 'shared';
     ownerId: string | null;
+    theme: string | null;
   };
   people: Array<{
     id: string;
@@ -263,6 +264,15 @@ export const apiClient = {
       },
     ),
 
+  setTheme: (slug: string, theme: string | null) =>
+    api<{ theme: string | null }>(
+      `/api/tree/${encodeURIComponent(slug)}/theme`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ theme }),
+      },
+    ),
+
   setPersonStatus: (slug: string, personId: string, body: { deceased: boolean; died: number | null }) =>
     api<{ deceased: boolean; died: number | null }>(
       `/api/tree/${encodeURIComponent(slug)}/person/${encodeURIComponent(personId)}`,
@@ -436,6 +446,7 @@ export function adaptTree(raw: ApiTreeResponse): TreeData {
       treeNameEn: raw.tree.nameEn ?? undefined,
       ownerId: raw.tree.ownerId ?? '',
       visibility: raw.tree.visibility,
+      theme: raw.tree.theme ?? null,
     },
     people,
     stories,
