@@ -1,6 +1,22 @@
 # Active Tasks
 
-> Last updated: 2026-06-16 (planning)
+> Last updated: 2026-06-16 14:01
+> Workstream: 12-abuse-hardening (rate-limit + file-size + tree quota)
+> Goal: "ทำ rate limit การปรับเปลี่ยนภาพ หรือการอัปโหลดภาพ ขนาด ไฟล์ และจำกัดจำนวนครอบครัวที่สร้างได้"
+> Status: ✅ SHIPPED & LIVE — 574/574 green · Opus adversarial review applied · CI 27600165847 ·
+>   Deploy 27600223170 · prod e2e 3/3 (14-create-tree SC1/SC2 + 17-photo-upload PU1-5, happy paths intact).
+>   - Rate-limit photo upload/delete: per-owner KV fixed-window 30/60s (bucket 'photo-mutate'), guard before
+>     multipart parse + R2 write. New lib src/worker/lib/rate-limit.ts (shared write-path limiter).
+>   - File size: existing 5MB cap (declared-size pre-check + post-buffer re-check) satisfies "ขนาดไฟล์".
+>   - Tree quota: MAX_TREES_PER_OWNER=20, POST /api/trees → 429 {tree_limit_reached, max} when at cap.
+>   - Tests: unit rate-limit (boundary) + integration photo rate-limit (saturated 429, real burst past MAX,
+>     per-owner isolation, DELETE 429) + integration tree-quota (at cap / one-below / per-owner).
+>   - Review fix: replaced two false-confidence tests (empty-KV "under budget", deletedKeys assertion on POST)
+>     with a real MAX+1 burst + put-side objectCount assertion. PHOTO_MUTATE_MAX now exported.
+>   - Code-only change → NO D1 migration needed.
+>   - Commits: c6dd4bc rate-limiter lib · ff94af4 photo rate-limit · 5bbc3d1 tree quota. Pushed 5bbc3d1.
+>
+> --- (prior workstream archived below) ---
 > Workstream: 09-multi-tree-epic / Phase 1 (create & build + sharing polish)
 > Plan: `instruction/work/plan.md` · Requirements: `instruction/work/requirements.md`
 > Status: ✅✅✅ EPIC COMPLETE & LIVE on https://heritage.jairukchan.com/ — Goal "ลุยให้จบเลยไม่ต้องถาม" met.
