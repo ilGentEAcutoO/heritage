@@ -54,6 +54,10 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const [addPersonOpen, setAddPersonOpen] = useState(false);
 
+  // Local theme preview for non-owners (e.g. demo visitors): lets anyone try
+  // the palettes without persisting. `undefined` = no preview (use stored theme).
+  const [previewTheme, setPreviewTheme] = useState<string | null | undefined>(undefined);
+
   // Optimistic local overrides for person status (deceased / died)
   const [statusOverrides, setStatusOverrides] = useState<Record<string, { deceased: boolean; died: number | null }>>({});
 
@@ -145,6 +149,20 @@ export function TreeView({ treeSlug }: TreeViewProps) {
       refetch();
     },
     [canEdit, slug, refetch],
+  );
+
+  // handleSelectTheme: owner persists (PATCH); everyone else gets an ephemeral
+  // local preview (no network) so demo/non-owner viewers can try the palettes.
+  const handleSelectTheme = useCallback(
+    (theme: string | null) => {
+      if (canEdit) {
+        setPreviewTheme(undefined); // owner persists; drop any stale preview
+        void onSetTheme(theme);
+      } else {
+        setPreviewTheme(theme); // local-only preview, resets on reload
+      }
+    },
+    [canEdit, onSetTheme],
   );
 
   // Derived from data
@@ -309,8 +327,11 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const totalPeople = mergedPeople.length;
   const aliveCount = mergedPeople.filter((p) => !p.deceased).length;
 
+  // A non-owner's local preview (if any) takes precedence over the stored theme.
+  const effectiveTheme = previewTheme !== undefined ? previewTheme : data.meta.theme;
+
   return (
-    <div className="app" style={paletteStyle(data.meta.theme)}>
+    <div className="app" style={paletteStyle(effectiveTheme)}>
       {/* Header */}
       <header className="app-header" data-screen-label="App Header">
         <div className="header-logo">
@@ -350,13 +371,13 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           >
             <span style={{ opacity: 0.6 }}>◈</span> เราเกี่ยวกันยังไง?
           </button>
-          {/* Theme picker — shown only to the tree owner */}
-          {canEdit && (
-            <ThemePicker
-              currentTheme={data.meta.theme}
-              onSelect={onSetTheme}
-            />
-          )}
+          {/* Theme picker — everyone can try palettes; owner persists, others
+              get an ephemeral local preview (previewOnly). */}
+          <ThemePicker
+            currentTheme={effectiveTheme}
+            onSelect={handleSelectTheme}
+            previewOnly={!canEdit}
+          />
           {/* Share button — shown only to the tree owner */}
           {user && data?.meta.ownerId && user.id === data.meta.ownerId && (
             <button

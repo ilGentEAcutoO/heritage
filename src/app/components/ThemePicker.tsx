@@ -20,13 +20,15 @@ const SWATCH: Record<PaletteKey, { bg: string; accent: string; label: string }> 
 };
 
 export interface ThemePickerProps {
-  /** Currently active palette key (from data.meta.theme). */
+  /** Currently active palette key (from data.meta.theme or a local preview). */
   currentTheme: string | null | undefined;
   /** Called when the user selects a palette. */
   onSelect: (key: PaletteKey | null) => void;
+  /** When true, selections are local preview only (non-owner) and won't be saved. */
+  previewOnly?: boolean;
 }
 
-export function ThemePicker({ currentTheme, onSelect }: ThemePickerProps): JSX.Element {
+export function ThemePicker({ currentTheme, onSelect, previewOnly = false }: ThemePickerProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +69,7 @@ export function ThemePicker({ currentTheme, onSelect }: ThemePickerProps): JSX.E
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((prev) => !prev)}
-        title="เลือกธีมสี"
+        title={previewOnly ? 'ลองธีม (พรีวิว — ไม่บันทึก)' : 'เลือกธีมสี'}
       >
         <span style={{ opacity: 0.7 }}>🎨</span> ธีม
       </button>
@@ -143,6 +145,20 @@ export function ThemePicker({ currentTheme, onSelect }: ThemePickerProps): JSX.E
               </button>
             );
           })}
+          {previewOnly && (
+            <div
+              style={{
+                padding: '6px 14px 2px',
+                marginTop: 4,
+                borderTop: '1px solid var(--line, #eee)',
+                fontSize: 11,
+                lineHeight: 1.4,
+                color: 'var(--ink-faint, #999)',
+              }}
+            >
+              👁 ลองดูเฉยๆ · ไม่บันทึก (เฉพาะเจ้าของ tree เปลี่ยนถาวรได้)
+            </div>
+          )}
         </div>
       )}
     </div>
