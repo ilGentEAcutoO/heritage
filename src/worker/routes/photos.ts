@@ -19,8 +19,14 @@ import * as schema from '../../db/schema';
 import { purgeTreeCache } from '../lib/cache-purge';
 import { resolveOwnerTree } from '../lib/resolve-owner-tree';
 import { newId } from '../lib/ids';
+import { checkRateLimit } from '../lib/rate-limit';
 
 export const photosRouter = new Hono<HonoEnv>();
+
+// Per-owner rate limit for photo mutations (upload + delete share one budget).
+// Exported so integration tests bind to the real values (no drift).
+export const PHOTO_MUTATE_MAX = 30;
+export const PHOTO_MUTATE_WINDOW_SECS = 60;
 
 // ---------------------------------------------------------------------------
 // MIME → extension mapping (must match KEY_RE in img.ts)
@@ -67,6 +73,14 @@ photosRouter.post('/:slug/person/:personId/photos', async (c) => {
 
   if (!person) {
     return c.json({ error: 'not_found' }, 404);
+  }
+
+  // 2b. Per-owner rate limit (before the expensive multipart parse + R2 write).
+  if (c.env?.KV_RL) {
+    const allowed = await checkRateLimit(
+      c.env.KV_RL, 'photo-mutate', user.id, PHOTO_MUTATE_MAX, PHOTO_MUTATE_WINDOW_SECS,
+    );
+    if (!allowed) return c.json({ error: 'rate_limited' }, 429);
   }
 
   // 3. Parse multipart form data
@@ -155,7 +169,7 @@ photosRouter.delete('/:slug/person/:personId/photos/:photoId', async (c) => {
     );
   }
 
-  const { db, tree } = ctx;
+  const { db, tree, user } = ctx;
 
   // 2. Person must exist in this tree
   const person = await db.query.people.findFirst({
@@ -167,6 +181,14 @@ photosRouter.delete('/:slug/person/:personId/photos/:photoId', async (c) => {
 
   if (!person) {
     return c.json({ error: 'not_found' }, 404);
+  }
+
+  // 2b. Per-owner rate limit (delete shares the photo-mutate budget with upload).
+  if (c.env?.KV_RL) {
+    const allowed = await checkRateLimit(
+      c.env.KV_RL, 'photo-mutate', user.id, PHOTO_MUTATE_MAX, PHOTO_MUTATE_WINDOW_SECS,
+    );
+    if (!allowed) return c.json({ error: 'rate_limited' }, 429);
   }
 
   // 3. Photo row must exist AND belong to this person

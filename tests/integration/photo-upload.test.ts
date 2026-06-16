@@ -14,7 +14,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { createSqliteD1, type SqliteD1Database } from '../helpers/sqlite-d1';
 import * as schema from '../../src/db/schema';
-import { photosRouter } from '../../src/worker/routes/photos';
+import { photosRouter, PHOTO_MUTATE_MAX } from '../../src/worker/routes/photos';
 import { treeRouter } from '../../src/worker/routes/tree';
 import type { HonoEnv } from '../../src/worker/types';
 
@@ -26,6 +26,11 @@ import type { HonoEnv } from '../../src/worker/types';
 class PhotosBucketMock {
   private store = new Map<string, { body: ArrayBuffer; contentType: string }>();
   public deletedKeys: string[] = [];
+
+  /** Number of objects currently held — lets tests assert "no R2 write happened". */
+  get objectCount(): number {
+    return this.store.size;
+  }
 
   async put(
     key: string,
@@ -79,6 +84,7 @@ function makeApp(
   d1: SqliteD1Database,
   asUser: SessionUser = null,
   photosBucket?: PhotosBucketMock,
+  kvRl?: KVNamespace,
 ) {
   const db = drizzle(d1 as unknown as D1Database, { schema });
   const photos = photosBucket ?? new PhotosBucketMock();
@@ -99,12 +105,38 @@ function makeApp(
   app.route('/api/tree', treeRouter);
 
   // Minimal env object — Hono reads this as c.env on Workers runtime.
+  // KV_RL is only present when a test supplies one (the rate-limit guard is
+  // `if (c.env?.KV_RL)`, so omitting it keeps the other suites unthrottled).
   const env = {
     DB: d1 as unknown as D1Database,
     PHOTOS: photos as unknown as R2Bucket,
+    ...(kvRl ? { KV_RL: kvRl } : {}),
   };
 
   return { app, db, photos, env };
+}
+
+/**
+ * A KV mock that always reports the limiter is over cap, regardless of key —
+ * so the very first mutation through the route returns 429. Deterministic
+ * (no dependence on the wall-clock window boundary).
+ */
+function makeSaturatedKv(): KVNamespace {
+  return {
+    get: async () => '999',
+    put: async () => {},
+  } as unknown as KVNamespace;
+}
+
+/** A real in-memory fixed-window KV (get/put) for under-cap happy-path checks. */
+function makeCountingKv(): KVNamespace {
+  const store = new Map<string, string>();
+  return {
+    get: async (k: string) => store.get(k) ?? null,
+    put: async (k: string, v: string) => {
+      store.set(k, v);
+    },
+  } as unknown as KVNamespace;
 }
 
 // ---------------------------------------------------------------------------
@@ -553,5 +585,109 @@ describe('POST photo — data integrity (img-path + db verification)', () => {
     const { photo: p1 } = await r1.json() as { photo: { key: string } };
     const { photo: p2 } = await r2.json() as { photo: { key: string } };
     expect(p1.key).not.toBe(p2.key);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite: per-owner rate limit on photo mutations (upload + delete)
+// ---------------------------------------------------------------------------
+
+describe('photo mutations — per-owner rate limit', () => {
+  let d1: SqliteD1Database;
+  let sharedPhotos: PhotosBucketMock;
+
+  beforeEach(async () => {
+    d1 = createSqliteD1();
+    sharedPhotos = new PhotosBucketMock();
+    const handle = makeApp(d1, { id: 'owner1', email: 'owner@example.com' }, sharedPhotos);
+    await seedOwnerAndTree(handle.db);
+    await seedPerson(handle.db);
+  });
+
+  test('POST over the budget → 429 rate_limited (no R2 write)', async () => {
+    const handle = makeApp(
+      d1, { id: 'owner1', email: 'owner@example.com' }, sharedPhotos, makeSaturatedKv(),
+    );
+    const res = await makeUploadReq(handle, '/api/tree/test-tree/person/person1/photos', makeFile({}));
+    expect(res.status).toBe(429);
+    const body = await res.json() as { error: string };
+    expect(body.error).toBe('rate_limited');
+    // Limiter fires before the multipart parse + R2 put → bucket received no object.
+    expect(sharedPhotos.objectCount).toBe(0);
+  });
+
+  test('counter increments through the route: PHOTO_MUTATE_MAX uploads OK, next → 429', async () => {
+    // A real in-memory KV shared across requests proves the route-level cap
+    // actually fires (right max/window wired, count persists between calls).
+    const kv = makeCountingKv();
+    const handle = makeApp(
+      d1, { id: 'owner1', email: 'owner@example.com' }, sharedPhotos, kv,
+    );
+
+    for (let i = 0; i < PHOTO_MUTATE_MAX; i++) {
+      const res = await makeUploadReq(
+        handle, '/api/tree/test-tree/person/person1/photos', makeFile({ name: `p${i}.jpg` }),
+      );
+      expect(res.status).toBe(201);
+    }
+    // The (MAX+1)-th upload in the same window is rejected.
+    const over = await makeUploadReq(
+      handle, '/api/tree/test-tree/person/person1/photos', makeFile({ name: 'over.jpg' }),
+    );
+    expect(over.status).toBe(429);
+    const body = await over.json() as { error: string };
+    expect(body.error).toBe('rate_limited');
+    // Exactly MAX objects were written, not MAX+1.
+    expect(sharedPhotos.objectCount).toBe(PHOTO_MUTATE_MAX);
+  });
+
+  test('DELETE over the budget → 429 rate_limited', async () => {
+    // Upload a photo first with an unthrottled handle (no KV).
+    const upHandle = makeApp(d1, { id: 'owner1', email: 'owner@example.com' }, sharedPhotos);
+    const upRes = await makeUploadReq(
+      upHandle, '/api/tree/test-tree/person/person1/photos', makeFile({}),
+    );
+    expect(upRes.status).toBe(201);
+    const { photo } = await upRes.json() as { photo: { id: string; key: string } };
+
+    // Now attempt DELETE with a saturated limiter → 429, photo untouched.
+    const handle = makeApp(
+      d1, { id: 'owner1', email: 'owner@example.com' }, sharedPhotos, makeSaturatedKv(),
+    );
+    const res = await makeDeleteReq(
+      handle, `/api/tree/test-tree/person/person1/photos/${photo.id}`,
+    );
+    expect(res.status).toBe(429);
+    const body = await res.json() as { error: string };
+    expect(body.error).toBe('rate_limited');
+    // The R2 object must NOT have been deleted (guard fires before R2/DB delete).
+    expect(sharedPhotos.has(photo.key)).toBe(true);
+  });
+
+  test('rate limit is keyed per owner — two owners share one KV without interfering', async () => {
+    // The limiter key embeds the user id (`rl:photo-mutate:<userId>:<window>`),
+    // so two distinct owners hitting the SAME KV namespace get independent
+    // budgets — neither consumes the other's allowance.
+    const kv = makeCountingKv();
+
+    // Seed a second owner + tree + person.
+    const setup = makeApp(d1, { id: 'owner1', email: 'owner@example.com' }, sharedPhotos);
+    await setup.db.insert(schema.users).values({
+      id: 'owner2', email: 'owner2@example.com', email_verified_at: 1,
+    });
+    await setup.db.insert(schema.trees).values({
+      id: 'tree2', slug: 'tree-two', name: 'Tree Two', owner_id: 'owner2', visibility: 'public',
+    });
+    await setup.db.insert(schema.people).values({
+      id: 'person2', tree_id: 'tree2', name: 'Person Two', deceased: false,
+    });
+
+    const h1 = makeApp(d1, { id: 'owner1', email: 'owner@example.com' }, sharedPhotos, kv);
+    const h2 = makeApp(d1, { id: 'owner2', email: 'owner2@example.com' }, sharedPhotos, kv);
+
+    const r1 = await makeUploadReq(h1, '/api/tree/test-tree/person/person1/photos', makeFile({}));
+    const r2 = await makeUploadReq(h2, '/api/tree/tree-two/person/person2/photos', makeFile({}));
+    expect(r1.status).toBe(201);
+    expect(r2.status).toBe(201);
   });
 });
