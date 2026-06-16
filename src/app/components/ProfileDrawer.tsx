@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { Person, TreeData } from '@app/lib/types';
 import { computeRelation } from '@app/lib/kinship';
 import { Tab } from './Tab';
@@ -21,6 +21,10 @@ export interface ProfileDrawerProps {
   ) => Promise<void>;
   /** Called by owner delete button after confirmation. */
   onDeletePerson?: (personId: string) => Promise<void>;
+  /** Called when owner uploads a photo for a person. */
+  onUploadPhoto?: (personId: string, file: File) => Promise<void>;
+  /** Called when owner deletes a photo. */
+  onDeletePhoto?: (personId: string, photoId: string) => Promise<void>;
 }
 
 /**
@@ -52,6 +56,8 @@ export function ProfileDrawer({
   canEdit,
   onUpdatePerson,
   onDeletePerson,
+  onUploadPhoto,
+  onDeletePhoto,
 }: ProfileDrawerProps) {
   // Edit mode state
   const [editMode, setEditMode] = useState(false);
@@ -66,6 +72,11 @@ export function ProfileDrawer({
   // Delete confirm state
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Photo upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
 
   if (!person) return null;
 
@@ -116,9 +127,35 @@ export function ProfileDrawer({
     }
   }
 
+  async function handlePhotoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !onUploadPhoto) return;
+    setUploadError('');
+    setUploading(true);
+    try {
+      await onUploadPhoto(person.id, file);
+    } catch {
+      setUploadError('อัปโหลดไม่สำเร็จ — ลองใหม่อีกครั้ง');
+    } finally {
+      setUploading(false);
+      // Reset input so the same file can be re-uploaded if needed
+      if (photoFileInputRef.current) photoFileInputRef.current.value = '';
+    }
+  }
+
+  async function handleDeletePhoto(photoId: string) {
+    if (!onDeletePhoto) return;
+    try {
+      await onDeletePhoto(person.id, photoId);
+    } catch {
+      // Silently ignore; refetch from parent will reflect true state
+    }
+  }
+
   const stories = (data.stories?.[person.id] || []);
   const memos = (data.memos?.[person.id] || []);
   const photoCount = data.photos?.[person.id] || 0;
+  const photoItems = data.photoList?.[person.id] ?? [];
 
   const parents = (person.parents || [])
     .map(id => data.people.find(p => p.id === id))
@@ -207,7 +244,17 @@ export function ProfileDrawer({
               {(person.name || '').charAt(0)}
             </text>
           </svg>
-          <button className="photo-upload-btn">+ เพิ่มรูป</button>
+          {canEdit && onUploadPhoto && (
+            <button
+              type="button"
+              data-testid="photo-upload-button-header"
+              className="photo-upload-btn"
+              onClick={() => photoFileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              + เพิ่มรูป
+            </button>
+          )}
         </div>
 
         <div className="profile-ident">
@@ -631,8 +678,65 @@ export function ProfileDrawer({
 
         {/* Photos tab */}
         <Tab label="Photos" count={photoCount}>
+          {/* Hidden file input for photo upload */}
+          <input
+            ref={photoFileInputRef}
+            type="file"
+            accept="image/*"
+            data-testid="photo-file-input"
+            style={{ display: 'none' }}
+            onChange={handlePhotoFileChange}
+          />
+
           <div className="photo-grid">
-            {Array.from({ length: Math.min(9, photoCount) }).map((_, i) => (
+            {photoItems.map((photo, i) => (
+              <div
+                key={photo.id}
+                className="photo-tile"
+                style={{ animationDelay: `${i * 40}ms`, position: 'relative' }}
+              >
+                <img
+                  src={`/api/img/${photo.key}`}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
+                />
+                {canEdit && onDeletePhoto && (
+                  <button
+                    type="button"
+                    aria-label="ลบรูปนี้"
+                    onClick={() => handleDeletePhoto(photo.id)}
+                    style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: 'rgba(0,0,0,0.55)',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      lineHeight: '22px',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            {/* Fallback mock tiles when there are no real photos yet */}
+            {photoItems.length === 0 && photoCount > 0 && Array.from({ length: Math.min(9, photoCount) }).map((_, i) => (
               <div
                 key={i}
                 className="photo-tile"
@@ -642,13 +746,33 @@ export function ProfileDrawer({
                 <div className="photo-tile-label">{1950 + ((i * 7) % 70)}</div>
               </div>
             ))}
-            {photoCount > 9 && (
+            {photoItems.length === 0 && photoCount > 9 && (
               <div className="photo-tile more">+{photoCount - 9}</div>
             )}
           </div>
-          <button className="btn-primary full-width">
-            <span>↑</span> อัปโหลดรูปใหม่
-          </button>
+
+          {uploadError && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '5px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+              {uploadError}
+            </div>
+          )}
+
+          {canEdit && onUploadPhoto ? (
+            <button
+              type="button"
+              data-testid="photo-upload-button"
+              className="btn-primary full-width"
+              disabled={uploading}
+              onClick={() => photoFileInputRef.current?.click()}
+              style={{ opacity: uploading ? 0.55 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
+            >
+              <span>↑</span> {uploading ? 'กำลังอัปโหลด…' : 'อัปโหลดรูปใหม่'}
+            </button>
+          ) : (
+            <button className="btn-primary full-width" disabled>
+              <span>↑</span> อัปโหลดรูปใหม่
+            </button>
+          )}
         </Tab>
 
         {/* Voice tab */}

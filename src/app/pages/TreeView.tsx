@@ -115,6 +115,26 @@ export function TreeView({ treeSlug }: TreeViewProps) {
     [canEdit, slug, refetch],
   );
 
+  // onUploadPhoto: POST multipart photo then refetch
+  const onUploadPhoto = useCallback(
+    async (personId: string, file: File) => {
+      if (!canEdit || !slug) return;
+      await apiClient.uploadPhoto(slug, personId, file);
+      refetch();
+    },
+    [canEdit, slug, refetch],
+  );
+
+  // onDeletePhoto: DELETE photo then refetch
+  const onDeletePhoto = useCallback(
+    async (personId: string, photoId: string) => {
+      if (!canEdit || !slug) return;
+      await apiClient.deletePhoto(slug, personId, photoId);
+      refetch();
+    },
+    [canEdit, slug, refetch],
+  );
+
   // Derived from data
   const meId = useMemo(
     () => mergedPeople.find((p) => p.isMe)?.id ?? null,
@@ -396,6 +416,8 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           canEdit={canEdit}
           onUpdatePerson={canEdit ? onUpdatePerson : undefined}
           onDeletePerson={canEdit ? onDeletePerson : undefined}
+          onUploadPhoto={canEdit ? onUploadPhoto : undefined}
+          onDeletePhoto={canEdit ? onDeletePhoto : undefined}
         />
       )}
 

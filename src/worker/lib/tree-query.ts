@@ -86,6 +86,11 @@ export interface LineageRow {
   members: any[];
 }
 
+export interface PhotoItem {
+  id: string;
+  key: string;
+}
+
 export interface TreeQueryResult {
   tree: TreeMeta;
   people: PersonRow[];
@@ -98,6 +103,8 @@ export interface TreeQueryResult {
   lineages: Record<string, LineageRow>;
   /** personId → photo count */
   photoCounts: Record<string, number>;
+  /** personId → photo list (id + object_key) */
+  photos: Record<string, PhotoItem[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -163,11 +170,14 @@ export async function getTreeData(
       .all(),
     db
       .select({
+        id: photos.id,
         person_id: photos.person_id,
+        object_key: photos.object_key,
       })
       .from(photos)
       .innerJoin(people, eq(photos.person_id, people.id))
       .where(eq(people.tree_id, treeId))
+      .orderBy(photos.created_at)
       .all(),
     db
       .select()
@@ -276,10 +286,13 @@ export async function getTreeData(
     });
   }
 
-  // 9. Photo counts
+  // 9. Photo counts + photo list
   const photoCounts: Record<string, number> = {};
+  const photosMap: Record<string, PhotoItem[]> = {};
   for (const ph of photoRows) {
     photoCounts[ph.person_id] = (photoCounts[ph.person_id] ?? 0) + 1;
+    if (!photosMap[ph.person_id]) photosMap[ph.person_id] = [];
+    photosMap[ph.person_id].push({ id: ph.id, key: ph.object_key });
   }
 
   // 10. Shape lineages
@@ -320,5 +333,6 @@ export async function getTreeData(
     memos: memosMap,
     lineages: lineagesMap,
     photoCounts,
+    photos: photosMap,
   };
 }

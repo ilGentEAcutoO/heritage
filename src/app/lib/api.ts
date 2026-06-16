@@ -99,6 +99,7 @@ export interface ApiTreeResponse {
     members: unknown[];
   }>;
   photoCounts: Record<string, number>;
+  photos: Record<string, Array<{ id: string; key: string }>>;
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +330,34 @@ export const apiClient = {
       `/api/tree/${encodeURIComponent(slug)}/relation/${encodeURIComponent(String(relationId))}`,
       { method: 'DELETE' },
     ),
+
+  // Photo upload — owner-only. Uses FormData so Content-Type is NOT forced to
+  // application/json (the browser must set the multipart boundary).
+  uploadPhoto: async (slug: string, personId: string, file: File): Promise<{ photo: { id: string; key: string; url: string } }> => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(
+      `/api/tree/${encodeURIComponent(slug)}/person/${encodeURIComponent(personId)}/photos`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        body: form,
+        // Do NOT set Content-Type — let the browser set it with the boundary
+      },
+    );
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: 'unknown' }));
+      throw { error: (body as { error?: string }).error ?? 'unknown', status: res.status } as ApiError;
+    }
+    return res.json() as Promise<{ photo: { id: string; key: string; url: string } }>;
+  },
+
+  // Photo delete — owner-only.
+  deletePhoto: (slug: string, personId: string, photoId: string) =>
+    api<{ ok: boolean }>(
+      `/api/tree/${encodeURIComponent(slug)}/person/${encodeURIComponent(personId)}/photos/${encodeURIComponent(photoId)}`,
+      { method: 'DELETE' },
+    ),
 };
 
 // ---------------------------------------------------------------------------
@@ -412,6 +441,7 @@ export function adaptTree(raw: ApiTreeResponse): TreeData {
     stories,
     memos,
     photos: raw.photoCounts ?? {},
+    photoList: raw.photos ?? {},
     externalLineages,
   };
 }

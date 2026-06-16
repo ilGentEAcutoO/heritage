@@ -98,6 +98,8 @@ export interface TreeData {
   stories?: Record<string, Array<{ year: number; title: string; body: string }>>;
   memos?: Record<string, Array<{ by: string; duration: number; title: string; date: string }>>;
   photos?: Record<string, number>;
+  /** Photo list per person — Array of { id, key } objects (key is the R2 object key). */
+  photoList?: Record<string, Array<{ id: string; key: string }>>;
   externalLineages?: Record<string, Lineage>;
 }
 
