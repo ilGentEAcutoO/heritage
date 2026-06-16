@@ -107,9 +107,10 @@ body {
 }
 .tree-title-name {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 20px;
-  font-weight: 500;
-  font-style: italic;
+  font-size: 22px;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: -0.01em;
 }
 
 .header-actions { display: flex; gap: 8px; }
@@ -258,21 +259,20 @@ body {
 .tree-canvas {
   position: relative;
   overflow: hidden;
-  background: var(--paper);
+  background: var(--bg);
   user-select: none;
 }
 
 .paper-bg {
   position: absolute; inset: 0;
-  background-image:
-    radial-gradient(ellipse at 30% 20%, oklch(0.92 0.03 70 / 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, oklch(0.93 0.025 80 / 0.35) 0%, transparent 55%),
-    repeating-linear-gradient(0deg, transparent 0 30px, oklch(0.25 0.02 60 / 0.015) 30px 31px);
+  /* Modern workspace dot-grid (Figma/Miro feel) */
+  background-image: radial-gradient(rgba(110, 122, 145, 0.16) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
   pointer-events: none;
 }
 .paper-vignette {
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, oklch(0.4 0.05 50 / 0.1) 100%);
+  background: radial-gradient(ellipse at center, transparent 62%, rgba(20, 28, 46, 0.05) 100%);
   pointer-events: none;
 }
 
@@ -293,7 +293,10 @@ body {
   transition: transform 200ms;
 }
 .person-node:hover { z-index: 3; }
-.person-node:hover .node-photo { transform: scale(1.08); }
+.person-node:hover .node-photo {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 12px 28px rgba(20, 28, 46, 0.22), 0 2px 4px rgba(20, 28, 46, 0.12);
+}
 .person-node.dragging {
   transition: none !important;
   z-index: 10;
@@ -308,8 +311,8 @@ body {
   position: relative;
   width: 60px; height: 60px;
   border-radius: 50%;
-  box-shadow: 0 2px 6px oklch(0.25 0.02 60 / 0.15);
-  transition: transform 180ms ease-out;
+  box-shadow: 0 6px 18px rgba(20, 28, 46, 0.16), 0 1px 3px rgba(20, 28, 46, 0.10);
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out;
   background: var(--paper);
 }
 .node-photo svg { display: block; }
@@ -447,7 +450,7 @@ body {
 
 .person-node.selected .node-photo {
   transform: scale(1.15);
-  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--blossom);
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px rgba(18, 184, 134, 0.55), 0 12px 28px rgba(18, 184, 134, 0.32);
 }
 .person-node.highlighted .node-photo {
   box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--blossom);
@@ -468,10 +471,11 @@ body {
 }
 .node-nick {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 15px;
-  font-style: italic;
+  font-size: 14px;
+  font-style: normal;
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .node-dates {
   font-family: "Prompt", system-ui, sans-serif;
