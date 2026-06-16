@@ -85,16 +85,16 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
           role="menu"
           style={{
             position: 'absolute',
-            top: 'calc(100% + 6px)',
+            top: 'calc(100% + 8px)',
             right: 0,
             minWidth: 200,
             background: 'var(--paper, #fff)',
             border: '1px solid var(--line, #ddd)',
-            borderRadius: 6,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            borderRadius: 14,
+            boxShadow: 'var(--shadow, 0 8px 30px rgba(20,28,46,.10))',
             zIndex: 1000,
-            padding: '6px 0',
-            fontFamily: 'Sarabun, serif',
+            padding: '6px',
+            fontFamily: '"Prompt", system-ui, sans-serif',
             fontSize: 14,
           }}
         >
@@ -103,7 +103,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
               {/* Auth header */}
               <div
                 style={{
-                  padding: '10px 16px 8px',
+                  padding: '10px 12px 10px',
                   borderBottom: '1px solid var(--line, #ddd)',
                   marginBottom: 4,
                 }}
@@ -112,7 +112,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                   {user.displayName ?? user.email}
                 </div>
                 {user.displayName && (
-                  <div style={{ fontSize: 12, opacity: 0.6, color: 'var(--ink, #2a1f14)' }}>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint, #94a0b8)' }}>
                     {user.email}
                   </div>
                 )}
@@ -126,7 +126,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 onClick={() => setOpen(false)}
                 style={{
                   display: 'block',
-                  padding: '8px 16px',
+                  padding: '8px 12px',
+                  borderRadius: 12,
                   color: 'var(--ink, #2a1f14)',
                   textDecoration: 'none',
                 }}
@@ -142,7 +143,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 onClick={() => setOpen(false)}
                 style={{
                   display: 'block',
-                  padding: '8px 16px',
+                  padding: '8px 12px',
+                  borderRadius: 12,
                   color: 'var(--ink, #2a1f14)',
                   textDecoration: 'none',
                 }}
@@ -161,13 +163,15 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                   display: 'block',
                   width: '100%',
                   textAlign: 'left',
-                  padding: '8px 16px',
+                  padding: '8px 12px',
+                  borderRadius: 12,
                   background: 'transparent',
                   border: 'none',
                   cursor: loggingOut ? 'wait' : 'pointer',
-                  color: 'var(--ink, #2a1f14)',
-                  fontFamily: 'Sarabun, serif',
+                  color: 'var(--blossom, #2a1f14)',
+                  fontFamily: '"Prompt", system-ui, sans-serif',
                   fontSize: 14,
+                  fontWeight: 600,
                   opacity: loggingOut ? 0.4 : 1,
                 }}
               >
@@ -184,7 +188,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 onClick={() => setOpen(false)}
                 style={{
                   display: 'block',
-                  padding: '8px 16px',
+                  padding: '8px 12px',
+                  borderRadius: 12,
                   color: 'var(--ink, #2a1f14)',
                   textDecoration: 'none',
                 }}
@@ -200,9 +205,11 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 onClick={() => setOpen(false)}
                 style={{
                   display: 'block',
-                  padding: '8px 16px',
-                  color: 'var(--ink, #2a1f14)',
+                  padding: '8px 12px',
+                  borderRadius: 12,
+                  color: 'var(--leaf-strong, #2a1f14)',
                   textDecoration: 'none',
+                  fontWeight: 600,
                 }}
               >
                 เข้าสู่ระบบ

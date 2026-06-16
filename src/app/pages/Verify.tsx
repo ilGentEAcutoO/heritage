@@ -16,47 +16,47 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    fontFamily: 'Sarabun, serif',
-    background: 'var(--bg, #faf8f4)',
-    color: 'var(--ink, #2a1f14)',
+    fontFamily: '"Prompt", system-ui, sans-serif',
+    background: 'var(--bg)',
+    color: 'var(--ink)',
   },
   card: {
     width: '100%',
     maxWidth: '400px',
-    background: '#fff',
-    border: '1px solid var(--line, #ddd)',
-    borderRadius: '8px',
+    background: 'var(--paper)',
+    border: '1px solid var(--line)',
+    borderRadius: 'var(--radius, 14px)',
     padding: '2rem',
     textAlign: 'center' as const,
-    boxShadow: '0 4px 20px rgba(42,31,20,0.07)',
+    boxShadow: 'var(--shadow)',
   },
   logo: { margin: '0 auto 1.25rem' },
   heading: {
-    fontFamily: 'Cormorant Garamond, serif',
     fontSize: '1.75rem',
     fontWeight: 600,
     margin: '0 0 1rem',
+    color: 'var(--ink)',
   },
-  body: { fontSize: '0.95rem', lineHeight: 1.6, opacity: 0.75, margin: '0 0 1.25rem' },
+  body: { fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--ink-soft)', margin: '0 0 1.25rem' },
   error: {
     background: '#fef2f2',
     border: '1px solid #fca5a5',
-    borderRadius: '5px',
+    borderRadius: '10px',
     padding: '0.75rem',
     fontSize: '0.875rem',
     color: '#991b1b',
     marginBottom: '1rem',
   },
   success: {
-    background: '#f0fdf4',
-    border: '1px solid #86efac',
-    borderRadius: '5px',
+    background: 'var(--leaf-soft)',
+    border: '1px solid var(--line)',
+    borderRadius: '10px',
     padding: '0.75rem',
     fontSize: '0.875rem',
-    color: '#166534',
+    color: 'var(--leaf-strong)',
     marginBottom: '1rem',
   },
-  link: { color: 'var(--leaf, #6b8f5e)', textDecoration: 'none' as const },
+  link: { color: 'var(--leaf)', textDecoration: 'none' as const, fontWeight: 600 },
 };
 
 type Status = 'loading' | 'success' | 'error' | 'missing';
@@ -105,7 +105,7 @@ export function Verify() {
               opacity={0.4}
             />
             <circle cx="28" cy="20" r="6" fill="var(--blossom, #c4855a)" />
-            <path d="M28 26 L28 52" stroke="var(--bark, #5c3d1e)" strokeWidth={3} />
+            <path d="M28 26 L28 52" stroke="var(--leaf-strong, #0ca678)" strokeWidth={3} />
           </svg>
         </div>
 

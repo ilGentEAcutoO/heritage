@@ -16,30 +16,31 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    fontFamily: 'Sarabun, serif',
-    background: 'var(--bg, #faf8f4)',
-    color: 'var(--ink, #2a1f14)',
+    fontFamily: '"Prompt", system-ui, sans-serif',
+    background: 'var(--bg)',
+    color: 'var(--ink)',
   },
   card: {
     width: '100%',
     maxWidth: '400px',
-    background: '#fff',
-    border: '1px solid var(--line, #ddd)',
-    borderRadius: '8px',
+    background: 'var(--paper)',
+    border: '1px solid var(--line)',
+    borderRadius: 'var(--radius)',
     padding: '2rem',
-    boxShadow: '0 4px 20px rgba(42,31,20,0.07)',
+    boxShadow: 'var(--shadow)',
   },
   logo: { display: 'block', margin: '0 auto 1.25rem', textAlign: 'center' as const },
   heading: {
-    fontFamily: 'Cormorant Garamond, serif',
+    fontFamily: '"Prompt", system-ui, sans-serif',
     fontSize: '1.75rem',
     fontWeight: 600,
     margin: '0 0 0.25rem',
     textAlign: 'center' as const,
+    color: 'var(--ink)',
   },
   sub: {
     fontSize: '0.85rem',
-    opacity: 0.6,
+    color: 'var(--ink-soft)',
     textAlign: 'center' as const,
     margin: '0 0 1.5rem',
   },
@@ -49,54 +50,56 @@ const s = {
     fontWeight: 600,
     marginBottom: '0.3rem',
     letterSpacing: '0.03em',
+    color: 'var(--ink-soft)',
   },
   input: {
     width: '100%',
     padding: '0.6rem 0.75rem',
-    border: '1px solid var(--line, #ddd)',
-    borderRadius: '5px',
-    fontFamily: 'Sarabun, serif',
+    border: '1px solid var(--line)',
+    borderRadius: '12px',
+    fontFamily: '"Prompt", system-ui, sans-serif',
     fontSize: '0.95rem',
-    color: 'var(--ink, #2a1f14)',
-    background: 'var(--bg, #faf8f4)',
+    color: 'var(--ink)',
+    background: 'var(--paper-2)',
     boxSizing: 'border-box' as const,
     marginBottom: '1rem',
   },
   hint: {
     fontSize: '0.75rem',
-    opacity: 0.6,
+    color: 'var(--ink-faint)',
     marginTop: '-0.75rem',
     marginBottom: '1rem',
   },
   btn: {
     width: '100%',
-    padding: '0.7rem',
-    background: 'var(--leaf, #6b8f5e)',
+    padding: '0.6rem 1.3rem',
+    background: 'var(--accent-grad)',
     color: '#fff',
     border: 'none',
-    borderRadius: '5px',
-    fontFamily: 'Sarabun, serif',
+    borderRadius: '999px',
+    fontFamily: '"Prompt", system-ui, sans-serif',
     fontSize: '1rem',
     fontWeight: 600,
     cursor: 'pointer',
+    boxShadow: '0 4px 14px rgba(12,166,120,.3)',
     transition: 'opacity 0.15s',
   },
   error: {
     background: '#fef2f2',
     border: '1px solid #fca5a5',
-    borderRadius: '5px',
+    borderRadius: '10px',
     padding: '0.65rem 0.8rem',
     fontSize: '0.875rem',
     color: '#991b1b',
     marginBottom: '1rem',
   },
   success: {
-    background: '#f0fdf4',
-    border: '1px solid #86efac',
-    borderRadius: '5px',
+    background: 'var(--leaf-soft)',
+    border: '1px solid var(--line)',
+    borderRadius: '12px',
     padding: '1rem',
     fontSize: '0.95rem',
-    color: '#166534',
+    color: 'var(--leaf-strong)',
     textAlign: 'center' as const,
     lineHeight: 1.6,
   },
@@ -104,9 +107,9 @@ const s = {
     textAlign: 'center' as const,
     marginTop: '1.25rem',
     fontSize: '0.875rem',
-    opacity: 0.7,
+    color: 'var(--ink-soft)',
   },
-  link: { color: 'var(--leaf, #6b8f5e)', textDecoration: 'none' as const },
+  link: { color: 'var(--leaf)', textDecoration: 'none' as const },
 };
 
 export function Signup() {
@@ -154,11 +157,11 @@ export function Signup() {
           <svg viewBox="0 0 56 56" width={40} height={40} aria-hidden="true">
             <path
               d="M28 52 Q28 36 16 28 Q8 24 12 16 Q20 12 28 20 Q36 12 44 16 Q48 24 40 28 Q28 36 28 52"
-              fill="var(--leaf, #6b8f5e)"
+              fill="var(--leaf)"
               opacity={0.4}
             />
-            <circle cx="28" cy="20" r="6" fill="var(--blossom, #c4855a)" />
-            <path d="M28 26 L28 52" stroke="var(--bark, #5c3d1e)" strokeWidth={3} />
+            <circle cx="28" cy="20" r="6" fill="var(--blossom)" />
+            <path d="M28 26 L28 52" stroke="var(--leaf-strong)" strokeWidth={3} />
           </svg>
         </div>
 
