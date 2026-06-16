@@ -427,6 +427,9 @@ export function TreeView({ treeSlug }: TreeViewProps) {
       {/* Profile drawer */}
       {selected && (
         <ProfileDrawer
+          // Remount per person so per-person UI state (photoError, edit mode,
+          // delete confirm) never leaks onto the next person on a jump.
+          key={selected.id}
           person={selected}
           data={{ ...data, people: mergedPeople }}
           onClose={() => setSelectedId(null)}

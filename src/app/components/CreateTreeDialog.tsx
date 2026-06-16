@@ -151,6 +151,8 @@ export function CreateTreeDialog({ onClose, onCreated }: CreateTreeDialogProps) 
       if (err.status === 409) setError('slug นี้ถูกใช้แล้ว — ลองใช้ชื่ออื่น');
       else if (err.status === 422) setError('ข้อมูลไม่ถูกต้อง — ตรวจสอบชื่อและ slug');
       else if (err.status === 401) setError('กรุณาเข้าสู่ระบบใหม่');
+      else if (err.status === 429 || err.error === 'tree_limit_reached')
+        setError(`สร้างได้สูงสุด ${err.max ?? 20} ครอบครัว — ลบครอบครัวเก่าออกก่อนจึงจะสร้างใหม่ได้`);
       else setError('สร้างไม่สำเร็จ — ลองใหม่อีกครั้ง');
       setSubmitting(false);
       submittingRef.current = false;

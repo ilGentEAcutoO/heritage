@@ -15,6 +15,8 @@ import type { TreeData, Person } from './types';
 export interface ApiError {
   error: string;
   status: number;
+  /** Optional limit echoed by quota responses (e.g. tree_limit_reached → max). */
+  max?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -122,7 +124,8 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: 'unknown' }));
-    throw { error: (body as { error?: string }).error ?? 'unknown', status: res.status } as ApiError;
+    const b = body as { error?: string; max?: number };
+    throw { error: b.error ?? 'unknown', status: res.status, max: b.max } as ApiError;
   }
 
   // 204 No Content
@@ -357,7 +360,8 @@ export const apiClient = {
     );
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: 'unknown' }));
-      throw { error: (body as { error?: string }).error ?? 'unknown', status: res.status } as ApiError;
+      const b = body as { error?: string; max?: number };
+      throw { error: b.error ?? 'unknown', status: res.status, max: b.max } as ApiError;
     }
     return res.json() as Promise<{ photo: { id: string; key: string; url: string } }>;
   },

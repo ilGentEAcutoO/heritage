@@ -1,7 +1,31 @@
 import { useState, useRef } from 'react';
 import type { Person, TreeData } from '@app/lib/types';
+import type { ApiError } from '@app/lib/api';
 import { computeRelation } from '@app/lib/kinship';
 import { Tab } from './Tab';
+
+// Mirrors the server caps in worker/routes/photos.ts (MAX_BYTES + ALLOWED_MIME_TYPES).
+// Client-side checks give instant feedback; the server re-validates as the authority.
+const MAX_PHOTO_MB = 5;
+const MAX_PHOTO_BYTES = MAX_PHOTO_MB * 1024 * 1024;
+const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+/**
+ * Map a failed photo upload/delete into a user-facing Thai message. Covers the
+ * abuse-hardening limits (413 too_large, 415 unsupported_type, 429 rate_limited)
+ * so the user is told *why* the action failed rather than a blank "try again".
+ */
+function photoErrorMessage(e: unknown, fallback: string): string {
+  const err = e as ApiError;
+  if (err.status === 413 || err.error === 'too_large')
+    return `ไฟล์ใหญ่เกิน ${MAX_PHOTO_MB} MB — เลือกรูปที่เล็กกว่านี้`;
+  if (err.status === 415 || err.error === 'unsupported_type')
+    return 'รองรับเฉพาะไฟล์รูป JPG, PNG หรือ WebP';
+  if (err.status === 429 || err.error === 'rate_limited')
+    return 'ปรับเปลี่ยนรูปบ่อยเกินไป รอสักครู่แล้วลองใหม่';
+  if (err.status === 401) return 'กรุณาเข้าสู่ระบบใหม่';
+  return fallback;
+}
 
 export interface ProfileDrawerProps {
   person: Person;
@@ -75,7 +99,7 @@ export function ProfileDrawer({
 
   // Photo upload state
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
+  const [photoError, setPhotoError] = useState('');
   const photoFileInputRef = useRef<HTMLInputElement>(null);
 
   if (!person) return null;
@@ -130,25 +154,44 @@ export function ProfileDrawer({
   async function handlePhotoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !onUploadPhoto) return;
-    setUploadError('');
+    setPhotoError('');
+
+    // Client-side guards: instant feedback before spending an upload round-trip.
+    // (The server re-checks both and remains the authority.)
+    const clearInput = () => {
+      if (photoFileInputRef.current) photoFileInputRef.current.value = '';
+    };
+    if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      setPhotoError('รองรับเฉพาะไฟล์รูป JPG, PNG หรือ WebP');
+      clearInput();
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhotoError(`ไฟล์ใหญ่เกิน ${MAX_PHOTO_MB} MB — เลือกรูปที่เล็กกว่านี้`);
+      clearInput();
+      return;
+    }
+
     setUploading(true);
     try {
       await onUploadPhoto(person.id, file);
-    } catch {
-      setUploadError('อัปโหลดไม่สำเร็จ — ลองใหม่อีกครั้ง');
+    } catch (err) {
+      setPhotoError(photoErrorMessage(err, 'อัปโหลดไม่สำเร็จ — ลองใหม่อีกครั้ง'));
     } finally {
       setUploading(false);
-      // Reset input so the same file can be re-uploaded if needed
-      if (photoFileInputRef.current) photoFileInputRef.current.value = '';
+      clearInput(); // allow re-uploading the same file after an error
     }
   }
 
   async function handleDeletePhoto(photoId: string) {
     if (!onDeletePhoto) return;
+    setPhotoError('');
     try {
       await onDeletePhoto(person.id, photoId);
-    } catch {
-      // Silently ignore; refetch from parent will reflect true state
+    } catch (err) {
+      // Surface rate-limit / auth failures; other errors fall back to a generic
+      // message (refetch from parent still reconciles the true state).
+      setPhotoError(photoErrorMessage(err, 'ลบรูปไม่สำเร็จ — ลองใหม่อีกครั้ง'));
     }
   }
 
@@ -682,7 +725,7 @@ export function ProfileDrawer({
           <input
             ref={photoFileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             data-testid="photo-file-input"
             style={{ display: 'none' }}
             onChange={handlePhotoFileChange}
@@ -751,9 +794,9 @@ export function ProfileDrawer({
             )}
           </div>
 
-          {uploadError && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '5px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
-              {uploadError}
+          {photoError && (
+            <div data-testid="photo-error" style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '5px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+              {photoError}
             </div>
           )}
 
