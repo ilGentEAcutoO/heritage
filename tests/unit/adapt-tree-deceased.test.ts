@@ -34,6 +34,7 @@ function makeRawTree(
     memos: {},
     lineages: {},
     photoCounts: {},
+    photos: {},
   };
 }
 
