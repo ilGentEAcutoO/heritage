@@ -14,9 +14,12 @@
 >   - Proof: typecheck 0 · 574/574 (all rounds) · builds OK · deploys 27611954565/.../27625016668 green ·
 >     prod real-browser verified: TreeView hero, Landing, /trees, signup page.
 >   - Commits: ae7620f foundation · ddbf0ae hero · d1df158 landing+trees · 52b7aab dialogs+auth.
->   - REMAINING (optional polish, NOT done): ProfileDrawer interior (meta-chips 3px radius, tabs, edit-form
->     inputs) only got font+token colours, not full pill/rounded pass · responsive/mobile not reviewed
->     (fixed 260px grid + 420px drawer — desktop-first) · node connector lines unchanged.
+>   - Final polish ✅ DONE (commit c43898e): ProfileDrawer interior (edit form, status toggle, gender pills,
+>     buttons, pill meta-chips, bold non-italic tabs) restyled via 1 agent · responsive pass added (no @media
+>     existed before) — ≤820px single-column + sidebar hidden, ≤560px phone-compact header + near-full-bleed
+>     drawer (verified in deployed CSSOM; note: sidebar hidden on mobile = future slide-out nav) · connector
+>     leaves toned to subtle · neutralised sepia photo-placeholder + last brown/single-quoted-font leftovers.
+>   - ENTIRE redesign now SHIPPED & LIVE. Deploys through 27625xxxxx green. Last: commit c43898e.
 >
 > --- (earlier this session) ---
 > Last updated: 2026-06-16 17:20
