@@ -32,6 +32,9 @@ export const treesRouter = new Hono<HonoEnv>();
 // once the RL_WRITE Cloudflare binding is provisioned. See ops/rate-limit.md.
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,63}$/;
 
+/** Max trees a single owner may create (abuse-prevention quota). */
+const MAX_TREES_PER_OWNER = 20;
+
 const createTreeSchema = z.object({
   name: z.string().trim().min(1).max(200),
   slug: z
@@ -142,6 +145,15 @@ treesRouter.post('/', async (c) => {
   if (!user) return c.json({ error: 'unauthorized' }, 401);
 
   const db = c.var.db;
+
+  // Per-owner quota: cap how many trees one user can create (abuse prevention).
+  const owned = await db.query.trees.findMany({
+    where: eq(schema.trees.owner_id, user.id),
+    columns: { id: true },
+  });
+  if (owned.length >= MAX_TREES_PER_OWNER) {
+    return c.json({ error: 'tree_limit_reached', max: MAX_TREES_PER_OWNER }, 429);
+  }
 
   let body: unknown;
   try {

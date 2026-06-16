@@ -324,4 +324,85 @@ describe('POST /api/trees', () => {
       expect(res.status).toBe(422);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Per-owner tree quota (abuse prevention)
+  // ---------------------------------------------------------------------------
+
+  describe('per-owner tree quota', () => {
+    const MAX = 20; // mirrors MAX_TREES_PER_OWNER in trees.ts
+
+    /** Seed `count` owned trees for alice, then return an authed app handle. */
+    async function setupWithOwnedTrees(count: number) {
+      const { app, db } = await setup({ id: 'alice1', email: 'alice@example.com' });
+      await db.insert(schema.users).values({
+        id: 'alice1',
+        email: 'alice@example.com',
+        email_verified_at: 1,
+      });
+      const rows = Array.from({ length: count }, (_, i) => ({
+        id: `seed-tree-${i}`,
+        slug: `seed-tree-${i}`,
+        name: `Seed Tree ${i}`,
+        owner_id: 'alice1',
+        visibility: 'private' as const,
+      }));
+      if (rows.length > 0) await db.insert(schema.trees).values(rows);
+      return { app, db };
+    }
+
+    test('owner at the cap → POST 429 tree_limit_reached', async () => {
+      const { app } = await setupWithOwnedTrees(MAX);
+      const res = await makeReq(app, 'POST', '/api/trees', {
+        name: 'One Too Many',
+        slug: 'one-too-many',
+      });
+      expect(res.status).toBe(429);
+      const body = await res.json() as { error: string; max: number };
+      expect(body.error).toBe('tree_limit_reached');
+      expect(body.max).toBe(MAX);
+    });
+
+    test('owner one below the cap → POST 201 (then at cap)', async () => {
+      const { app } = await setupWithOwnedTrees(MAX - 1);
+      const res = await makeReq(app, 'POST', '/api/trees', {
+        name: 'Last Allowed',
+        slug: 'last-allowed',
+      });
+      expect(res.status).toBe(201);
+
+      // Now at the cap → the next create is rejected.
+      const res2 = await makeReq(app, 'POST', '/api/trees', {
+        name: 'Over The Cap',
+        slug: 'over-the-cap',
+      });
+      expect(res2.status).toBe(429);
+    });
+
+    test('quota is per owner — a different owner is unaffected', async () => {
+      const { app, db } = await setupWithOwnedTrees(MAX);
+      // alice is at her cap; bob (a different owner) can still create.
+      await db.insert(schema.users).values({
+        id: 'bob1',
+        email: 'bob@example.com',
+        email_verified_at: 1,
+      });
+      const bobApp = new Hono<HonoEnv>();
+      bobApp.use(async (c, next) => {
+        c.set('db', db);
+        return next();
+      });
+      bobApp.use(async (c, next) => {
+        c.set('user', { id: 'bob1', email: 'bob@example.com', displayName: null, email_verified_at: 1 });
+        return next();
+      });
+      bobApp.route('/api/trees', treesRouter);
+
+      const res = await makeReq(bobApp, 'POST', '/api/trees', {
+        name: 'Bob First Tree',
+        slug: 'bob-first-tree',
+      });
+      expect(res.status).toBe(201);
+    });
+  });
 });
