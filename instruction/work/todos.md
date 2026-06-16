@@ -1,5 +1,24 @@
 # Active Tasks
 
+> Last updated: 2026-06-16 21:35
+> Workstream: 14-ui-redesign (soft-modern) — user: "เปลี่ยนสไตล์ UI แอปใหม่ ทันสมัย" → chose Soft modern + emerald
+> Status: ✅ SHIPPED & LIVE (whole app). Design system in styles.css :root (tokens: --bg/--paper/--ink*/--leaf*
+>   /--blossom*/--line, --radius*/--shadow*/--accent-grad) + Prompt font (replaced Cormorant/Sarabun/JetBrains).
+>   - TreeView: glassy header · floating sidebar+drawer cards · stat cards · pill+gradient buttons · dot-grid
+>     canvas · nodes with depth shadow + hover lift · selected = emerald glow · bold node names/title.
+>   - Landing (/) : radial wash + floating logo badge + bold title + pill CTA (root cause of "ไม่เห็นเปลี่ยน":
+>     logged-in / = Landing, wasn't restyled at first). /trees: bold heading + hover-lift tree cards + pill CTA.
+>   - Dialogs (create/add-person/share/theme) + UserMenu + all auth pages (login/signup/verify/magic/reset):
+>     restyled via 10-agent workflow (pill buttons, rounded inputs + emerald focus ring, dialog panels radius-lg
+>     + shadow-lg, token colours). Logic/testids/copy unchanged.
+>   - Proof: typecheck 0 · 574/574 (all rounds) · builds OK · deploys 27611954565/.../27625016668 green ·
+>     prod real-browser verified: TreeView hero, Landing, /trees, signup page.
+>   - Commits: ae7620f foundation · ddbf0ae hero · d1df158 landing+trees · 52b7aab dialogs+auth.
+>   - REMAINING (optional polish, NOT done): ProfileDrawer interior (meta-chips 3px radius, tabs, edit-form
+>     inputs) only got font+token colours, not full pill/rounded pass · responsive/mobile not reviewed
+>     (fixed 260px grid + 420px drawer — desktop-first) · node connector lines unchanged.
+>
+> --- (earlier this session) ---
 > Last updated: 2026-06-16 17:20
 > Workstream: 13-frontend-qa + theme-redesign
 > QA (real browser via Claude-in-Chrome, prod, QA account created+verified via signup UI + backchannel token):
