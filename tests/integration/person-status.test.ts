@@ -333,13 +333,17 @@ describe('PATCH /api/tree/:slug/person/:personId — invalid body', () => {
     expect(body.error).toBe('invalid_body');
   });
 
-  test('missing deceased field → 400', async () => {
+  test('partial update: died-only (no deceased) on an alive person → 200, died forced null', async () => {
+    // ws09: PATCH is now a partial update — any subset of fields is allowed, so a
+    // missing `deceased` is no longer a 400. person1 is alive, so the deceased/died
+    // consistency rule forces died back to null regardless of the sent year.
     const { app } = makeApp(d1, { id: 'owner1', email: 'owner@example.com' });
     const res = await makeReq(app, 'PATCH', '/api/tree/test-tree/person/person1', {
       died: 2000,
-      // no deceased field
     });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(200);
+    const body = await res.json() as { died?: number | null };
+    expect(body.died ?? null).toBeNull();
   });
 
   test('deceased is a string instead of boolean → 400', async () => {

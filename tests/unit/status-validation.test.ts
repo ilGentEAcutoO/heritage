@@ -96,7 +96,8 @@ describe('people.ts — died range validation (born <= died <= currentYear)', ()
 
   it('compares died against currentYear (upper bound)', () => {
     // died must be <= currentYear
-    expect(src).toMatch(/died\s*>\s*currentYear|currentYear\s*<\s*died/);
+    // case-insensitive: matches `effectiveDied > currentYear()` and `died > yr`
+    expect(src).toMatch(/died\s*>\s*(currentYear|yr)|currentYear\s*<\s*died/i);
   });
 
   it('compares died against born (lower bound)', () => {
