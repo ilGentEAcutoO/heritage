@@ -1,0 +1,150 @@
+/**
+ * ThemePicker.tsx — owner-only palette selector in the tree header.
+ *
+ * Renders a "ธีม" trigger button that opens a small popover listing the five
+ * palette options. Clicking a swatch calls onSelect(key). Style mirrors
+ * UserMenu: same header-btn trigger, same popover shadow/border pattern.
+ */
+
+import { useState, useEffect, useRef } from 'react';
+import { PALETTE_KEYS } from '@app/lib/palettes';
+import type { PaletteKey } from '@app/lib/palettes';
+
+/** Swatch preview colours for each palette (background, accent). */
+const SWATCH: Record<PaletteKey, { bg: string; accent: string; label: string }> = {
+  paper:     { bg: '#faf8f4', accent: '#6b8f5e', label: 'Paper (default)' },
+  forest:    { bg: 'oklch(0.22 0.02 160)', accent: 'oklch(0.75 0.1 140)', label: 'Forest' },
+  blueprint: { bg: 'oklch(0.32 0.08 250)', accent: 'oklch(0.85 0.08 220)', label: 'Blueprint' },
+  rose:      { bg: 'oklch(0.97 0.01 15)',  accent: 'oklch(0.72 0.18 15)',  label: 'Rose' },
+  ocean:     { bg: 'oklch(0.96 0.015 210)', accent: 'oklch(0.55 0.12 195)', label: 'Ocean' },
+};
+
+export interface ThemePickerProps {
+  /** Currently active palette key (from data.meta.theme). */
+  currentTheme: string | null | undefined;
+  /** Called when the user selects a palette. */
+  onSelect: (key: PaletteKey | null) => void;
+}
+
+export function ThemePicker({ currentTheme, onSelect }: ThemePickerProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Close on click-outside
+  useEffect(() => {
+    function handleMouseDown(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
+  const active = (currentTheme ?? 'paper') as PaletteKey;
+
+  function handleSelect(key: PaletteKey) {
+    onSelect(key === 'paper' ? null : key);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        data-testid="theme-picker-button"
+        className="header-btn"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        onClick={() => setOpen((prev) => !prev)}
+        title="เลือกธีมสี"
+      >
+        <span style={{ opacity: 0.7 }}>🎨</span> ธีม
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          aria-label="เลือกธีมสี"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            minWidth: 180,
+            background: 'var(--paper, #faf8f4)',
+            border: '1px solid var(--line, #ddd)',
+            borderRadius: 6,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            zIndex: 1000,
+            padding: '6px 0',
+            fontFamily: 'Sarabun, serif',
+            fontSize: 14,
+          }}
+        >
+          {PALETTE_KEYS.map((key) => {
+            const swatch = SWATCH[key];
+            const isActive = active === key || (key === 'paper' && !currentTheme);
+            return (
+              <button
+                key={key}
+                type="button"
+                role="option"
+                aria-selected={isActive}
+                data-testid={`theme-option-${key}`}
+                onClick={() => handleSelect(key)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 14px',
+                  background: isActive ? 'var(--leaf-soft, rgba(107,143,94,0.15))' : 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--ink, #2a1f14)',
+                  fontFamily: 'Sarabun, serif',
+                  fontSize: 14,
+                  fontWeight: isActive ? 600 : 400,
+                }}
+              >
+                {/* Colour swatch */}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: 'inline-block',
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
+                    background: swatch.bg,
+                    border: `2px solid ${swatch.accent}`,
+                    flexShrink: 0,
+                  }}
+                />
+                {swatch.label}
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    style={{ marginLeft: 'auto', color: 'var(--leaf, #6b8f5e)', fontSize: 12 }}
+                  >
+                    ✓
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

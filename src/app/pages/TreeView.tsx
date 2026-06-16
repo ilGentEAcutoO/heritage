@@ -15,6 +15,7 @@ import { useTweaks } from '@app/hooks/useTweaks';
 import { computeRelation, findPath } from '@app/lib/kinship';
 import { useSession } from '@app/hooks/useSession';
 import { apiClient } from '@app/lib/api';
+import { paletteStyle } from '@app/lib/palettes';
 
 import { TreeCanvas } from '@app/components/TreeCanvas';
 import { ProfileDrawer } from '@app/components/ProfileDrawer';
@@ -27,6 +28,7 @@ import { ActiveViewPill } from '@app/components/ActiveViewPill';
 import { TweaksPanel } from '@app/components/TweaksPanel';
 import { UserMenu } from '@app/components/UserMenu';
 import { AddPersonDialog } from '@app/components/AddPersonDialog';
+import { ThemePicker } from '@app/components/ThemePicker';
 
 interface TreeViewProps {
   /** Passed directly for fixed-slug routes (e.g. /demo/wongsuriya). */
@@ -130,6 +132,16 @@ export function TreeView({ treeSlug }: TreeViewProps) {
     async (personId: string, photoId: string) => {
       if (!canEdit || !slug) return;
       await apiClient.deletePhoto(slug, personId, photoId);
+      refetch();
+    },
+    [canEdit, slug, refetch],
+  );
+
+  // onSetTheme: PATCH theme (owner only) then refetch so all viewers get the update
+  const onSetTheme = useCallback(
+    async (theme: string | null) => {
+      if (!canEdit || !slug) return;
+      await apiClient.setTheme(slug, theme);
       refetch();
     },
     [canEdit, slug, refetch],
@@ -298,7 +310,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const aliveCount = mergedPeople.filter((p) => !p.deceased).length;
 
   return (
-    <div className="app">
+    <div className="app" style={paletteStyle(data.meta.theme)}>
       {/* Header */}
       <header className="app-header" data-screen-label="App Header">
         <div className="header-logo">
@@ -338,6 +350,13 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           >
             <span style={{ opacity: 0.6 }}>◈</span> เราเกี่ยวกันยังไง?
           </button>
+          {/* Theme picker — shown only to the tree owner */}
+          {canEdit && (
+            <ThemePicker
+              currentTheme={data.meta.theme}
+              onSelect={onSetTheme}
+            />
+          )}
           {/* Share button — shown only to the tree owner */}
           {user && data?.meta.ownerId && user.id === data.meta.ownerId && (
             <button
