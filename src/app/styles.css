@@ -1101,37 +1101,37 @@ body {
   color: var(--paper);
 }
 
-/* ─────── Theme variants ─────── */
+/* ─────── Theme variants (soft pastel — mirrors src/app/lib/palettes.ts) ─────── */
 body.theme-forest {
-  --paper: oklch(0.22 0.02 160);
-  --paper-2: oklch(0.26 0.025 160);
-  --ink: oklch(0.92 0.02 90);
-  --ink-soft: oklch(0.75 0.03 90);
-  --ink-faint: oklch(0.55 0.03 90);
-  --bark: oklch(0.85 0.04 80);
-  --leaf: oklch(0.75 0.1 140);
-  --leaf-soft: oklch(0.5 0.08 140);
-  --blossom: oklch(0.75 0.14 55);
-  --blossom-soft: oklch(0.3 0.08 45);
-  --sepia: oklch(0.6 0.05 80);
-  --line: oklch(0.35 0.02 160);
-  --rule: oklch(0.45 0.02 160);
+  --paper: oklch(0.972 0.012 135);
+  --paper-2: oklch(0.94 0.016 135);
+  --ink: oklch(0.30 0.02 150);
+  --ink-soft: oklch(0.46 0.025 150);
+  --ink-faint: oklch(0.62 0.02 150);
+  --bark: oklch(0.50 0.03 120);
+  --leaf: oklch(0.62 0.07 145);
+  --leaf-soft: oklch(0.85 0.045 145);
+  --blossom: oklch(0.70 0.08 50);
+  --blossom-soft: oklch(0.90 0.04 60);
+  --sepia: oklch(0.55 0.04 110);
+  --line: oklch(0.88 0.015 135);
+  --rule: oklch(0.80 0.02 135);
 }
 
 body.theme-blueprint {
-  --paper: oklch(0.32 0.08 250);
-  --paper-2: oklch(0.36 0.08 250);
-  --ink: oklch(0.95 0.02 250);
-  --ink-soft: oklch(0.8 0.03 250);
-  --ink-faint: oklch(0.6 0.04 250);
-  --bark: oklch(0.9 0.02 250);
-  --leaf: oklch(0.85 0.08 220);
-  --leaf-soft: oklch(0.5 0.1 220);
-  --blossom: oklch(0.9 0.1 80);
-  --blossom-soft: oklch(0.45 0.08 250);
-  --sepia: oklch(0.7 0.04 250);
-  --line: oklch(0.48 0.06 250);
-  --rule: oklch(0.6 0.06 250);
+  --paper: oklch(0.972 0.012 240);
+  --paper-2: oklch(0.94 0.016 240);
+  --ink: oklch(0.30 0.025 250);
+  --ink-soft: oklch(0.46 0.03 250);
+  --ink-faint: oklch(0.62 0.025 250);
+  --bark: oklch(0.50 0.04 250);
+  --leaf: oklch(0.60 0.08 240);
+  --leaf-soft: oklch(0.85 0.05 240);
+  --blossom: oklch(0.68 0.07 280);
+  --blossom-soft: oklch(0.89 0.04 280);
+  --sepia: oklch(0.55 0.04 250);
+  --line: oklch(0.88 0.02 240);
+  --rule: oklch(0.80 0.025 240);
 }
 
 body.shape-polaroid .node-photo {

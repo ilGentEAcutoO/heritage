@@ -35,13 +35,13 @@ export function TweaksPanel({ open, tweaks, onChange }: TweaksPanelProps) {
             className={tweaks.theme === 'forest' ? 'active' : ''}
             onClick={() => onChange('theme', 'forest')}
           >
-            Forest
+            Sage
           </button>
           <button
             className={tweaks.theme === 'blueprint' ? 'active' : ''}
             onClick={() => onChange('theme', 'blueprint')}
           >
-            Blueprint
+            Sky
           </button>
         </div>
       </div>

@@ -25,10 +25,10 @@ import { makeE2EEmail, signupAndVerifyViaBackchannel } from './helpers/signup';
 
 test.describe.configure({ mode: 'serial' });
 
-/** CSS custom properties set by the 'forest' palette (from styles.css body.theme-forest). */
+/** CSS custom properties set by the 'forest' (soft Sage) palette — see src/app/lib/palettes.ts. */
 const FOREST_VARS: Record<string, string> = {
-  '--paper': 'oklch(0.22 0.02 160)',
-  '--leaf': 'oklch(0.75 0.1 140)',
+  '--paper': 'oklch(0.972 0.012 135)',
+  '--leaf': 'oklch(0.62 0.07 145)',
 };
 
 /**

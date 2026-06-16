@@ -13,10 +13,10 @@ import type { PaletteKey } from '@app/lib/palettes';
 /** Swatch preview colours for each palette (background, accent). */
 const SWATCH: Record<PaletteKey, { bg: string; accent: string; label: string }> = {
   paper:     { bg: '#faf8f4', accent: '#6b8f5e', label: 'Paper (default)' },
-  forest:    { bg: 'oklch(0.22 0.02 160)', accent: 'oklch(0.75 0.1 140)', label: 'Forest' },
-  blueprint: { bg: 'oklch(0.32 0.08 250)', accent: 'oklch(0.85 0.08 220)', label: 'Blueprint' },
-  rose:      { bg: 'oklch(0.97 0.01 15)',  accent: 'oklch(0.72 0.18 15)',  label: 'Rose' },
-  ocean:     { bg: 'oklch(0.96 0.015 210)', accent: 'oklch(0.55 0.12 195)', label: 'Ocean' },
+  forest:    { bg: 'oklch(0.972 0.012 135)', accent: 'oklch(0.62 0.07 145)', label: 'Sage' },
+  blueprint: { bg: 'oklch(0.972 0.012 240)', accent: 'oklch(0.60 0.08 240)', label: 'Sky' },
+  rose:      { bg: 'oklch(0.975 0.01 20)',   accent: 'oklch(0.64 0.09 10)',  label: 'Rose' },
+  ocean:     { bg: 'oklch(0.972 0.012 200)', accent: 'oklch(0.62 0.08 200)', label: 'Ocean' },
 };
 
 export interface ThemePickerProps {

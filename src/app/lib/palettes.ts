@@ -5,8 +5,11 @@
  * defaults when applied as inline style on the .app root element.
  * This keeps palette application scoped to the subtree (no body-class war).
  *
- * Values for 'forest' and 'blueprint' are copied verbatim from
- * src/app/styles.css body.theme-forest / body.theme-blueprint rules.
+ * Design: every palette keeps a LIGHT "tinted paper" base (high-lightness
+ * --paper) with low-chroma, soft-pastel accents — so each theme reads like
+ * tinted stationery rather than a different app. Dark inversions were removed.
+ * The 'forest'/'blueprint' keys are kept (stored values + zod enum) but now
+ * render as soft Sage / Sky; styles.css body.theme-* mirrors these values.
  */
 
 import type { CSSProperties } from 'react';
@@ -29,72 +32,72 @@ export const PALETTES: Record<PaletteKey, CSSProperties> = {
   // Default — no overrides; :root values apply.
   paper: {},
 
-  // Dark green / forest — matches body.theme-forest in styles.css exactly.
+  // Sage — soft warm green tint on a light paper base.
   forest: {
-    '--paper': 'oklch(0.22 0.02 160)',
-    '--paper-2': 'oklch(0.26 0.025 160)',
-    '--ink': 'oklch(0.92 0.02 90)',
-    '--ink-soft': 'oklch(0.75 0.03 90)',
-    '--ink-faint': 'oklch(0.55 0.03 90)',
-    '--bark': 'oklch(0.85 0.04 80)',
-    '--leaf': 'oklch(0.75 0.1 140)',
-    '--leaf-soft': 'oklch(0.5 0.08 140)',
-    '--blossom': 'oklch(0.75 0.14 55)',
-    '--blossom-soft': 'oklch(0.3 0.08 45)',
-    '--sepia': 'oklch(0.6 0.05 80)',
-    '--line': 'oklch(0.35 0.02 160)',
-    '--rule': 'oklch(0.45 0.02 160)',
+    '--paper': 'oklch(0.972 0.012 135)',
+    '--paper-2': 'oklch(0.94 0.016 135)',
+    '--ink': 'oklch(0.30 0.02 150)',
+    '--ink-soft': 'oklch(0.46 0.025 150)',
+    '--ink-faint': 'oklch(0.62 0.02 150)',
+    '--bark': 'oklch(0.50 0.03 120)',
+    '--leaf': 'oklch(0.62 0.07 145)',
+    '--leaf-soft': 'oklch(0.85 0.045 145)',
+    '--blossom': 'oklch(0.70 0.08 50)',
+    '--blossom-soft': 'oklch(0.90 0.04 60)',
+    '--sepia': 'oklch(0.55 0.04 110)',
+    '--line': 'oklch(0.88 0.015 135)',
+    '--rule': 'oklch(0.80 0.02 135)',
   } as CSSProperties,
 
-  // Blueprint / dark blue — matches body.theme-blueprint in styles.css exactly.
+  // Sky — soft dusty blue tint on a light paper base.
   blueprint: {
-    '--paper': 'oklch(0.32 0.08 250)',
-    '--paper-2': 'oklch(0.36 0.08 250)',
-    '--ink': 'oklch(0.95 0.02 250)',
-    '--ink-soft': 'oklch(0.8 0.03 250)',
-    '--ink-faint': 'oklch(0.6 0.04 250)',
-    '--bark': 'oklch(0.9 0.02 250)',
-    '--leaf': 'oklch(0.85 0.08 220)',
-    '--leaf-soft': 'oklch(0.5 0.1 220)',
-    '--blossom': 'oklch(0.9 0.1 80)',
-    '--blossom-soft': 'oklch(0.45 0.08 250)',
-    '--sepia': 'oklch(0.7 0.04 250)',
-    '--line': 'oklch(0.48 0.06 250)',
-    '--rule': 'oklch(0.6 0.06 250)',
+    '--paper': 'oklch(0.972 0.012 240)',
+    '--paper-2': 'oklch(0.94 0.016 240)',
+    '--ink': 'oklch(0.30 0.025 250)',
+    '--ink-soft': 'oklch(0.46 0.03 250)',
+    '--ink-faint': 'oklch(0.62 0.025 250)',
+    '--bark': 'oklch(0.50 0.04 250)',
+    '--leaf': 'oklch(0.60 0.08 240)',
+    '--leaf-soft': 'oklch(0.85 0.05 240)',
+    '--blossom': 'oklch(0.68 0.07 280)',
+    '--blossom-soft': 'oklch(0.89 0.04 280)',
+    '--sepia': 'oklch(0.55 0.04 250)',
+    '--line': 'oklch(0.88 0.02 240)',
+    '--rule': 'oklch(0.80 0.025 240)',
   } as CSSProperties,
 
-  // Rose — warm pink / blush tones, light background.
+  // Rose — soft blush pink on a light paper base.
   rose: {
-    '--paper': 'oklch(0.97 0.01 15)',
-    '--paper-2': 'oklch(0.93 0.02 15)',
-    '--ink': 'oklch(0.28 0.04 20)',
-    '--ink-soft': 'oklch(0.45 0.04 20)',
-    '--ink-faint': 'oklch(0.62 0.03 20)',
-    '--bark': 'oklch(0.5 0.06 30)',
-    '--leaf': 'oklch(0.6 0.14 355)',
-    '--leaf-soft': 'oklch(0.82 0.08 355)',
-    '--blossom': 'oklch(0.72 0.18 15)',
-    '--blossom-soft': 'oklch(0.88 0.07 15)',
-    '--sepia': 'oklch(0.55 0.06 30)',
-    '--line': 'oklch(0.86 0.03 15)',
-    '--rule': 'oklch(0.78 0.04 15)',
+    '--paper': 'oklch(0.975 0.01 20)',
+    '--paper-2': 'oklch(0.945 0.016 20)',
+    '--ink': 'oklch(0.30 0.03 20)',
+    '--ink-soft': 'oklch(0.46 0.035 20)',
+    '--ink-faint': 'oklch(0.63 0.025 20)',
+    '--bark': 'oklch(0.52 0.05 25)',
+    '--leaf': 'oklch(0.64 0.09 10)',
+    '--leaf-soft': 'oklch(0.86 0.05 10)',
+    '--blossom': 'oklch(0.70 0.085 35)',
+    '--blossom-soft': 'oklch(0.90 0.045 25)',
+    '--sepia': 'oklch(0.55 0.04 30)',
+    '--line': 'oklch(0.89 0.02 20)',
+    '--rule': 'oklch(0.81 0.025 20)',
   } as CSSProperties,
 
-  // Ocean — cool teal / cerulean tones, light background.
+  // Ocean — soft aqua / teal on a light paper base.
   ocean: {
-    '--paper': 'oklch(0.96 0.015 210)',
-    '--paper-2': 'oklch(0.91 0.025 210)',
-    '--ink': 'oklch(0.22 0.04 220)',
-    '--ink-soft': 'oklch(0.4 0.05 220)',
-    '--ink-faint': 'oklch(0.58 0.04 220)',
-    '--bark': 'oklch(0.45 0.07 230)',
-    '--leaf': 'oklch(0.55 0.12 195)',
-    '--leaf-soft': 'oklch(0.78 0.07 195)',
-    '--blossom': 'oklch(0.65 0.14 250)',
-    '--blossom-soft': 'oklch(0.85 0.06 250)',
-    '--sepia': 'oklch(0.5 0.05 220)',
-    '--line': 'oklch(0.82 0.04 210)',
-    '--rule': 'oklch(0.72 0.05 210)',
+    '--paper': 'oklch(0.972 0.012 200)',
+    '--paper-2': 'oklch(0.94 0.016 200)',
+    '--ink': 'oklch(0.29 0.025 215)',
+    '--ink-soft': 'oklch(0.45 0.03 215)',
+    '--ink-faint': 'oklch(0.62 0.025 215)',
+    '--bark': 'oklch(0.50 0.04 210)',
+    '--leaf': 'oklch(0.62 0.08 200)',
+    '--leaf-soft': 'oklch(0.85 0.05 200)',
+    '--blossom': 'oklch(0.70 0.07 230)',
+    '--blossom-soft': 'oklch(0.89 0.04 220)',
+    '--sepia': 'oklch(0.54 0.04 210)',
+    '--line': 'oklch(0.88 0.02 200)',
+    '--rule': 'oklch(0.80 0.025 200)',
   } as CSSProperties,
 };
 
