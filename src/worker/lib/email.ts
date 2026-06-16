@@ -44,6 +44,20 @@ export const FROM_NAME = 'Heritage';
 /** Reply-To address — forwards to owner via CF Email Routing catch-all. */
 export const REPLY_TO = 'heritage@jairukchan.com';
 
+/**
+ * Escape a string for safe interpolation into an HTML email body. Required for
+ * any user-controlled value (tree name, display name) — these are free text and
+ * would otherwise allow HTML injection into the recipient's mail client.
+ */
+export function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ---------------------------------------------------------------------------
 // Verification email
 // ---------------------------------------------------------------------------
@@ -319,6 +333,12 @@ export async function sendShareInvitationEmail(
   const treeUrl = `${opts.appUrl}/tree/${opts.treeSlug}`;
   const inviterLabel = opts.inviterName ?? 'เจ้าของต้นไม้ / the tree owner';
 
+  // HTML-escape every user-controlled value before embedding it in the HTML body.
+  const safeTreeName = escapeHtml(opts.treeName);
+  const safeTreeUrl = escapeHtml(treeUrl);
+  const safeInviterTh = opts.inviterName ? escapeHtml(opts.inviterName) : 'เจ้าของต้นไม้';
+  const safeInviterEn = opts.inviterName ? escapeHtml(opts.inviterName) : 'The tree owner';
+
   const text = [
     'สวัสดีครับ,',
     '',
@@ -362,12 +382,12 @@ export async function sendShareInvitationEmail(
               <h1 style="margin:0 0 8px;font-size:20px;color:#2d2d2d;">คำเชิญเข้าถึงต้นไม้ครอบครัว / Family tree invitation</h1>
               <p style="margin:0 0 4px;font-size:14px;color:#555;">สวัสดีครับ,</p>
               <p style="margin:0 0 4px;font-size:14px;color:#555;">
-                <strong>${opts.inviterName ?? 'เจ้าของต้นไม้'}</strong> ได้เชิญคุณให้เข้าถึงต้นไม้ครอบครัว
-                <strong>&ldquo;${opts.treeName}&rdquo;</strong> บน Heritage
+                <strong>${safeInviterTh}</strong> ได้เชิญคุณให้เข้าถึงต้นไม้ครอบครัว
+                <strong>&ldquo;${safeTreeName}&rdquo;</strong> บน Heritage
               </p>
               <p style="margin:0 0 24px;font-size:14px;color:#555;">
-                <strong>${opts.inviterName ?? 'The tree owner'}</strong> has invited you to access the family tree
-                <strong>&ldquo;${opts.treeName}&rdquo;</strong> on Heritage.
+                <strong>${safeInviterEn}</strong> has invited you to access the family tree
+                <strong>&ldquo;${safeTreeName}&rdquo;</strong> on Heritage.
               </p>
               <p style="margin:0 0 8px;font-size:14px;color:#555;">
                 ลงชื่อเข้าใช้หรือสมัครสมาชิกด้วยอีเมลนี้เพื่อรับสิทธิ์เข้าถึง การแชร์จะเปิดใช้งานโดยอัตโนมัติเมื่อยืนยันอีเมล
@@ -376,14 +396,14 @@ export async function sendShareInvitationEmail(
                 Sign in or sign up with this email address to gain access — the share activates automatically once your email is verified.
               </p>
               <p style="margin:0 0 24px;">
-                <a href="${treeUrl}"
+                <a href="${safeTreeUrl}"
                    style="display:inline-block;padding:12px 28px;background:#6b8f5e;color:#ffffff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">
                   ดูต้นไม้ครอบครัว / View family tree
                 </a>
               </p>
               <p style="margin:0 0 24px;font-size:13px;color:#777;">
                 หรือคัดลอกลิงก์นี้ / Or copy this link:<br>
-                <a href="${treeUrl}" style="color:#6b8f5e;word-break:break-all;">${treeUrl}</a>
+                <a href="${safeTreeUrl}" style="color:#6b8f5e;word-break:break-all;">${safeTreeUrl}</a>
               </p>
               <hr style="border:none;border-top:1px solid #ebebeb;margin:0 0 24px;">
               <p style="margin:0;font-size:12px;color:#aaa;">
