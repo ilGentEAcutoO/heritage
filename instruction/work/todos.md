@@ -3,7 +3,8 @@
 > Last updated: 2026-06-16 (planning)
 > Workstream: 08-edit-alive-deceased-status
 > Plan: `instruction/work/plan.md` · Requirements: `instruction/work/requirements.md`
-> Status: ⏳ AWAITING APPROVAL — say "ลุย"/"approved" to start workflow-work
+> Status: ✅ COMPLETE — shipped to prod, prod D1 migrated, 13/13 e2e green vs prod
+> All tasks tested. typecheck 0 · 464/464 unit+integration · build green · frontend-test (live) · CI green · prod migrated · deployed · e2e vs prod 13/13.
 
 ## Main Tasks
 
@@ -72,14 +73,31 @@
   - [ ] commit (no AI sig) + push + CI
   - [ ] **migrate prod D1 FIRST** (db:migrate:remote — needs CF creds) → deploy → e2e vs prod
 
-## File Lock Registry
+## File Lock Registry (Phase 2 — dispatched 2026-06-16)
 | File | Locked by | Task | Since |
 |------|-----------|------|-------|
-| _(none — not started)_ | | | |
+| src/worker/routes/people.ts (new), resolve-owner-tree.ts (new), index.ts, shares.ts, tests/integration/person-status.test.ts | agent:endpoint | TASK-003 | 2026-06-16 |
+| src/app/components/PersonNode.tsx, LineageNode.tsx, Sidebar.tsx | agent:render-sweep | TASK-004 | 2026-06-16 |
+| src/app/pages/TreeView.tsx, ProfileDrawer.tsx, src/app/lib/api.ts | agent:edit-ui | TASK-005 | 2026-06-16 |
+| _(all released — workstream complete)_ | | | |
+
+> ALL TASKS ✅ tested. TASK-001 schema+migration+seed · TASK-002 plumbing · TASK-003 endpoint ·
+> TASK-004 render sweep · TASK-005 edit UI+modes · TASK-006 tests · TASK-007 integrate+ship.
+> Coordinator fixes after Phase-2 review: 2 brittle source-regexes in status-validation.test.ts;
+> added role=switch+aria-checked to the toggle (a11y + e2e SE4); year input commits on blur (not
+> per keystroke) to avoid owner-path PATCH spam.
 
 ---
 
 ## RESUME CONTEXT
-> Planning complete; awaiting approval. Phase 1: TASK-001 (schema/migration) + TASK-002 (plumbing).
-> Phase 2 parallel: TASK-003 endpoint · TASK-004 render sweep · TASK-005 edit UI · TASK-006 tests.
-> Phase 3: integrate + migrate-local + verify + ship (prod migrate BEFORE deploy — needs CF creds).
+> 2026-06-16 — ✅ WORKSTREAM 08 COMPLETE. Live on https://heritage.jairukchan.com/.
+> Shipped commits: c93d891 feat(status) foundation · 7c3a542 feat(api) endpoint ·
+>   6d8744a feat(ui) edit UI+sweep · 746077d test(status).
+> Behavior live: owners persist alive/deceased edits (PATCH /api/tree/:slug/person/:id, owner-only,
+>   tree_id-scoped, zod+range, cache-purged); non-owners get an ephemeral toggle ("ทดลอง · ไม่บันทึก");
+>   3 states (alive / deceased+year / deceased unknown-year). deceased boolean = source of truth.
+> Verified: typecheck 0 · 464/464 unit+integration · Opus security review (7/7 security PASS) ·
+>   frontend-test live (guest ephemeral toggle + revert) · CI 27589006412 · prod D1 migrated (0006) ·
+>   Deploy 27589061536 · e2e vs prod 13/13 (13-status-edit SE1-4 + 01-landing + 11-user-menu regression).
+> Owner-persist path covered by integration tests + review (no live owned-tree session to e2e).
+> Ready to archive via workflow-end.
