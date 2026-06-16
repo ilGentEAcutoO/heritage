@@ -17,6 +17,14 @@
 >     applies oklch(0.972 0.012 135)) · 18-theme e2e TH1/TH2 green.
 >   - Commit: 518f40f.
 >
+> Demo theme preview (user: "เข้า demo เปลี่ยนธีมไม่ได้") ✅ SHIPPED:
+>   - ThemePicker now shown to everyone (not just owner). Owner persists (PATCH); non-owner/demo gets an
+>     ephemeral local preview (previewTheme state, no network, resets on reload) + "ลองดูเฉยๆ · ไม่บันทึก" hint.
+>   - Files: TreeView.tsx (previewTheme state + handleSelectTheme + effectiveTheme), ThemePicker.tsx (previewOnly).
+>   - Proof: typecheck 0 · 574/574 · build · CI green · Deploy 27611954565 (1st run hit a transient CF subdomain
+>     auth code-10001 AFTER the worker uploaded; re-run clean) · prod demo real-browser: 🎨 ธีม shows, Rose
+>     applies oklch(0.975 0.01 20) locally, no console errors. Commit: 48eb507.
+>
 > --- (earlier this session) ---
 > Last updated: 2026-06-16 14:01
 > Workstream: 12-abuse-hardening (rate-limit + file-size + tree quota)
