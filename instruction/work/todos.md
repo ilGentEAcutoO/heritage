@@ -3,13 +3,15 @@
 > Last updated: 2026-06-16 (planning)
 > Workstream: 09-multi-tree-epic / Phase 1 (create & build + sharing polish)
 > Plan: `instruction/work/plan.md` · Requirements: `instruction/work/requirements.md`
-> Status: ⏳ AWAITING APPROVAL — say "ลุย"/"approved" to start Stage 1
+> Status: 🟦 Stage 1 ✅ SHIPPED & LIVE (create-tree flow). CHECKPOINT — awaiting go for Stage 2.
+> Stage 1 proof: typecheck 0 · unit 475/475 · adversarial review PASS · CI 27593510350 ·
+>   Deploy 27593550508 · e2e vs prod 2/2 (SC1 create→land→dashboard, SC2 slug validation).
 
 ## Phase 1 — 3 shippable stages (checkpoint between each)
 
 ### STAGE 1 — Create a tree (start here)
 #### TASK-101: createTree client + slug helper
-- Status: ⚪ pending
+- Status: ✅ tested (apiClient.createTree + slug.ts; unit 11/11)
 - Files: `src/app/lib/api.ts`, `src/app/lib/slug.ts` (new), `tests/unit/slug.test.ts` (new)
 - Sub-tasks:
   - [ ] `apiClient.createTree({name, slug, visibility})` → POST /api/trees (returns TreeSummary)
@@ -17,7 +19,7 @@
   - [ ] Verify backend POST returns slug in body (read trees.ts response shape)
 
 #### TASK-102: Create-tree UI on /trees
-- Status: ⚪ pending
+- Status: ✅ tested (CreateTreeDialog + Trees.tsx button/nav; e2e SC1/SC2 vs prod)
 - Dependencies: TASK-101
 - Files: `src/app/pages/Trees.tsx`, `src/app/components/CreateTreeDialog.tsx` (new)
 - Sub-tasks:
@@ -27,7 +29,7 @@
   - [ ] Refetch dashboard / show new tree under "owned"
 
 #### TASK-103: Stage-1 verify + ship
-- Status: ⚪ pending
+- Status: ✅ tested (CI green, deployed, e2e vs prod 2/2; POST /api/trees already integration-tested)
 - Dependencies: TASK-101, TASK-102
 - Sub-tasks:
   - [ ] integration test POST /api/trees (401/201/409/422) if missing; unit slug; e2e create→land on tree
@@ -54,6 +56,10 @@
 
 ---
 ## RESUME CONTEXT
-> Phase 1 planned in 3 stages; awaiting approval to start Stage 1 (create-tree frontend; backend done).
-> Sequence: Stage 1 create → Stage 2 people/relations CRUD → Stage 3 sharing polish (invite email+accept+link).
-> Later phases (separate workstreams): photo upload, per-tree theming.
+> 2026-06-16 — Stage 1 (create-tree) SHIPPED & LIVE on prod. CHECKPOINT before Stage 2.
+> Commits: 56db1cb feat(trees) create-tree flow + test(trees). slug.ts + apiClient.createTree +
+>   CreateTreeDialog + Trees.tsx button/nav. e2e 14-create-tree 2/2 vs prod.
+> NEXT (Stage 2, awaiting user go): people + relations CRUD — POST/PATCH(extend)/DELETE person,
+>   POST/DELETE relation (owner-only, zod, integrity, cascade) + client + UI (เพิ่มคน, edit mode,
+>   เชื่อมความสัมพันธ์, delete-confirm). Then Stage 3 sharing polish (invite email + accept + public link).
+> Later workstreams: photo upload, per-tree theming.
