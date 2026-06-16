@@ -3,8 +3,12 @@
 > Last updated: 2026-06-16 (planning)
 > Workstream: 09-multi-tree-epic / Phase 1 (create & build + sharing polish)
 > Plan: `instruction/work/plan.md` · Requirements: `instruction/work/requirements.md`
-> Status: 🟦 Stage 1 ✅ LIVE · Stage 2 ✅ LIVE (people/relations CRUD) · Stage 3 🔵 NEXT (sharing polish) ·
->   Goal "ลุยให้จบเลยไม่ต้องถาม" — autonomous, no checkpoints.
+> Status: ✅ PHASE 1 COMPLETE & LIVE (Stage 1 create-tree · Stage 2 people/relations CRUD · Stage 3 sharing
+>   polish). Goal "ลุยให้จบเลยไม่ต้องถาม" → continuing to Phase 2 (photo upload) + Phase 3 (theming), autonomous.
+> Stage 3 proof: typecheck 0 · 536/536 (incl. invite-email + escapeHtml tests) · Opus review PASS ·
+>   CI 27595763202 · Deploy 27595806379 · e2e vs prod 2/2 sharing loop (SH1 invite→verify→shared, SH2 public link).
+> SECURITY: commit-review flagged HTML-injection in the invite email → fixed (escapeHtml on treeName/inviterName/
+>   treeUrl) + tests; CI 27596045885 · Deploy 27596090087.
 > Stage 1 proof: CI 27593510350 · Deploy 27593550508 · e2e 2/2.
 > Stage 2 proof: typecheck 0 · 525/525 unit+integration (50 new) · Opus security 8/8 + integrity 4/4 PASS ·
 >   CI 27594744804 · Deploy(s) 27594787508/27595032812 · e2e vs prod 4/4 build-tree (BT1-BT5) +
