@@ -1,89 +1,68 @@
-# Plan: Edit alive/deceased status (persist for owners + ephemeral try-it)
+# Plan: Phase 1 — Create & build your own tree + sharing polish
 
-> Created: 2026-06-16 · Workstream 08 · Approach: TDD, security-first, staged sub-agent team
+> Created: 2026-06-16 · Workstream 09 (Phase 1 of the multi-tree epic)
+> Executed in 3 shippable stages; checkpoint with user between stages. TDD + security-first.
 
-## Architecture
+## Cross-cutting conventions (all stages)
+- Mutations are owner-only via `resolveOwnerTree` (401 no session, 404 non-owner — anti-enumeration),
+  zod-validated, `purgeTreeCache(c.req.url, slug)` after writes, inherit session + origin-check middleware.
+- Client methods in `src/app/lib/api.ts`; optimistic UI where natural; refetch via `useTree`/`listTrees`.
+- Each stage: typecheck → unit → integration → build → frontend-test → e2e (vs prod after deploy) → green.
 
-```
-DB people.deceased (NEW bool) + people.died (year, optional)
-   │  source of truth: alive = !deceased ; year shown only if died != null
-   ▼
-tree-query.ts  → ApiTreeResponse.people[].deceased → adaptTree → Person.deceased
-   → layout.ts (carry deceased) → PersonNode/Sidebar/LineageNode/TreeView/ProfileDrawer
+---
+## STAGE 1 — Create a tree (build-ready)
+### Architecture
+Backend `POST /api/trees` already exists (createTreeSchema, slug-unique, owner_id=user, 201 → TreeSummary).
+Add the frontend:
+- `apiClient.createTree({ name, slug, visibility })` → POST /api/trees, returns TreeSummary (incl. slug).
+- `/trees` (`Trees.tsx`): a "+ สร้าง tree ใหม่" button → a create form/modal:
+  fields: name (required), slug (auto-suggested from name, editable, live-validated against
+  `^[a-z0-9][a-z0-9-]{1,63}$`), visibility (radio: ส่วนตัว/แชร์/สาธารณะ default private).
+  On submit → createTree → on 201 navigate to `/tree/:slug`; on 409 show "slug ซ้ำ"; on 422 show field error.
+- Slug auto-suggest helper (client): slugify(name) → lowercase, spaces→`-`, strip invalid, clamp 2-64.
+### Test specs
+- unit: slugify helper (Thai/edge cases → valid slug or empty), source assertions for createTree client.
+- integration: POST /api/trees already tested? add if missing (401 no-auth, 201 owner, 409 dup, 422 bad slug).
+- e2e: logged-in user → /trees → create → lands on new /tree/:slug; new tree appears in dashboard "owned".
+### Files
+- `src/app/lib/api.ts` (createTree), `src/app/pages/Trees.tsx` (button + form/modal), maybe
+  `src/app/components/CreateTreeDialog.tsx` (new, styled like ShareDialog), `src/app/lib/slug.ts` (new helper).
+  Backend likely untouched (verify createTreeSchema returns slug in body).
 
-Edit (owner):  ProfileDrawer toggle → TreeView.onSetStatus → apiClient.setPersonStatus
-               (PATCH /api/tree/:slug/person/:id) → optimistic local update; revert on error
-Edit (guest/non-owner): ProfileDrawer toggle → TreeView.onSetStatus → local statusOverrides only
-```
+---
+## STAGE 2 — Build the tree: people + relations CRUD (design outline; detail at start)
+### Endpoints (new `src/worker/routes/people.ts` extends; or `relations.ts`)
+- `POST /api/tree/:slug/person` — create person (name req; nameEn/nick/born/hometown/gender/deceased/died opt).
+- `PATCH /api/tree/:slug/person/:id` — extend the existing status PATCH to also edit name/nameEn/nick/born/
+  hometown/gender (keep deceased/died rules). zod partial.
+- `DELETE /api/tree/:slug/person/:id` — delete person; relations cascade (FK onDelete cascade in schema).
+- `POST /api/tree/:slug/relation` — body {fromId, toId, kind:'parent'|'spouse'}; both ids in tree; no self;
+  dedupe existing edge; (spouse undirected — store once).
+- `DELETE /api/tree/:slug/relation/:id`.
+- All owner-only + zod + cache purge. Integration tests per endpoint (auth/ownership/validation/integrity).
+### Client + UI
+- api.ts: createPerson/updatePerson/deletePerson/createRelation/deleteRelation.
+- UI: "เพิ่มคน" button (Sidebar) → add-person modal; ProfileDrawer edit mode (name/born/hometown/gender) for
+  owners; "เชื่อมความสัมพันธ์" (pick person + kind) ; delete-with-confirm. Optimistic + refetch.
+### Risks to design for
+- Relation cycles (parent loops) — validate or at least avoid infinite layout (layout already guards mutual
+  spouse). Duplicate edges. Deleting "me"/bridge people. Empty-tree first-person UX.
 
-## Contract (fixed so all layers agree)
-- New column/field name: **`deceased`** (boolean). `died` stays the optional year.
-- Endpoint: `PATCH /api/tree/:slug/person/:personId`, body `{ deceased: boolean, died: number|null }`,
-  owner-only (401 if no session, **404** if not owner / person not in tree), returns `{ deceased, died }`.
-  Rules: `!deceased ⇒ died=null`; `deceased && died!=null ⇒ born ≤ died ≤ currentYear`.
-- Client: `apiClient.setPersonStatus(slug, personId, { deceased, died })`.
-- UI testids: `status-toggle` (the alive/deceased control), `status-year-input` (year field, present when
-  deceased), `status-ephemeral-note` (the "ไม่บันทึก" label for non-owners).
-- alive/dead test everywhere = `person.deceased` (NOT `!person.died`). Year display stays `died`-based.
+---
+## STAGE 3 — Sharing polish (design outline; detail at start)
+- **Invite email**: add `sendShareInvitationEmail` (mirror `src/worker/lib/email.ts` sendVerificationEmail;
+  consult cloudflare-email-service skill). Send on POST /shares for not-yet-users (+ existing users).
+- **Accept flow**: tokenised invite link (reuse auth_tokens 'magic'-style or a new kind) → an accept page
+  (`/invite/accept?token=` or similar) that, after signup/login, marks the share accepted.
+- **Public link**: ShareDialog "คัดลอกลิงก์" for public trees (copy `https://.../tree/:slug`).
+- Tests: integration (invite creates token + email called; accept transitions pending→accepted), e2e.
 
-## Blast radius (switch alive/dead test from `died` → `deceased`)
-PersonNode.tsx:39 · LineageNode.tsx:32 · Sidebar.tsx:55 · TreeView.tsx:101,208 · ProfileDrawer.tsx:147.
-Plumbing (add `deceased`): schema.ts · tree-query.ts(:41,:214) · api.ts(:60,:278) · types.ts(:8 Person, :55
-LineageMember) · layout.ts(:21/43/58) · seed.ts (set deceased = died!=null).
+---
+## Security (whole phase)
+- Re-uses the hardened owner-only mutation pattern; person/relation updates scoped by tree_id; invite tokens
+  single-use + hashed (like auth_tokens); no new public data exposure beyond chosen visibility.
+- Email: no enumeration leak (invite to a non-user must not reveal account existence in the response).
 
-## Test Specifications (write/adjust FIRST)
-### Unit (vitest)
-- adaptTree maps `deceased` (api.test or new). Person/Layout carry it.
-- Source/logic assertions: alive count uses `deceased`; ProfileDrawer chip logic (deceased w/ + w/o year).
-- Endpoint validation helper (pure zod/consistency fn) unit-tested: rejects `deceased=false`+year,
-  out-of-range year, born>died; accepts the 3 valid states.
-### Integration (worker, tests/integration/*)
-- `PATCH person`: 401 no session · 404 non-owner · 404 person-not-in-tree · 200 owner sets deceased+year ·
-  200 owner sets deceased+null (unknown) · 200 back to alive (died forced null) · 422 invalid body ·
-  cache purged (GET reflects change). Mirror existing tree-read/security-headers integration style.
-### E2E (Playwright, vs prod after deploy)
-- Demo/guest: open a person → toggle deceased → node shows "passed" + alive count drops, **reload ⇒ reverts**
-  (ephemeral) · "ไม่บันทึก" note visible.
-- Owner: (needs an owned test tree) toggle persists across reload. *(If no owner test-tree fixture exists,
-  cover persistence via integration tests + a frontend-test login session; note the gap.)*
-### frontend-test (MCP Playwright, local)
-- Demo `/`: toggle a person alive↔deceased (with year, and unknown-year), verify canvas/sidebar/drawer update
-  live, ephemeral note shown, zero console errors. Owner path if a local owned tree is seedable.
-
-## Implementation Steps (staged — see groups)
-1. **Schema + migration + seed** (foundational): add column; `drizzle-kit generate`; hand-add backfill
-   `UPDATE people SET deceased=1 WHERE died IS NOT NULL`; set deceased in seed; `db:migrate:local`.
-2. **Type/plumbing contract**: add `deceased` to tree-query, ApiTreeResponse+adaptTree, types(Person,
-   LineageMember), layout. (Additive; safe in parallel once field name fixed.)
-3. **Worker endpoint**: extract `resolveOwnerTree` → `lib/resolve-owner-tree.ts`; new `routes/people.ts`
-   PATCH; mount under `/api/tree`. + validation helper.
-4. **Render sweep**: switch alive/dead test to `deceased` in the 6 sites; ProfileDrawer chip handles
-   deceased-with/without-year.
-5. **Edit UI + modes**: ProfileDrawer status control (toggle + year input + ephemeral note); TreeView
-   `canEdit` + `statusOverrides` + `onSetStatus` (owner persist / non-owner local); merge overrides into
-   displayed people.
-6. **Client method** `setPersonStatus` + drop stale "read-only" comment.
-7. Integrate: `db:migrate:local` → typecheck → unit → integration → build → frontend-test → e2e(local).
-8. Adversarial review (Opus) + verification-before-completion.
-9. Ship: commit → push → CI → **migrate prod D1 (db:migrate:remote) FIRST** → deploy → e2e vs prod.
-
-## Security Considerations
-- Re-introduces a write endpoint (previously removed). Harden: owner-only (404 anti-enum), tree_id-scoped
-  update, session+origin-check middleware (inherited), zod + range validation, cache purge. Optional light
-  rate-limit. No new data exposure (status was already visible).
-
-## Parallel execution groups
-- **Phase 1 (foundational, mostly sequential):** TASK-001 schema+migration+seed (blocks migrate/tests).
-  In parallel with it: TASK-002 type/plumbing contract (additive — safe; field name fixed by Contract).
-- **Phase 2 (parallel — disjoint files):** TASK-003 worker endpoint + lib + integration tests ·
-  TASK-004 render sweep · TASK-005 edit UI + TreeView modes + client method · TASK-006 tests
-  (unit/e2e specs to the Contract).
-- **Phase 3 (sequential):** TASK-007 integrate + migrate-local + full verify + review + ship (incl. prod
-  migration ordering).
-```
-
-## File Lock plan (Phase 2 disjoint)
-- TASK-003: src/worker/routes/people.ts(new), src/worker/index.ts(mount), src/worker/lib/resolve-owner-tree.ts(new), tests/integration/person-status.test.ts(new)
-- TASK-004: src/app/components/PersonNode.tsx, LineageNode.tsx, Sidebar.tsx (+ TreeView/ProfileDrawer coordinate with TASK-005 — see todos lock notes)
-- TASK-005: src/app/pages/TreeView.tsx, src/app/components/ProfileDrawer.tsx, src/app/lib/api.ts
-- Shared earlier: schema.ts, tree-query.ts, types.ts, layout.ts, seed.ts (Phase 1)
+## Parallel/sequencing
+- Within Stage 1: client+helper+dialog are small; can be one focused workflow (impl + verify) or done inline.
+- Stages run sequentially with a user checkpoint between (ship each before starting the next).
