@@ -3,8 +3,12 @@
 > Last updated: 2026-06-16 (planning)
 > Workstream: 09-multi-tree-epic / Phase 1 (create & build + sharing polish)
 > Plan: `instruction/work/plan.md` · Requirements: `instruction/work/requirements.md`
-> Status: ✅ PHASE 1 COMPLETE & LIVE (Stage 1 create-tree · Stage 2 people/relations CRUD · Stage 3 sharing
->   polish). Goal "ลุยให้จบเลยไม่ต้องถาม" → continuing to Phase 2 (photo upload) + Phase 3 (theming), autonomous.
+> Status: ✅✅✅ EPIC COMPLETE & LIVE on https://heritage.jairukchan.com/ — Goal "ลุยให้จบเลยไม่ต้องถาม" met.
+>   Phase 1 (create-tree · people/relations CRUD · sharing+invite-email+public-link) · Phase 2 (photo upload→R2) ·
+>   Phase 3 (per-tree theming). All shipped + e2e-verified vs prod. Ready to archive via workflow-end.
+> Phase 2 proof: 555/555 · CI 27596894312 · Deploy 27596937905 · e2e 17-photo-upload PU1-5 (+ refetch-keeps-mounted fix).
+> Phase 3 proof: 564/564 · manual security review (theme enum-validated, no CSS injection; verify workflow hit a
+>   transient rate-limit) · CI 27598590393 · prod D1 migrated (0007 theme col) · Deploy 27598687890 · e2e 18-theme TH1/TH2.
 > Stage 3 proof: typecheck 0 · 536/536 (incl. invite-email + escapeHtml tests) · Opus review PASS ·
 >   CI 27595763202 · Deploy 27595806379 · e2e vs prod 2/2 sharing loop (SH1 invite→verify→shared, SH2 public link).
 > SECURITY: commit-review flagged HTML-injection in the invite email → fixed (escapeHtml on treeName/inviterName/
