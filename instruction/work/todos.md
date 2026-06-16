@@ -1,5 +1,20 @@
 # Active Tasks
 
+## RESUME CONTEXT
+> Exit time: 2026-06-17 (workflow-exit)
+> Reason: user /workflow-exit
+> State: ✅ ALL CLEAN — git tree clean, nothing unpushed, HEAD 33ec1a0, prod deploy green.
+>   No work in progress · no active sub-agents · no file locks held.
+> Shipped this session (all live on https://heritage.jairukchan.com):
+>   - abuse-hardening (photo rate-limit 30/60s · 5MB file cap · 20-tree quota) + UI limit messaging
+>   - frontend QA full loop (real browser) · theme palette redesign (soft pastel) · demo theme preview
+>   - FULL soft-modern UI redesign: design tokens + Prompt font + floating cards + pill/gradient buttons +
+>     dot-grid canvas + floating nodes; across TreeView · Landing · /trees · dialogs · auth · drawer interior;
+>     responsive media-queries added. 574/574 tests green throughout.
+> NEXT (optional, only if user asks): mobile slide-out nav (sidebar hidden ≤820px) · archive completed
+>   workstreams via workflow-end · per-tree node-shape "style" (old future note).
+> To resume: "มีงานค้างไหม" / "continue".
+
 > Last updated: 2026-06-16 21:35
 > Workstream: 14-ui-redesign (soft-modern) — user: "เปลี่ยนสไตล์ UI แอปใหม่ ทันสมัย" → chose Soft modern + emerald
 > Status: ✅ SHIPPED & LIVE (whole app). Design system in styles.css :root (tokens: --bg/--paper/--ink*/--leaf*
