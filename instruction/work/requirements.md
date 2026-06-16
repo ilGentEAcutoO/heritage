@@ -1,56 +1,65 @@
-# Requirements: 06-ci-and-e2e-cleanup
+# Requirements — Workstream 07: Anonymous homepage = demo tree + top-right login button
 
-> Created: 2026-06-15 22:07 (+07)
-> Source: user request — "แก้พวกนี้ให้จบเลย" (the two known/out-of-scope items
-> carried over from workstream 05).
+> Created: 2026-06-16 · Status: PLANNING (awaiting approval)
 
-## User request (verbatim)
-> แก้พวกนี้ให้จบเลย
-> - 10-magic-link M4-T3 e2e — console-error assertion เก่าจาก workstream 04 (รอ triage แยก)
-> - GitHub Actions ยังใช้ Node.js 20 (deprecation — ถูกบังคับเป็น Node 24 หลัง 2026-06-16) → งาน infra แยก
+## Raw request (user, 2026-06-16, Thai)
+> เข้ามาหน้า https://heritage.jairukchan.com/ ถ้ายังไม่ login เปิด demo tree แสดงไปเลยครับ
+> แล้วทำปุ่มเข้าสู่ระบบแสดงขวาบนไปเลย
 
-## Agreed Scope
-- [x] **Item 1** — Make `10-magic-link.spec.ts` M4-T3 pass on its console-error
-  assertion without masking a real app bug.
-- [x] **Item 2** — Clear the GitHub Actions node20 action-runtime deprecation before
-  the 2026-06-16 forced-migration date.
+Translation: On the homepage `/`, if the visitor is **not logged in**, show the **demo tree
+directly**. And put a **"เข้าสู่ระบบ" (Login) button at the top-right**, visible immediately.
 
-## Research findings (cross-checked against the live repo + GitHub API, 2026-06-15)
+## Research findings (current behavior)
+- **Routing** (`src/app/App.tsx`): `/` → `<Landing />`; `/demo/wongsuriya` →
+  `<TreeView treeSlug="wongsuriya" />`; `/tree/:slug` → `<TreeView />`; `/trees` (protected).
+- **`/` today** (`src/app/pages/Landing.tsx`): a marketing splash (logo + tagline), with
+  **session-aware CTAs** — guests get a "ดู demo tree" link (→ /demo/wongsuriya) + a small
+  "เข้าสู่ระบบ →" link (→ /login); logged-in users get "ดูต้นไม้ของฉัน" (→ /trees) +
+  an "ออกจากระบบ" button (`data-testid="logout-button"`).
+- **Demo tree already exists** — `<TreeView treeSlug="wongsuriya" />`. The TreeView header
+  (`src/app/pages/TreeView.tsx`) already renders a top-right `<UserMenu />`. For **guests**
+  it's a "👤" trigger hiding Home + Login inside a dropdown; for **auth** users it shows
+  their initial + Home/Trees/Logout.
+- **Session** (`src/app/hooks/useSession.ts`): singleton; `loading: true` until
+  `GET /api/auth/me` resolves; guest = 401 → `user: null`; non-401 error → `user: null` + error.
+- **Demo data is public** — no backend change needed; reusing the public `wongsuriya` slug
+  at `/` exposes nothing new.
 
-### Item 1 — root cause CONFIRMED (not an app bug)
-- `Magic.tsx` calls `apiClient.consumeMagicLink()` → `api()` wrapper. On a 400 the
-  wrapper `throw`s a typed `ApiError`; `Magic.tsx` `.catch()`es it and renders the
-  error UI. **There is no `console.error` anywhere in the app path.**
-- The console error captured by M4-T3 is Chrome's *automatic* resource-load message
-  ("Failed to load resource: the server responded with a status of 400 (Bad Request)")
-  emitted for the **deliberately-mocked** 400 from `/api/auth/magic/consume`.
-- This is the same class of noise already whitelisted for 401/404 in
-  `tests/e2e/helpers/console.ts` (`IGNORED_SUBSTRINGS`).
-- Decision: **surgical, test-local filter** in M4-T3 (tolerate the one expected 400),
-  NOT a global ignore — keeps the ~11 other specs strict against unexpected 400s.
+## Agreed scope (from clarifying Q&A 2026-06-16)
+- [x] **Guest at `/`** → render the demo tree (`wongsuriya`) directly, in place (URL stays `/`).
+- [x] **Logged-in at `/`** → KEEP the existing Landing splash (My Trees + logout). *(Q1)*
+- [x] **Top-right login control for guests** → a **clear, visible "เข้าสู่ระบบ" button**
+      that **replaces the 👤 UserMenu** for guests, applied to the shared TreeView header
+      (so `/` guest, `/demo/wongsuriya`, `/tree/:slug` guests are consistent). *(Q2)*
+- [x] **Old guest marketing splash** → **dropped**. Guests never see it again; the
+      logged-in splash stays. *(Q3, reconciled — see note)*
 
-### Item 2 — todo note was stale; real fix is action-runtime versions
-- Both workflows already use `node-version: 22` (not 20). The deprecation is about the
-  **action runtime** (`runs.using`), which `actions/checkout@v4` and
-  `actions/setup-node@v4` declare as `node20`.
-- Authoritative latest majors (GitHub API, 2026-06-15) — all confirmed `using: node24`:
-  - `actions/checkout` → **v6.0.3**
-  - `actions/setup-node` → **v6.4.0**
-  - `pnpm/action-setup` → **v6.0.9** (keep `version: 9`)
-  - `cloudflare/wrangler-action` → **v4.0.0** (inputs `apiToken`/`accountId` unchanged →
-    drop-in for deploy.yml)
-- Also bump `node-version: 22 → 24` (current LTS; local dev already runs Node 25, so 24
-  is safe and matches the user's stated target).
+### ⚠️ Reconciliation note (confirm at approval)
+Q1 ("keep landing splash") and Q3 ("drop the splash") are only consistent under one reading,
+which we adopt: **drop the *guest* splash** (guests get the demo tree at `/`); **keep the
+*logged-in* splash** (logged-in users still see logo + "ดูต้นไม้ของฉัน" + logout at `/`).
+Net effect on code: `Landing.tsx` is **kept but simplified** — its dead guest branch is
+removed; it renders only the logged-in UI (and is only ever mounted for logged-in users).
 
-## Technical Decisions
-- **No masking**: M4-T3's other assertions (error UI visible, retry link href) stay
-  intact; only the self-induced 400 resource-noise is filtered, with a comment.
-- **Version pinning**: keep the repo's existing major-tag convention (`@v6` etc.), not
-  full SHA pins.
-- **Verification**: run M4-T3 locally against `vite dev` (route-mocked, no D1 needed) to
-  prove green; push to trigger CI to prove the node24 runtime bump is green.
+## Technical decisions
+- **D1 — Render-in-place, not redirect.** Guest `/` mounts `<TreeView treeSlug="wongsuriya" />`;
+  URL stays `/`. ("แสดงไปเลย" + clean URL.)
+- **D2 — Session gate to avoid flash.** New `Home.tsx` branches on `useSession()`:
+  `loading` → minimal neutral placeholder (same bg, no spinner) → then `user ? <Landing/> :
+  <TreeView treeSlug="wongsuriya" />`. Fail-open: a non-401 `/me` error → treated as guest
+  (shows public demo; exposes nothing private).
+- **D3 — Login button is a `<Link>`, not a `<button>`.** `<Link to="/login"
+  data-testid="header-login">เข้าสู่ระบบ</Link>`, styled as a prominent header CTA. Rendered
+  only when `!loading && !user`; auth users keep `<UserMenu />`. **Why a Link:** preserves
+  e2e S9 (05-logout), which asserts a `role=link` named "เข้าสู่ระบบ" after logout.
+
+## Security considerations
+- No new endpoints; reuses the already-public demo tree + existing `/api/auth/me`.
+- No auth bypass: `/` guest renders the hardcoded public `wongsuriya` slug only — never a
+  private tree.
+- Fail-open on `/me` error renders only public demo content (acceptable; no private data).
+- Login button is a plain client-side link to `/login`; no CSRF/origin surface change.
 
 ## Out of scope
-- Full `workflow-end` security ceremony for workstream 05 (done lightweight; code was
-  prod-verified).
-- `@types/node` bump (^22) — harmless mismatch with runtime 24; left untouched.
+- No backend/API changes. No change to `/demo/wongsuriya`, `/tree/:slug`, `/trees`, or auth
+  flows themselves. No visual redesign of the demo tree. Dependabot advisories (separate).

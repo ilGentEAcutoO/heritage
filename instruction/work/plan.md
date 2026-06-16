@@ -1,48 +1,84 @@
-# Plan: 06-ci-and-e2e-cleanup
+# Plan: Anonymous homepage = demo tree + top-right login button
 
-> Created: 2026-06-15 22:07 (+07)
+> Created: 2026-06-16 · Workstream 07 · Approach: TDD (tests first), small sub-agent team
 
 ## Architecture
-Two independent, low-blast-radius fixes. No shared files → fully parallel-safe.
 
-| Item | Concern | Files | Risk |
-|------|---------|-------|------|
-| 1 | e2e test assertion (M4-T3 console) | `tests/e2e/10-magic-link.spec.ts` | low (test-only) |
-| 2 | CI/Deploy action-runtime deprecation | `.github/workflows/{ci,deploy}.yml` | low–med (deploy = wrangler-action major bump, but manual + inputs unchanged) |
+```
+Route "/"  →  <Home/>            (NEW: src/app/pages/Home.tsx)
+                │ useSession()
+                ├─ loading        → minimal neutral placeholder (no flash)
+                ├─ user           → <Landing/>          (logged-in splash, simplified)
+                └─ guest (null)   → <TreeView treeSlug="wongsuriya" />   (demo tree at /)
 
-## Test Specifications (what must be green before "done")
-1. `pnpm typecheck` → exit 0 (unchanged surface; sanity).
-2. `pnpm test` (vitest) → 415/415 (no regression; neither change touches unit-tested code).
-3. **Item 1 proof**: `E2E_BASE_URL=http://localhost:5173 pnpm e2e -g "M4-T3"` against a
-   local `vite dev` → **pass** (was failing only on the console-error assertion).
-   - All M4-T3 functional assertions still pass (error UI visible, retry href correct).
-   - The expected 400 resource-noise is filtered; no other console error appears.
-4. **Item 2 proof**: push → `CI` workflow run is **green** and its job logs show the
-   node24 action runtime (no node20 deprecation warnings).
+TreeView header .header-actions  (shared by /, /demo/wongsuriya, /tree/:slug)
+                │ useSession()
+                ├─ loading        → render nothing (matches current UserMenu)
+                ├─ user           → <UserMenu/>          (unchanged 👤 dropdown)
+                └─ guest (null)   → <Link to="/login" data-testid="header-login">เข้าสู่ระบบ</Link>
+```
 
-## Implementation Steps
+- `App.tsx`: change `/` route element from `<Landing/>` to `<Home/>`. Everything else stays.
+- `Landing.tsx`: remove the dead guest branch; render only the logged-in UI.
+- No backend changes.
 
-### Item 1 — M4-T3 console filter (surgical)
-Replace the bare `expect(consoleMsgs.errors).toEqual([])` in M4-T3 with a filter that
-drops the single expected, self-mocked 400 resource-load message, plus an explaining
-comment. Leave M4-T1/T2/T4/T5 untouched (they don't trigger a 4xx that escapes the
-existing ignore list).
+## Contract (fixed so tests + impl agree)
+- New testid **`header-login`** on the guest login control; it is an `<a>` (`<Link>`),
+  role=`link`, accessible name exactly `เข้าสู่ระบบ`, `href="/login"`.
+- Guests have **no** `data-testid="user-menu-trigger"` in the TreeView header.
+- Logged-in users at `/` still expose `data-testid="logout-button"` (Landing) and the
+  `<UserMenu/>` (`user-menu-trigger`) in tree headers.
 
-### Item 2 — action-runtime bump
-- `ci.yml`: `actions/checkout@v4→v6`, `actions/setup-node@v4→v6` (`node-version: 22→24`),
-  `pnpm/action-setup@v4→v6` (keep `version: 9`).
-- `deploy.yml`: same three bumps + `cloudflare/wrangler-action@v3→v4`.
+## Test Specifications (write/adjust FIRST, must fail before impl)
+
+### Unit (vitest, source-assertion style — node env, no jsdom)
+- **NEW `tests/unit/Home.test.tsx`**: assert `Home.tsx` imports `useSession`, `Landing`,
+  `TreeView`; references `treeSlug="wongsuriya"`; branches on `user`/`loading`.
+- **TreeView.test.tsx** (extend): assert the guest header path references
+  `data-testid="header-login"`, a `<Link`/`to="/login"`, and is gated on `!user`.
+  Keep all existing 404/POV assertions green.
+
+### E2E (Playwright)
+- **`01-landing.spec.ts` — REWRITE S1** (guest `/`): canvas `tree-canvas` visible + ≥1
+  `[data-person]`; `header-login` visible, role=link, href `/login`; the old splash link
+  "ดู demo tree" is **absent**; console errors/warnings = `[]`.
+- **`01-landing.spec.ts` — NEW S1b** (logged-in `/`): after signup+verify, `goto('/')` →
+  Landing splash visible (`logout-button` + "ดูต้นไม้ของฉัน"); `tree-canvas` **not** present;
+  console clean.
+- **`01-landing.spec.ts` — S2** (`/demo/wongsuriya`): unchanged; must stay green.
+- **`11-user-menu.spec.ts`**:
+  - **M1 REWRITE** (guest on /demo): `header-login` visible; `user-menu-trigger` absent.
+  - **M2 REWRITE** (guest): click `header-login` → URL `/login`.
+  - **M3 KEEP** (auth): 👤 menu shows displayName/trees/logout; trees → /trees.
+  - **M4 UPDATE** (logout from demo): after logout, assert `header-login` visible +
+    `user-menu-trigger` hidden (was: guest dropdown).
+  - **M5/M6 REWRITE** (Escape / click-outside close): run with an **authenticated** session
+    (only auth users now have the dropdown).
+- **`05-logout.spec.ts` — S9**: expected to stay green **unchanged** (post-logout login
+  `<Link>` named "เข้าสู่ระบบ" satisfies it). Treated as a regression guard — verify, don't edit
+  unless it legitimately needs the demo-tree load timeout bumped.
+
+## Implementation Steps (ordered, parallel-friendly)
+1. Write/adjust the failing tests above to the Contract (TASK-004).
+2. `Home.tsx` + `App.tsx` route swap (TASK-001).
+3. TreeView header guest login button (TASK-002).
+4. Simplify `Landing.tsx` (remove dead guest branch) (TASK-003).
+5. Integrate: `pnpm typecheck` + `pnpm test` (unit) → green.
+6. `pnpm e2e` (local) → all specs green; fix fallout.
+7. frontend-test (MCP Playwright) on `/` guest, `/` logged-in, `/demo/wongsuriya`: verify
+   visuals + **zero console errors/warnings**.
+8. Adversarial review (sub-agent) + verification-before-completion, then commit/push/monitor.
 
 ## Security Considerations
-- No new runtime surfaces. Action bumps move to vendor-maintained node24 builds (security
-  positive — node20 runtime is EOL-bound). wrangler-action v4 keeps the same secret inputs
-  (`apiToken`/`accountId`); no secret-handling change.
-- Test filter does not weaken detection: other specs keep strict 400 detection; only the
-  one deliberately-mocked 400 in M4-T3 is tolerated.
+- Reuses public demo tree + existing `/api/auth/me`; no new endpoints, no new data exposure.
+- No auth bypass — `/` guest renders only the hardcoded public `wongsuriya` slug.
+- Fail-open on `/me` non-401 error → public demo only (no private data).
+- Login control is a client-side `<Link>` to `/login`; no CSRF/origin change.
 
-## Verification & close-out
-1. typecheck + unit (fast gate).
-2. Local M4-T3 e2e (Item 1 proof).
-3. YAML lint (actionlint if available, else structural review).
-4. Adversarial code review (sub-agent) on the diff.
-5. Commit (git-commit skill, no AI signature) → push (git-push skill) → monitor CI green.
+## Parallel execution groups
+- **Group A (Phase 1, parallel — different files):**
+  - TASK-004 tests (tests/**) · TASK-001 routing (App.tsx + new Home.tsx) ·
+    TASK-002 TreeView header (TreeView.tsx) · TASK-003 Landing (Landing.tsx).
+  - All four touch disjoint files; the shared Contract (testids) is fixed above.
+- **Group B (Phase 2, sequential — integration):** typecheck + unit + e2e + frontend-test +
+  review. Single coordinator-driven pass after Group A merges.
