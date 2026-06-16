@@ -5,6 +5,15 @@
 > Goal: "ทำ rate limit การปรับเปลี่ยนภาพ หรือการอัปโหลดภาพ ขนาด ไฟล์ และจำกัดจำนวนครอบครัวที่สร้างได้"
 > Status: ✅ SHIPPED & LIVE — 574/574 green · Opus adversarial review applied · CI 27600165847 ·
 >   Deploy 27600223170 · prod e2e 3/3 (14-create-tree SC1/SC2 + 17-photo-upload PU1-5, happy paths intact).
+> Follow-up (user: "บอกผู้ใช้ด้วย") ✅ SHIPPED — surface limit errors in the UI so users are told why:
+>   - CreateTreeDialog: 429 tree_limit_reached → "สร้างได้สูงสุด N ครอบครัว…" (N from err.max, not hardcoded).
+>   - ProfileDrawer: photoErrorMessage maps 413/too_large, 415/unsupported_type, 429/rate_limited (upload+delete)
+>     + client-side size/type pre-check (instant feedback) + accept="image/jpeg,image/png,image/webp".
+>   - api.ts ApiError now carries {max}. TreeView: key={selected.id} on ProfileDrawer (fix stale error on jump).
+>   - Verify workflow (3 lenses + synth): mapping correct, no missed surfaces, 1 MEDIUM (stale photoError) → fixed.
+>   - Proof: typecheck 0 · 574/574 · build OK · CI 27608133887 · Deploy 27608193561 · prod e2e: 12-pov P1-3 +
+>     14-create-tree + 17-photo-upload PU1-5 + NEW PU6 (oversized→"5 MB", wrong-type→"JPG", no upload).
+>   - Commits: 966773e UI surfacing · 2afa3d1 e2e PU6.
 >   - Rate-limit photo upload/delete: per-owner KV fixed-window 30/60s (bucket 'photo-mutate'), guard before
 >     multipart parse + R2 write. New lib src/worker/lib/rate-limit.ts (shared write-path limiter).
 >   - File size: existing 5MB cap (declared-size pre-check + post-buffer re-check) satisfies "ขนาดไฟล์".
