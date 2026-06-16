@@ -15,7 +15,10 @@ interface UseTreeResult {
 
 export function useTree(slug: string | undefined): UseTreeResult {
   const [data, setData] = useState<TreeData | null>(null);
-  const [loading, setLoading] = useState(false);
+  // Start in the loading state when a slug is present so the first paint shows the
+  // loading UI rather than briefly flashing the "tree not found" branch before the
+  // fetch effect runs (effects run after paint). Matters most for "/" (homepage).
+  const [loading, setLoading] = useState(Boolean(slug));
   const [error, setError] = useState<ApiError | null>(null);
   const [tick, setTick] = useState(0);
 

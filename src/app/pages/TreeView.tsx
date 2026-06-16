@@ -38,7 +38,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
 
   const { data, loading, error } = useTree(slug);
   const { tweaks, updateTweak } = useTweaks();
-  const { user } = useSession();
+  const { user, loading: sessionLoading } = useSession();
 
   // UI state
   const [selectedId, setSelectedId] = useState<string | null>('p12');
@@ -266,7 +266,18 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           >
             ⚙
           </button>
-          <UserMenu />
+          {sessionLoading ? null : user ? (
+            <UserMenu />
+          ) : (
+            <Link
+              to="/login"
+              className="header-btn"
+              data-testid="header-login"
+              style={{ background: 'var(--leaf, #6b8f5e)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}
+            >
+              เข้าสู่ระบบ
+            </Link>
+          )}
         </div>
       </header>
 

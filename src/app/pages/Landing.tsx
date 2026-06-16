@@ -1,6 +1,7 @@
 /**
- * Landing.tsx — Marketing landing page.
- * Logo, tagline, session-aware CTAs.
+ * Landing.tsx — Logged-in home splash.
+ * Logo, tagline, and CTAs for authenticated users only.
+ * Guests are served by Home.tsx instead.
  */
 
 import { useState } from 'react';
@@ -83,7 +84,7 @@ export function Landing() {
         Heritage · เก็บเรื่องราวของครอบครัว
       </p>
 
-      {/* CTAs — session-aware */}
+      {/* CTAs — logged-in users only */}
       <div
         style={{
           display: 'flex',
@@ -94,8 +95,8 @@ export function Landing() {
         }}
       >
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {/* Primary CTA: "My Trees" for logged-in users, demo for guests */}
-          {!loading && user ? (
+          {/* Primary CTA: navigate to My Trees */}
+          {!loading && user && (
             <Link
               to="/trees"
               style={{
@@ -113,41 +114,8 @@ export function Landing() {
             >
               ดูต้นไม้ของฉัน
             </Link>
-          ) : (
-            <Link
-              to="/demo/wongsuriya"
-              style={{
-                padding: '0.65rem 1.5rem',
-                borderRadius: '6px',
-                background: 'var(--leaf, #6b8f5e)',
-                color: '#fff',
-                textDecoration: 'none',
-                fontWeight: 500,
-                fontSize: '0.95rem',
-                transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              ดู demo tree
-            </Link>
           )}
         </div>
-
-        {/* Secondary link for guests */}
-        {!loading && !user && (
-          <Link
-            to="/login"
-            style={{
-              fontSize: '0.85rem',
-              color: 'var(--leaf, #6b8f5e)',
-              textDecoration: 'none',
-              opacity: 0.75,
-            }}
-          >
-            เข้าสู่ระบบ →
-          </Link>
-        )}
 
         {/* Logout for authenticated users */}
         {!loading && user && (

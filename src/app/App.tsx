@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Landing } from './pages/Landing';
+import { Home } from './pages/Home';
 import { TreeView } from './pages/TreeView';
 import { NotFound } from './pages/NotFound';
 import { Login } from './pages/Login';
@@ -15,7 +15,7 @@ export function App() {
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Home />} />
         <Route path="/demo/wongsuriya" element={<TreeView treeSlug="wongsuriya" />} />
         <Route path="/tree/:slug" element={<TreeView />} />
 
