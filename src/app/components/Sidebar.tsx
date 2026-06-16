@@ -52,7 +52,7 @@ export function Sidebar({
           {sorted.map(p => (
             <button
               key={p.id}
-              className={`people-item ${!p.died ? 'alive' : ''} ${
+              className={`people-item ${!p.deceased ? 'alive' : ''} ${
                 p.id === selectedId ? 'active' : ''
               }`}
               onClick={() => onSelect(p.id)}

@@ -7,13 +7,14 @@
  * Used for both the anonymous demo (/demo/wongsuriya) and auth'd trees (/tree/:slug).
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 import { useTree } from '@app/hooks/useTree';
 import { useTweaks } from '@app/hooks/useTweaks';
 import { computeRelation, findPath } from '@app/lib/kinship';
 import { useSession } from '@app/hooks/useSession';
+import { apiClient } from '@app/lib/api';
 
 import { TreeCanvas } from '@app/components/TreeCanvas';
 import { ProfileDrawer } from '@app/components/ProfileDrawer';
@@ -49,10 +50,49 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const [expandedLineages, setExpandedLineages] = useState<Set<string>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
 
+  // Optimistic local overrides for person status (deceased / died)
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, { deceased: boolean; died: number | null }>>({});
+
+  // canEdit: current user is the tree owner
+  const canEdit = !!user && !!data?.meta.ownerId && user.id === data.meta.ownerId;
+
+  // Merged people list: applies optimistic statusOverrides on top of server data
+  const mergedPeople = useMemo(
+    () =>
+      data
+        ? data.people.map((p) =>
+            statusOverrides[p.id] ? { ...p, ...statusOverrides[p.id] } : p,
+          )
+        : [],
+    [data, statusOverrides],
+  );
+
+  // onSetStatus: optimistic update + optional persist for owner
+  const onSetStatus = useCallback(
+    (personId: string, deceased: boolean, died: number | null) => {
+      const override = { deceased, died };
+      setStatusOverrides((prev) => ({ ...prev, [personId]: override }));
+      if (canEdit && slug) {
+        apiClient
+          .setPersonStatus(slug, personId, { deceased, died })
+          .catch(() => {
+            // Revert only this person's override on failure
+            setStatusOverrides((prev) => {
+              const next = { ...prev };
+              delete next[personId];
+              return next;
+            });
+          });
+      }
+      // If !canEdit: local-only ephemeral change, no network call
+    },
+    [canEdit, slug],
+  );
+
   // Derived from data
   const meId = useMemo(
-    () => data?.people.find((p) => p.isMe)?.id ?? null,
-    [data],
+    () => mergedPeople.find((p) => p.isMe)?.id ?? null,
+    [mergedPeople],
   );
 
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
@@ -78,27 +118,27 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   // Highlight path for "how are we related?"
   const highlightPath = useMemo<string[] | null>(() => {
     if (!showPath || !pathTarget || !data || !meId) return null;
-    return findPath(data.people, meId, pathTarget);
-  }, [showPath, pathTarget, data, meId]);
+    return findPath(mergedPeople, meId, pathTarget);
+  }, [showPath, pathTarget, data, mergedPeople, meId]);
 
   // Sidebar filtering
   const filteredPeople = useMemo(() => {
     if (!data) return [];
-    if (!query) return data.people;
+    if (!query) return mergedPeople;
     const q = query.toLowerCase();
-    return data.people.filter(
+    return mergedPeople.filter(
       (p) =>
         (p.name ?? '').toLowerCase().includes(q) ||
         (p.nick ?? '').toLowerCase().includes(q) ||
         (p.nameEn ?? '').toLowerCase().includes(q),
     );
-  }, [data, query]);
+  }, [data, mergedPeople, query]);
 
   // Stats
   const stats = useMemo(() => {
     if (!data) return { total: 0, generations: 0, alive: 0, photos: 0 };
-    const total = data.people.length;
-    const alive = data.people.filter((p) => !p.died).length;
+    const total = mergedPeople.length;
+    const alive = mergedPeople.filter((p) => !p.deceased).length;
     const photos = Object.values(data.photos ?? {}).reduce(
       (acc, n) => acc + n,
       0,
@@ -106,12 +146,12 @@ export function TreeView({ treeSlug }: TreeViewProps) {
     // Rough generation count: distinct born-decade buckets
     const generations = 4; // known from data; could compute from layout
     return { total, generations, alive, photos };
-  }, [data]);
+  }, [data, mergedPeople]);
 
-  // Selected person
+  // Selected person (from mergedPeople so status overrides are reflected)
   const selected = useMemo(
-    () => data?.people.find((p) => p.id === selectedId) ?? null,
-    [data, selectedId],
+    () => mergedPeople.find((p) => p.id === selectedId) ?? null,
+    [mergedPeople, selectedId],
   );
 
   // ---------------------------------------------------------------------------
@@ -204,8 +244,8 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   // Render
   // ---------------------------------------------------------------------------
 
-  const totalPeople = data.people.length;
-  const aliveCount = data.people.filter((p) => !p.died).length;
+  const totalPeople = mergedPeople.length;
+  const aliveCount = mergedPeople.filter((p) => !p.deceased).length;
 
   return (
     <div className="app">
@@ -294,7 +334,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
 
       {/* Tree canvas */}
       <TreeCanvas
-        data={data}
+        data={{ ...data, people: mergedPeople }}
         onSelect={setSelectedId}
         selectedId={selectedId}
         highlightPath={highlightPath}
@@ -308,7 +348,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
 
       {/* Active view pill */}
       <ActiveViewPill
-        people={data.people}
+        people={mergedPeople}
         activeViewId={activeViewId}
         meId={meId ?? ''}
         onChange={setActiveViewId}
@@ -318,20 +358,22 @@ export function TreeView({ treeSlug }: TreeViewProps) {
       {selected && (
         <ProfileDrawer
           person={selected}
-          data={data}
+          data={{ ...data, people: mergedPeople }}
           onClose={() => setSelectedId(null)}
           onJumpTo={(id) => setSelectedId(id)}
           expandedLineages={expandedLineages}
           onToggleLineage={toggleLineage}
           onSetActiveView={setActiveViewId}
           isActiveView={selected.id === activeViewId}
+          onSetStatus={onSetStatus}
+          canEdit={canEdit}
         />
       )}
 
       {/* PathFinder */}
       {showPath && meId && (
         <PathFinder
-          data={data}
+          data={{ ...data, people: mergedPeople }}
           meId={meId}
           targetId={pathTarget}
           onTarget={setPathTarget}

@@ -1,8 +1,9 @@
 /**
  * api.ts — typed fetch wrapper with credentials: 'include'
  *
- * Read-only API client. Mutations have been removed; this module only
- * exposes getTree and the adaptTree data adapter.
+ * Primarily a read client (getTree + adaptTree). Owner-scoped mutations:
+ *   setPersonStatus — PATCH /api/tree/:slug/person/:personId
+ *   setVisibility, addShare, revokeShare — share/visibility management
  */
 
 import type { TreeData, Person } from './types';
@@ -252,6 +253,12 @@ export const apiClient = {
         method: 'PATCH',
         body: JSON.stringify({ visibility }),
       },
+    ),
+
+  setPersonStatus: (slug: string, personId: string, body: { deceased: boolean; died: number | null }) =>
+    api<{ deceased: boolean; died: number | null }>(
+      `/api/tree/${encodeURIComponent(slug)}/person/${encodeURIComponent(personId)}`,
+      { method: 'PATCH', body: JSON.stringify(body) },
     ),
 };
 

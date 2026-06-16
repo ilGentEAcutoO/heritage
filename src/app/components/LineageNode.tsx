@@ -29,7 +29,7 @@ export function LineageNode({
       className={[
         'person-node',
         'lineage',
-        node.died ? 'passed' : '',
+        (node.deceased ?? node.died != null) ? 'passed' : '',
         dragging ? 'dragging' : '',
       ]
         .filter(Boolean)

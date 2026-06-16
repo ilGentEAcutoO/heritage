@@ -11,6 +11,8 @@ export interface ProfileDrawerProps {
   onToggleLineage: (personId: string) => void;
   onSetActiveView?: (id: string) => void;
   isActiveView?: boolean;
+  onSetStatus?: (personId: string, deceased: boolean, died: number | null) => void;
+  canEdit?: boolean;
 }
 
 /**
@@ -38,6 +40,8 @@ export function ProfileDrawer({
   onToggleLineage,
   onSetActiveView,
   isActiveView,
+  onSetStatus,
+  canEdit,
 }: ProfileDrawerProps) {
   if (!person) return null;
 
@@ -144,10 +148,10 @@ export function ProfileDrawer({
               <span>ปีเกิด</span>
               {person.born}
             </span>
-            {person.died && (
+            {person.deceased && (
               <span className="meta-chip passed">
-                <span>จากไป</span>
-                {person.died}
+                <span>เสียชีวิต</span>
+                {person.died != null ? person.died : 'ไม่ทราบปี'}
               </span>
             )}
             <span className="meta-chip">
@@ -155,6 +159,68 @@ export function ProfileDrawer({
               {person.hometown}
             </span>
           </div>
+
+          {/* Status edit control — only rendered when onSetStatus is provided */}
+          {onSetStatus && (
+            <div className="profile-status-edit" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <button
+                data-testid="status-toggle"
+                type="button"
+                role="switch"
+                aria-checked={person.deceased}
+                aria-label="สถานะ: เสียชีวิต"
+                className="meta-chip"
+                style={{ cursor: 'pointer', background: person.deceased ? 'oklch(0.88 0.04 30)' : 'oklch(0.90 0.05 145)', border: '1px solid currentColor', opacity: 0.85 }}
+                onClick={() => {
+                  if (person.deceased) {
+                    onSetStatus(person.id, false, null);
+                  } else {
+                    onSetStatus(person.id, true, person.died ?? null);
+                  }
+                }}
+              >
+                {person.deceased ? 'เสียชีวิต' : 'ยังมีชีวิต'}
+              </button>
+              {person.deceased && (
+                <input
+                  data-testid="status-year-input"
+                  type="number"
+                  placeholder="ปีที่เสียชีวิต (ไม่ทราบ = ว่าง)"
+                  defaultValue={person.died ?? ''}
+                  style={{
+                    width: '14rem',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid var(--ink, #2a1f14)',
+                    opacity: 0.7,
+                    fontFamily: 'inherit',
+                    fontSize: '0.85rem',
+                  }}
+                  // Commit on blur / Enter (not per keystroke) so the owner path
+                  // doesn't fire a PATCH for every digit (and persist invalid
+                  // intermediate years like "1" that would 422-and-revert).
+                  onBlur={(e) => {
+                    const raw = e.target.value.trim();
+                    const parsed = raw === '' ? null : parseInt(raw, 10);
+                    const year = parsed !== null && !isNaN(parsed) ? parsed : null;
+                    onSetStatus(person.id, true, year);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
+                />
+              )}
+              {!canEdit && (
+                <span
+                  data-testid="status-ephemeral-note"
+                  style={{ fontSize: '0.78rem', opacity: 0.55, fontStyle: 'italic' }}
+                >
+                  ทดลอง · ไม่บันทึก
+                </span>
+              )}
+            </div>
+          )}
+
           {onSetActiveView && (
             isActiveView ? (
               <span className="meta-chip">✓ กำลังดูจากมุมของคนนี้</span>

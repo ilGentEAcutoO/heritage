@@ -36,7 +36,7 @@ export function PersonNode({
   onClick,
   onToggleUpstream,
 }: PersonNodeProps) {
-  const alive = !person.died;
+  const alive = !person.deceased;
 
   const classNames = [
     'person-node',
