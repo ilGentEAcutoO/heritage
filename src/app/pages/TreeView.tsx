@@ -26,6 +26,7 @@ import { Sidebar } from '@app/components/Sidebar';
 import { ActiveViewPill } from '@app/components/ActiveViewPill';
 import { TweaksPanel } from '@app/components/TweaksPanel';
 import { UserMenu } from '@app/components/UserMenu';
+import { AddPersonDialog } from '@app/components/AddPersonDialog';
 
 interface TreeViewProps {
   /** Passed directly for fixed-slug routes (e.g. /demo/wongsuriya). */
@@ -37,7 +38,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const { slug: routeSlug } = useParams<{ slug: string }>();
   const slug = treeSlug ?? routeSlug;
 
-  const { data, loading, error } = useTree(slug);
+  const { data, loading, error, refetch } = useTree(slug);
   const { tweaks, updateTweak } = useTweaks();
   const { user, loading: sessionLoading } = useSession();
 
@@ -49,6 +50,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [expandedLineages, setExpandedLineages] = useState<Set<string>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
+  const [addPersonOpen, setAddPersonOpen] = useState(false);
 
   // Optimistic local overrides for person status (deceased / died)
   const [statusOverrides, setStatusOverrides] = useState<Record<string, { deceased: boolean; died: number | null }>>({});
@@ -87,6 +89,30 @@ export function TreeView({ treeSlug }: TreeViewProps) {
       // If !canEdit: local-only ephemeral change, no network call
     },
     [canEdit, slug],
+  );
+
+  // onUpdatePerson: PATCH person then refetch
+  const onUpdatePerson = useCallback(
+    async (
+      personId: string,
+      patch: Partial<{ name: string; nameEn: string | null; nick: string | null; born: number | null; hometown: string | null; gender: 'm' | 'f'; deceased: boolean; died: number | null }>,
+    ) => {
+      if (!canEdit || !slug) return;
+      await apiClient.updatePerson(slug, personId, patch);
+      refetch();
+    },
+    [canEdit, slug, refetch],
+  );
+
+  // onDeletePerson: DELETE person then refetch and deselect
+  const onDeletePerson = useCallback(
+    async (personId: string) => {
+      if (!canEdit || !slug) return;
+      await apiClient.deletePerson(slug, personId);
+      setSelectedId(null);
+      refetch();
+    },
+    [canEdit, slug, refetch],
   );
 
   // Derived from data
@@ -330,6 +356,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
         onQueryChange={setQuery}
         filteredPeople={filteredPeople}
         stats={stats}
+        onAddPerson={canEdit ? () => setAddPersonOpen(true) : undefined}
       />
 
       {/* Tree canvas */}
@@ -367,6 +394,8 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           isActiveView={selected.id === activeViewId}
           onSetStatus={onSetStatus}
           canEdit={canEdit}
+          onUpdatePerson={canEdit ? onUpdatePerson : undefined}
+          onDeletePerson={canEdit ? onDeletePerson : undefined}
         />
       )}
 
@@ -400,6 +429,21 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           currentVisibility={data.meta.visibility ?? 'public'}
           open={shareOpen}
           onClose={() => setShareOpen(false)}
+        />
+      )}
+
+      {/* Add person dialog — owner only */}
+      {addPersonOpen && canEdit && slug && (
+        <AddPersonDialog
+          slug={slug}
+          relativeTo={selected ?? null}
+          onClose={() => setAddPersonOpen(false)}
+          onCreated={(newPerson) => {
+            setAddPersonOpen(false);
+            refetch();
+            // Select the newly created person after refetch
+            setSelectedId(newPerson.id);
+          }}
         />
       )}
     </div>

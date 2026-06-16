@@ -267,6 +267,68 @@ export const apiClient = {
       `/api/tree/${encodeURIComponent(slug)}/person/${encodeURIComponent(personId)}`,
       { method: 'PATCH', body: JSON.stringify(body) },
     ),
+
+  // Person CRUD — owner-only
+
+  createPerson: (
+    slug: string,
+    body: {
+      name: string;
+      nameEn?: string | null;
+      nick?: string | null;
+      born?: number | null;
+      hometown?: string | null;
+      gender?: 'm' | 'f';
+      deceased?: boolean;
+      died?: number | null;
+    },
+  ) =>
+    api<{ person: { id: string; name: string; nameEn: string | null; nick: string | null; born: number | null; died: number | null; deceased: boolean; gender: 'm' | 'f'; hometown: string | null } }>(
+      `/api/tree/${encodeURIComponent(slug)}/person`,
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
+  updatePerson: (
+    slug: string,
+    personId: string,
+    patch: Partial<{
+      name: string;
+      nameEn: string | null;
+      nick: string | null;
+      born: number | null;
+      hometown: string | null;
+      gender: 'm' | 'f';
+      deceased: boolean;
+      died: number | null;
+    }>,
+  ) =>
+    api<Record<string, unknown>>(
+      `/api/tree/${encodeURIComponent(slug)}/person/${encodeURIComponent(personId)}`,
+      { method: 'PATCH', body: JSON.stringify(patch) },
+    ),
+
+  deletePerson: (slug: string, personId: string) =>
+    api<{ ok: boolean }>(
+      `/api/tree/${encodeURIComponent(slug)}/person/${encodeURIComponent(personId)}`,
+      { method: 'DELETE' },
+    ),
+
+  // Relation CRUD — owner-only
+
+  createRelation: (
+    slug: string,
+    body: { fromId: string; toId: string; kind: 'parent' | 'spouse' },
+  ) =>
+    api<{ relation: { id: number; fromId: string; toId: string; kind: 'parent' | 'spouse' } }>(
+      `/api/tree/${encodeURIComponent(slug)}/relation`,
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
+  deleteRelation: (slug: string, relationId: string | number) =>
+    api<{ ok: boolean }>(
+      `/api/tree/${encodeURIComponent(slug)}/relation/${encodeURIComponent(String(relationId))}`,
+      { method: 'DELETE' },
+    ),
 };
 
 // ---------------------------------------------------------------------------

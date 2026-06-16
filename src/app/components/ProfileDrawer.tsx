@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Person, TreeData } from '@app/lib/types';
 import { computeRelation } from '@app/lib/kinship';
 import { Tab } from './Tab';
@@ -13,6 +14,13 @@ export interface ProfileDrawerProps {
   isActiveView?: boolean;
   onSetStatus?: (personId: string, deceased: boolean, died: number | null) => void;
   canEdit?: boolean;
+  /** Called by owner edit-mode save. Patch is sent to the server by TreeView. */
+  onUpdatePerson?: (
+    personId: string,
+    patch: Partial<{ name: string; nameEn: string | null; nick: string | null; born: number | null; hometown: string | null; gender: 'm' | 'f'; deceased: boolean; died: number | null }>,
+  ) => Promise<void>;
+  /** Called by owner delete button after confirmation. */
+  onDeletePerson?: (personId: string) => Promise<void>;
 }
 
 /**
@@ -42,8 +50,71 @@ export function ProfileDrawer({
   isActiveView,
   onSetStatus,
   canEdit,
+  onUpdatePerson,
+  onDeletePerson,
 }: ProfileDrawerProps) {
+  // Edit mode state
+  const [editMode, setEditMode] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editNick, setEditNick] = useState('');
+  const [editBorn, setEditBorn] = useState('');
+  const [editHometown, setEditHometown] = useState('');
+  const [editGender, setEditGender] = useState<'m' | 'f'>('m');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
+
+  // Delete confirm state
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   if (!person) return null;
+
+  function openEditMode() {
+    setEditName(person.name ?? '');
+    setEditNick(person.nick ?? '');
+    setEditBorn(person.born != null ? String(person.born) : '');
+    setEditHometown(person.hometown ?? '');
+    setEditGender(person.gender ?? 'm');
+    setEditError('');
+    setEditMode(true);
+  }
+
+  function closeEditMode() {
+    setEditMode(false);
+    setEditError('');
+  }
+
+  async function handleEditSave() {
+    if (!onUpdatePerson) return;
+    setEditSaving(true);
+    setEditError('');
+    try {
+      const bornNum = editBorn.trim() ? parseInt(editBorn.trim(), 10) : null;
+      await onUpdatePerson(person.id, {
+        name: editName.trim() || undefined,
+        nick: editNick.trim() || null,
+        born: bornNum !== null && !isNaN(bornNum) ? bornNum : null,
+        hometown: editHometown.trim() || null,
+        gender: editGender,
+      });
+      setEditMode(false);
+    } catch {
+      setEditError('บันทึกไม่สำเร็จ — ลองใหม่อีกครั้ง');
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!onDeletePerson) return;
+    setDeleting(true);
+    try {
+      await onDeletePerson(person.id);
+    } catch {
+      setDeleting(false);
+      setDeleteConfirm(false);
+    }
+  }
 
   const stories = (data.stories?.[person.id] || []);
   const memos = (data.memos?.[person.id] || []);
@@ -235,6 +306,183 @@ export function ProfileDrawer({
                 👁 ดูจากมุมของ {person.nick}
               </button>
             )
+          )}
+
+          {/* Owner edit / delete controls */}
+          {(onUpdatePerson || onDeletePerson) && (
+            <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+              {onUpdatePerson && !editMode && (
+                <button
+                  data-testid="edit-person-toggle"
+                  type="button"
+                  className="btn-secondary"
+                  onClick={openEditMode}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  แก้ไข
+                </button>
+              )}
+              {onDeletePerson && !editMode && !deleteConfirm && (
+                <button
+                  data-testid="delete-person-button"
+                  type="button"
+                  onClick={() => setDeleteConfirm(true)}
+                  style={{
+                    padding: '0.35rem 0.7rem',
+                    borderRadius: '5px',
+                    border: '1px solid #fca5a5',
+                    background: 'transparent',
+                    color: '#991b1b',
+                    cursor: 'pointer',
+                    fontFamily: 'Sarabun, serif',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  ลบคนนี้
+                </button>
+              )}
+              {onDeletePerson && deleteConfirm && !editMode && (
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.82rem', opacity: 0.7 }}>ยืนยันลบ?</span>
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={handleDelete}
+                    style={{
+                      padding: '0.3rem 0.65rem',
+                      borderRadius: '5px',
+                      border: 'none',
+                      background: '#dc2626',
+                      color: '#fff',
+                      cursor: deleting ? 'not-allowed' : 'pointer',
+                      fontFamily: 'Sarabun, serif',
+                      fontSize: '0.82rem',
+                      opacity: deleting ? 0.5 : 1,
+                    }}
+                  >
+                    {deleting ? 'กำลังลบ…' : 'ยืนยัน'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={() => setDeleteConfirm(false)}
+                    style={{
+                      padding: '0.3rem 0.65rem',
+                      borderRadius: '5px',
+                      border: '1px solid var(--line, #ddd)',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      fontFamily: 'Sarabun, serif',
+                      fontSize: '0.82rem',
+                    }}
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Edit mode form */}
+          {editMode && onUpdatePerson && (
+            <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--bg, #faf8f4)', borderRadius: '7px', border: '1px solid var(--line, #ddd)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.6rem' }}>
+                แก้ไขข้อมูล
+              </div>
+
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+                ชื่อ
+              </label>
+              <input
+                data-testid="edit-person-name"
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+              />
+
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+                ชื่อเล่น
+              </label>
+              <input
+                data-testid="edit-person-nick"
+                type="text"
+                value={editNick}
+                onChange={(e) => setEditNick(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+              />
+
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+                ปีเกิด
+              </label>
+              <input
+                data-testid="edit-person-born"
+                type="number"
+                value={editBorn}
+                onChange={(e) => setEditBorn(e.target.value)}
+                placeholder="เช่น 1960"
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+              />
+
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+                บ้านเกิด
+              </label>
+              <input
+                data-testid="edit-person-hometown"
+                type="text"
+                value={editHometown}
+                onChange={(e) => setEditHometown(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+              />
+
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+                เพศ
+              </label>
+              <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem' }}>
+                <button
+                  type="button"
+                  data-testid="edit-person-gender-m"
+                  onClick={() => setEditGender('m')}
+                  style={{ flex: 1, padding: '0.35rem', borderRadius: '5px', border: `1px solid ${editGender === 'm' ? 'var(--leaf, #6b8f5e)' : 'var(--line, #ddd)'}`, background: editGender === 'm' ? 'var(--leaf, #6b8f5e)' : 'transparent', color: editGender === 'm' ? '#fff' : 'var(--ink, #2a1f14)', cursor: 'pointer', fontFamily: 'Sarabun, serif', fontSize: '0.85rem' }}
+                >
+                  ชาย
+                </button>
+                <button
+                  type="button"
+                  data-testid="edit-person-gender-f"
+                  onClick={() => setEditGender('f')}
+                  style={{ flex: 1, padding: '0.35rem', borderRadius: '5px', border: `1px solid ${editGender === 'f' ? 'var(--leaf, #6b8f5e)' : 'var(--line, #ddd)'}`, background: editGender === 'f' ? 'var(--leaf, #6b8f5e)' : 'transparent', color: editGender === 'f' ? '#fff' : 'var(--ink, #2a1f14)', cursor: 'pointer', fontFamily: 'Sarabun, serif', fontSize: '0.85rem' }}
+                >
+                  หญิง
+                </button>
+              </div>
+
+              {editError && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '5px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+                  {editError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={closeEditMode}
+                  disabled={editSaving}
+                  style={{ padding: '0.4rem 0.8rem', borderRadius: '5px', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'Sarabun, serif', fontSize: '0.85rem', opacity: 0.7 }}
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  data-testid="edit-person-save"
+                  onClick={handleEditSave}
+                  disabled={editSaving || !editName.trim()}
+                  style={{ padding: '0.4rem 0.9rem', borderRadius: '5px', border: 'none', background: 'var(--leaf, #6b8f5e)', color: '#fff', cursor: editSaving || !editName.trim() ? 'not-allowed' : 'pointer', opacity: editSaving || !editName.trim() ? 0.5 : 1, fontFamily: 'Sarabun, serif', fontSize: '0.85rem', fontWeight: 500 }}
+                >
+                  {editSaving ? 'กำลังบันทึก…' : 'บันทึก'}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

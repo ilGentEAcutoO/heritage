@@ -13,6 +13,8 @@ export interface SidebarProps {
     alive: number;
     photos: number;
   };
+  /** When provided, renders a "+ เพิ่มคน" button in the people list header. */
+  onAddPerson?: () => void;
 }
 
 /**
@@ -26,6 +28,7 @@ export function Sidebar({
   onQueryChange,
   filteredPeople,
   stats,
+  onAddPerson,
 }: SidebarProps) {
   const sorted = [...filteredPeople].sort(
     (a, b) => (a.born ?? 0) - (b.born ?? 0),
@@ -47,7 +50,30 @@ export function Sidebar({
 
       {/* People list */}
       <div className="sidebar-section">
-        <h4>คนในตระกูล ({filteredPeople.length})</h4>
+        <h4 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0 }}>
+          <span>คนในตระกูล ({filteredPeople.length})</span>
+          {onAddPerson && (
+            <button
+              type="button"
+              data-testid="add-person-button"
+              onClick={onAddPerson}
+              style={{
+                padding: '0.2rem 0.55rem',
+                borderRadius: '5px',
+                border: '1px solid var(--leaf, #6b8f5e)',
+                background: 'var(--leaf, #6b8f5e)',
+                color: '#fff',
+                cursor: 'pointer',
+                fontFamily: 'Sarabun, serif',
+                fontSize: '0.78rem',
+                fontWeight: 500,
+                lineHeight: 1.4,
+              }}
+            >
+              + เพิ่มคน
+            </button>
+          )}
+        </h4>
         <div className="people-list">
           {sorted.map(p => (
             <button
