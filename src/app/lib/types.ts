@@ -6,6 +6,8 @@ export interface Person {
   nick?: string;
   born: number | null;
   died: number | null;
+  /** Source of truth for alive/deceased. `died` is the optional year detail. */
+  deceased: boolean;
   gender: 'm' | 'f';
   hometown?: string;
   parents?: string[];       // ordered [fatherId, motherId] or subset
@@ -53,6 +55,8 @@ export interface LineageMember {
   nick?: string;
   born?: number | null;
   died?: number | null;
+  /** Optional for preview members; falls back to (died != null) when absent. */
+  deceased?: boolean;
   gender: 'm' | 'f';
   parents?: string[];
   spouseOf?: string;

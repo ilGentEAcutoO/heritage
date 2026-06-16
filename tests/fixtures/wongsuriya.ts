@@ -12,7 +12,7 @@
  */
 import type { TreeData, Person } from '@app/lib/types';
 
-const people: Person[] = [
+const peopleBase: Omit<Person, 'deceased'>[] = [
   // Gen 1 — great-grandparents (Wongsuriya paternal line)
   { id: 'p1', name: 'ก้าน วงศ์สุริยา',     nameEn: 'Kan Wongsuriya',      nick: 'ก้าน',   born: 1918, died: 1994, gender: 'm', hometown: 'อยุธยา' },
   { id: 'p2', name: 'มาลี วงศ์สุริยา',     nameEn: 'Malee Wongsuriya',    nick: 'มาลี',  born: 1922, died: 2001, gender: 'f', hometown: 'อยุธยา', spouseOf: 'p1' },
@@ -42,6 +42,8 @@ const people: Person[] = [
   { id: 'k3', name: 'ดำรง แก้วใส',        nameEn: 'Damrong Kaewsai',     nick: 'ดำรง',  born: 1948, died: null, gender: 'm', external: true, lineageOf: 'kaewsai' },
   { id: 'k4', name: 'พิมพ์ แก้วใส',       nameEn: 'Pim Kaewsai',         nick: 'พิมพ์', born: 1951, died: null, gender: 'f', external: true, lineageOf: 'kaewsai', spouseOf: 'k3' },
 ];
+// Derive `deceased` (source of truth) from whether a death year is recorded.
+const people: Person[] = peopleBase.map((p) => ({ ...p, deceased: p.died != null }));
 
 export const wongsuriya: TreeData = {
   meta: {

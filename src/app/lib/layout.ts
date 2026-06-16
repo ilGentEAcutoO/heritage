@@ -19,6 +19,7 @@ export interface LayoutPerson {
   nick: string;
   born: number;
   died: number | null;
+  deceased: boolean;
   gender: 'm' | 'f';
   hometown?: string;
   parents?: string[];
@@ -41,6 +42,7 @@ export function toLayoutPerson(p: Person): LayoutPerson | null {
     nick,
     born: p.born,
     died: p.died,
+    deceased: p.deceased,
     gender: p.gender,
     hometown: p.hometown,
     parents: p.parents,
@@ -56,6 +58,7 @@ export interface LineagePreviewPerson {
   nick: string;
   born: number;
   died: number | null;
+  deceased?: boolean;
   gender: 'm' | 'f';
   parents?: string[];
   spouseOf?: string;

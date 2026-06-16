@@ -246,6 +246,8 @@ export async function seedDemo(
     nick: p.nick,
     born: p.born,
     died: p.died,
+    // Seed people are deceased iff they have a recorded death year.
+    deceased: p.died != null,
     gender: p.gender,
     hometown: p.hometown,
     is_me: p.is_me,

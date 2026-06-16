@@ -77,6 +77,10 @@ export const people = sqliteTable(
     nick: text('nick'),
     born: integer('born'),
     died: integer('died'),
+    // Source of truth for alive/deceased. `died` (year) is now an optional detail:
+    // deceased=false → alive; deceased=true + died=<year> → died that year;
+    // deceased=true + died=null → deceased, year unknown.
+    deceased: integer('deceased', { mode: 'boolean' }).notNull().default(false),
     gender: text('gender', { enum: ['m', 'f'] }),
     hometown: text('hometown'),
     is_me: integer('is_me', { mode: 'boolean' }).notNull().default(false),

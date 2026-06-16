@@ -39,6 +39,8 @@ export interface PersonRow {
   nick: string | null;
   born: number | null;
   died: number | null;
+  /** Source of truth for alive/deceased; `died` is an optional year detail. */
+  deceased: boolean;
   gender: 'm' | 'f' | null;
   hometown: string | null;
   isMe: boolean;
@@ -212,6 +214,7 @@ export async function getTreeData(
     nick: p.nick,
     born: p.born,
     died: p.died,
+    deceased: p.deceased,
     gender: p.gender,
     hometown: p.hometown,
     isMe: p.is_me,

@@ -35,7 +35,7 @@ const people = [
   { id: 'p14', nick: 'กานต์', born: 1998, died: null, gender: 'm' as const, hometown: 'กรุงเทพ', parents: ['p9', 'p10'] },
   { id: 'p15', nick: 'แพรว',  born: 2000, died: null, gender: 'f' as const, hometown: 'ระยอง', parents: ['p9', 'p10'] },
   { id: 'p16', nick: 'ติณณ์', born: 2008, died: null, gender: 'm' as const, hometown: 'ภูเก็ต', parents: ['p11'] },
-];
+].map((p) => ({ ...p, deceased: p.died != null }));
 
 // p6 (Pranom / ประนอม) lineage — Jaidee family, 2 ancestry levels above
 const lineages: Record<string, {
@@ -305,6 +305,7 @@ describe('toLayoutPerson', () => {
       nick: 'ทดสอบ',
       born: null,
       died: null,
+      deceased: false,
       gender: 'f' as const,
     };
     expect(toLayoutPerson(person)).toBeNull();
@@ -317,6 +318,7 @@ describe('toLayoutPerson', () => {
       name: 'กาน วงศ์สุริยา',
       born: 1918,
       died: 1994,
+      deceased: true,
       gender: 'm' as const,
       hometown: 'อยุธยา',
       parents: ['p0a', 'p0b'],
@@ -342,6 +344,7 @@ describe('toLayoutPerson', () => {
       name: 'สมหวัง',
       born: 1960,
       died: null,
+      deceased: false,
       gender: 'm' as const,
     };
     const result = toLayoutPerson(person);
@@ -354,6 +357,7 @@ describe('toLayoutPerson', () => {
       id: 'p66',
       born: 1970,
       died: null,
+      deceased: false,
       gender: 'f' as const,
     };
     const result = toLayoutPerson(person);
@@ -371,8 +375,8 @@ describe('layoutBaseTree — mutual-spouse cycle safety', () => {
     // Regression: p1.spouseOf=p2 and p2.spouseOf=p1 with neither having parents
     // used to recurse depth(p1) -> depth(p2) -> depth(p1) -> ...
     const mutual = [
-      { id: 'p1', nick: 'A', born: 1900, died: null, gender: 'm' as const, spouseOf: 'p2' },
-      { id: 'p2', nick: 'B', born: 1900, died: null, gender: 'f' as const, spouseOf: 'p1' },
+      { id: 'p1', nick: 'A', born: 1900, died: null, deceased: false, gender: 'm' as const, spouseOf: 'p2' },
+      { id: 'p2', nick: 'B', born: 1900, died: null, deceased: false, gender: 'f' as const, spouseOf: 'p1' },
     ].map(toLayoutPerson).filter((p): p is NonNullable<typeof p> => p !== null);
 
     expect(() => layoutBaseTree(mutual)).not.toThrow();

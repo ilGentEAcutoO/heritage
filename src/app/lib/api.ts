@@ -58,6 +58,7 @@ export interface ApiTreeResponse {
     nick: string | null;
     born: number | null;
     died: number | null;
+    deceased: boolean;
     gender: 'm' | 'f' | null;
     hometown: string | null;
     isMe: boolean;
@@ -276,6 +277,7 @@ export function adaptTree(raw: ApiTreeResponse): TreeData {
     nick: p.nick ?? undefined,
     born: p.born,
     died: p.died,
+    deceased: p.deceased,
     gender: (p.gender ?? 'm') as 'm' | 'f',
     hometown: p.hometown ?? undefined,
     // Deduplicate parents and spouses (seed data may produce duplicates from

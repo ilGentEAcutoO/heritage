@@ -43,6 +43,13 @@
       "when": 1777030800000,
       "tag": "0005_extend_auth_tokens_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1781573250196,
+      "tag": "0006_dizzy_toad",
+      "breakpoints": true
     }
   ]
 }
