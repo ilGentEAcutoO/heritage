@@ -1,5 +1,23 @@
 # Active Tasks
 
+> Last updated: 2026-06-16 17:20
+> Workstream: 13-frontend-qa + theme-redesign
+> QA (real browser via Claude-in-Chrome, prod, QA account created+verified via signup UI + backchannel token):
+>   signup→verify→login ✅ · create tree ✅ · add person ✅ · relations (spouse) ✅ · photo upload ✅ ·
+>   size-limit msg ✅ · wrong-type msg ✅ · photo delete ✅ · status edit (deceased+year) ✅ · theme picker ✅ ·
+>   share dialog + public link + invite UI ✅ · user menu ✅. No console errors throughout.
+> Theme redesign (user: "ธีมประหลาดเกิน ขอพาสเทลอ่อน/น่าเชื่อถือ") ✅ SHIPPED:
+>   - Root cause: forest/blueprint were dark-mode inversions (--paper L=0.22/0.32); rose/ocean over-saturated.
+>   - Fix: all palettes now LIGHT tinted-paper base (L~0.97) + low-chroma pastel accents. Keys unchanged
+>     (stored values + zod enum valid); forest/blueprint relabelled Sage/Sky in picker + tweaks panel.
+>   - Files: palettes.ts, ThemePicker.tsx (swatches+labels), TweaksPanel.tsx, styles.css body.theme-*,
+>     18-theme.spec.ts (FOREST_VARS updated to soft values).
+>   - Chosen degree: พาสเทลอ่อน (chroma ~0.07-0.09), previewed live in-browser before commit.
+>   - Proof: typecheck 0 · 574/574 · build · CI 27610322947 · Deploy 27610385753 · prod real-browser (Sage
+>     applies oklch(0.972 0.012 135)) · 18-theme e2e TH1/TH2 green.
+>   - Commit: 518f40f.
+>
+> --- (earlier this session) ---
 > Last updated: 2026-06-16 14:01
 > Workstream: 12-abuse-hardening (rate-limit + file-size + tree quota)
 > Goal: "ทำ rate limit การปรับเปลี่ยนภาพ หรือการอัปโหลดภาพ ขนาด ไฟล์ และจำกัดจำนวนครอบครัวที่สร้างได้"
