@@ -210,6 +210,30 @@ const s = {
     fontSize: '0.85rem',
     padding: '0.5rem 0',
   },
+  copyLinkRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    marginTop: '0.25rem',
+  },
+  copyLinkBtn: {
+    padding: '0.55rem 1rem',
+    background: 'var(--leaf, #6b8f5e)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    fontFamily: 'Sarabun, serif',
+    fontWeight: 600 as const,
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    transition: 'opacity 0.15s',
+  },
+  copyLinkConfirm: {
+    fontSize: '0.85rem',
+    color: 'var(--leaf, #6b8f5e)',
+    fontWeight: 600 as const,
+  },
 };
 
 const VISIBILITY_OPTIONS: { value: Visibility; label: string; desc: string }[] = [
@@ -227,6 +251,8 @@ export function ShareDialog({ slug, currentVisibility, open, onClose }: ShareDia
   const [inviting, setInviting] = useState(false);
   const [visChanging, setVisChanging] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   const fetchShares = useCallback(async () => {
@@ -271,7 +297,38 @@ export function ShareDialog({ slug, currentVisibility, open, onClose }: ShareDia
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  // Clear the copy-confirmation timer on unmount (the dialog unmounts on close)
+  // so the 2s timeout can't fire setCopied on an unmounted component.
+  useEffect(() => () => {
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+  }, []);
+
   if (!open) return null;
+
+  async function handleCopyLink() {
+    const url = `${location.origin}/tree/${slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Fallback: create a temporary textarea and use execCommand
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch {
+        // Last resort: do nothing (URL shown in button title)
+      }
+    }
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    setCopied(true);
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+  }
 
   async function handleVisibilityChange(v: Visibility) {
     setVisChanging(true);
@@ -378,6 +435,28 @@ export function ShareDialog({ slug, currentVisibility, open, onClose }: ShareDia
             );
           })}
         </div>
+
+        {/* Copy link section — only shown when public */}
+        {visibility === 'public' && (
+          <>
+            <hr style={s.divider} />
+            <span style={s.sectionLabel}>ลิงก์สาธารณะ</span>
+            <div style={s.copyLinkRow}>
+              <button
+                type="button"
+                data-testid="share-copy-link"
+                style={s.copyLinkBtn}
+                onClick={handleCopyLink}
+                title={`${location.origin}/tree/${slug}`}
+              >
+                คัดลอกลิงก์
+              </button>
+              {copied && (
+                <span style={s.copyLinkConfirm}>คัดลอกแล้ว ✓</span>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Invite section — only shown when shared */}
         {visibility === 'shared' && (

@@ -18,6 +18,8 @@ import * as schema from '../../db/schema';
 import { newId } from '../lib/ids';
 import { purgeTreeCache } from '../lib/cache-purge';
 import { resolveOwnerTree } from '../lib/resolve-owner-tree';
+import { sendShareInvitationEmail } from '../lib/email';
+import type { SendEmailBinding } from '../lib/email';
 
 export const sharesRouter = new Hono<HonoEnv>();
 
@@ -185,6 +187,22 @@ sharesRouter.post('/:slug/shares', async (c) => {
   // purging here keeps symmetry with visibility mutations and future-proofs
   // us against cache-key changes.
   await purgeTreeCache(c.req.url, slug);
+
+  // Best-effort invitation email — must NOT fail or block the invite on email error.
+  // Guard inside the try so even a throwing env getter can't break the invite.
+  try {
+    if (c.env?.EMAIL) {
+      await sendShareInvitationEmail(c.env.EMAIL as unknown as SendEmailBinding, {
+        to: email,
+        treeName: tree.name,
+        inviterName: user.displayName ?? undefined,
+        treeSlug: slug,
+        appUrl: c.env?.APP_URL ?? 'http://localhost:5173',
+      });
+    }
+  } catch {
+    /* best-effort */
+  }
 
   return c.json({ share }, 201);
 });

@@ -299,3 +299,112 @@ export async function sendMagicLinkEmail(
     html,
   });
 }
+
+// ---------------------------------------------------------------------------
+// Share-invitation email
+// ---------------------------------------------------------------------------
+
+export interface ShareInvitationEmailOptions {
+  to: string;
+  treeName: string;
+  inviterName?: string;
+  treeSlug: string;
+  appUrl: string;
+}
+
+export async function sendShareInvitationEmail(
+  binding: SendEmailBinding,
+  opts: ShareInvitationEmailOptions,
+): Promise<void> {
+  const treeUrl = `${opts.appUrl}/tree/${opts.treeSlug}`;
+  const inviterLabel = opts.inviterName ?? 'เจ้าของต้นไม้ / the tree owner';
+
+  const text = [
+    'สวัสดีครับ,',
+    '',
+    `${inviterLabel} ได้เชิญคุณให้เข้าถึงต้นไม้ครอบครัว "${opts.treeName}" บน Heritage`,
+    'ลงชื่อเข้าใช้หรือสมัครสมาชิกด้วยอีเมลนี้เพื่อรับสิทธิ์เข้าถึง (การแชร์จะเปิดใช้งานโดยอัตโนมัติเมื่อยืนยันอีเมล)',
+    '',
+    treeUrl,
+    '',
+    '—',
+    '',
+    'Hi,',
+    '',
+    `${inviterLabel} has invited you to access the family tree "${opts.treeName}" on Heritage.`,
+    'Sign in or sign up with this email address to gain access — the share activates automatically once your email is verified.',
+    '',
+    treeUrl,
+    '',
+    'ถ้าคุณไม่ได้คาดหวังอีเมลนี้ ให้ละเว้นได้เลย.',
+    "If you weren't expecting this invitation, you can safely ignore this email.",
+  ].join('\n');
+
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heritage — คำเชิญเข้าถึงต้นไม้ครอบครัว / Family tree invitation</title>
+</head>
+<body style="margin:0;padding:0;background:#f9f7f4;font-family:sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f7f4;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#6b8f5e;padding:24px 32px;">
+              <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:0.5px;">Heritage</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="margin:0 0 8px;font-size:20px;color:#2d2d2d;">คำเชิญเข้าถึงต้นไม้ครอบครัว / Family tree invitation</h1>
+              <p style="margin:0 0 4px;font-size:14px;color:#555;">สวัสดีครับ,</p>
+              <p style="margin:0 0 4px;font-size:14px;color:#555;">
+                <strong>${opts.inviterName ?? 'เจ้าของต้นไม้'}</strong> ได้เชิญคุณให้เข้าถึงต้นไม้ครอบครัว
+                <strong>&ldquo;${opts.treeName}&rdquo;</strong> บน Heritage
+              </p>
+              <p style="margin:0 0 24px;font-size:14px;color:#555;">
+                <strong>${opts.inviterName ?? 'The tree owner'}</strong> has invited you to access the family tree
+                <strong>&ldquo;${opts.treeName}&rdquo;</strong> on Heritage.
+              </p>
+              <p style="margin:0 0 8px;font-size:14px;color:#555;">
+                ลงชื่อเข้าใช้หรือสมัครสมาชิกด้วยอีเมลนี้เพื่อรับสิทธิ์เข้าถึง การแชร์จะเปิดใช้งานโดยอัตโนมัติเมื่อยืนยันอีเมล
+              </p>
+              <p style="margin:0 0 24px;font-size:14px;color:#555;">
+                Sign in or sign up with this email address to gain access — the share activates automatically once your email is verified.
+              </p>
+              <p style="margin:0 0 24px;">
+                <a href="${treeUrl}"
+                   style="display:inline-block;padding:12px 28px;background:#6b8f5e;color:#ffffff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;">
+                  ดูต้นไม้ครอบครัว / View family tree
+                </a>
+              </p>
+              <p style="margin:0 0 24px;font-size:13px;color:#777;">
+                หรือคัดลอกลิงก์นี้ / Or copy this link:<br>
+                <a href="${treeUrl}" style="color:#6b8f5e;word-break:break-all;">${treeUrl}</a>
+              </p>
+              <hr style="border:none;border-top:1px solid #ebebeb;margin:0 0 24px;">
+              <p style="margin:0;font-size:12px;color:#aaa;">
+                ถ้าคุณไม่ได้คาดหวังอีเมลนี้ ให้ละเว้นได้เลย.<br>
+                If you weren't expecting this invitation, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  await binding.send({
+    to: opts.to,
+    from: { email: FROM_ADDRESS, name: FROM_NAME },
+    replyTo: REPLY_TO,
+    subject: `Heritage — คุณได้รับเชิญให้เข้าถึง "${opts.treeName}" / You're invited to "${opts.treeName}"`,
+    text,
+    html,
+  });
+}
