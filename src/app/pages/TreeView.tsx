@@ -212,7 +212,11 @@ export function TreeView({ treeSlug }: TreeViewProps) {
     );
   }
 
-  if (loading) {
+  // Only show the full-screen loader on the INITIAL load (no data yet). On a
+  // refetch() after a mutation, keep the current view mounted and update in
+  // place — otherwise the whole tree (incl. the open ProfileDrawer/tab) would
+  // unmount and remount, losing UI state (e.g. the selected Photos tab).
+  if (loading && !data) {
     return (
       <div
         style={{
