@@ -142,8 +142,8 @@ test.describe('Build tree — owner CRUD', () => {
         expect(nodesAfter).toBeGreaterThan(nodesBefore);
       }).toPass({ timeout: 15_000 });
 
-      // Alternatively, verify the person name appears somewhere visible
-      await expect(page.getByText(addedPersonName)).toBeVisible({ timeout: 10_000 });
+      // Verify the person name appears (sidebar list + the auto-selected drawer → use .first())
+      await expect(page.getByText(addedPersonName).first()).toBeVisible({ timeout: 10_000 });
 
       expect(consoleMsgs.errors, `console errors: ${consoleMsgs.errors.join(' | ')}`).toEqual([]);
       expect(consoleMsgs.warnings, `console warnings: ${consoleMsgs.warnings.join(' | ')}`).toEqual([]);
@@ -196,7 +196,7 @@ test.describe('Build tree — owner CRUD', () => {
       await page.getByTestId('add-person-submit').click();
 
       // Wait for person to appear on canvas
-      await expect(page.getByText(personName)).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByText(personName).first()).toBeVisible({ timeout: 15_000 });
 
       // Click the person node to open ProfileDrawer
       const personNode = page.locator(ANY_PERSON_NODE).first();
@@ -289,7 +289,7 @@ test.describe('Build tree — owner CRUD', () => {
       await page.getByTestId('add-person-submit').click();
 
       // Wait for person to appear
-      await expect(page.getByText(personName)).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByText(personName).first()).toBeVisible({ timeout: 15_000 });
 
       // Count nodes before delete
       const nodesBeforeDelete = await page.locator(ANY_PERSON_NODE).count();
@@ -305,26 +305,10 @@ test.describe('Build tree — owner CRUD', () => {
       await expect(deleteBtn).toBeVisible({ timeout: 10_000 });
       await deleteBtn.click();
 
-      // Confirm deletion if a confirm step appears
-      // Try common confirm patterns: another delete button, or a confirm button
-      const confirmDelete = page.getByTestId('delete-person-button').or(
-        page.getByRole('button', { name: /ยืนยัน|ลบ|confirm|delete/i }),
-      );
-      // Wait briefly — if a second confirm appears, click it
-      const confirmVisible = await confirmDelete.first().isVisible({ timeout: 3_000 }).catch(() => false);
-      if (confirmVisible) {
-        // Click the second time to confirm (skip if it was already the first delete)
-        const allDeleteBtns = page.getByTestId('delete-person-button');
-        const count = await allDeleteBtns.count();
-        if (count > 0) {
-          // Only click again if there's a confirm-specific button separate from delete
-          const confirmOnlyBtn = page.getByRole('button', { name: /ยืนยัน|confirm/i });
-          const hasConfirm = await confirmOnlyBtn.isVisible({ timeout: 2_000 }).catch(() => false);
-          if (hasConfirm) {
-            await confirmOnlyBtn.click();
-          }
-        }
-      }
+      // After the first click the "ลบคนนี้" button is replaced by a "ยืนยัน" confirm.
+      const confirmBtn = page.getByRole('button', { name: 'ยืนยัน' });
+      await expect(confirmBtn).toBeVisible({ timeout: 5_000 });
+      await confirmBtn.click();
 
       // Person node count should decrease
       await expect(async () => {

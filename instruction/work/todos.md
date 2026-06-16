@@ -3,9 +3,12 @@
 > Last updated: 2026-06-16 (planning)
 > Workstream: 09-multi-tree-epic / Phase 1 (create & build + sharing polish)
 > Plan: `instruction/work/plan.md` · Requirements: `instruction/work/requirements.md`
-> Status: 🟦 Stage 1 ✅ SHIPPED & LIVE (create-tree flow). CHECKPOINT — awaiting go for Stage 2.
-> Stage 1 proof: typecheck 0 · unit 475/475 · adversarial review PASS · CI 27593510350 ·
->   Deploy 27593550508 · e2e vs prod 2/2 (SC1 create→land→dashboard, SC2 slug validation).
+> Status: 🟦 Stage 1 ✅ LIVE · Stage 2 ✅ LIVE (people/relations CRUD) · Stage 3 🔵 NEXT (sharing polish) ·
+>   Goal "ลุยให้จบเลยไม่ต้องถาม" — autonomous, no checkpoints.
+> Stage 1 proof: CI 27593510350 · Deploy 27593550508 · e2e 2/2.
+> Stage 2 proof: typecheck 0 · 525/525 unit+integration (50 new) · Opus security 8/8 + integrity 4/4 PASS ·
+>   CI 27594744804 · Deploy(s) 27594787508/27595032812 · e2e vs prod 4/4 build-tree (BT1-BT5) +
+>   regression 14-create-tree + 13-status-edit green. Bonus: Sidebar shows name when nick absent.
 
 ## Phase 1 — 3 shippable stages (checkpoint between each)
 
