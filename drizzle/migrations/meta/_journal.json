@@ -50,6 +50,13 @@
       "when": 1781573250196,
       "tag": "0006_dizzy_toad",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1781590104424,
+      "tag": "0007_flat_loa",
+      "breakpoints": true
     }
   ]
 }

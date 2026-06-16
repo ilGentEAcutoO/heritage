@@ -41,6 +41,9 @@ export const trees = sqliteTable(
     visibility: text('visibility', { enum: ['public', 'private', 'shared'] })
       .notNull()
       .default('public'),
+    // Per-tree theme palette key (e.g. 'forest'); null = default palette.
+    // Set by the owner, applied for all viewers of the tree.
+    theme: text('theme'),
   },
   (t) => ({
     slugIdx: index('idx_trees_slug').on(t.slug),
