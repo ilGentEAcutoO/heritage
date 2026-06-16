@@ -10,6 +10,7 @@ import { apiClient } from '@app/lib/api';
 import type { TreeSummary } from '@app/lib/api';
 import { CreateTreeDialog } from '@app/components/CreateTreeDialog';
 
+const FONT = '"Prompt", system-ui, sans-serif';
 const s = {
   page: {
     minHeight: '100vh',
@@ -17,77 +18,85 @@ const s = {
     flexDirection: 'column' as const,
     alignItems: 'center',
     padding: '3rem 2rem',
-    fontFamily: 'Sarabun, serif',
-    background: 'var(--bg, #faf8f4)',
-    color: 'var(--ink, #2a1f14)',
+    fontFamily: FONT,
+    background: 'radial-gradient(80% 50% at 50% 0%, #ffffff 0%, var(--bg, #eef0f4) 70%)',
+    color: 'var(--ink, #1e2430)',
   },
   inner: {
     width: '100%',
     maxWidth: '680px',
   },
   heading: {
-    fontFamily: 'Cormorant Garamond, serif',
-    fontSize: '2rem',
+    fontFamily: FONT,
+    fontSize: '1.9rem',
     fontWeight: 600 as const,
-    margin: '0 0 0.25rem',
+    margin: '0 0 0.2rem',
+    letterSpacing: '-0.01em',
   },
   sub: {
     fontSize: '0.9rem',
-    opacity: 0.55,
+    color: 'var(--ink-faint, #98a1b0)',
     margin: '0 0 2rem',
   },
   section: {
     marginBottom: '1.75rem',
   },
   sectionTitle: {
-    fontSize: '0.75rem',
+    fontSize: '0.72rem',
     fontWeight: 600 as const,
-    letterSpacing: '0.08em',
+    letterSpacing: '0.1em',
     textTransform: 'uppercase' as const,
-    opacity: 0.5,
-    margin: '0 0 0.6rem',
-    paddingBottom: '0.4rem',
-    borderBottom: '1px solid var(--line, #e4ddd4)',
+    color: 'var(--ink-faint, #98a1b0)',
+    margin: '0 0 0.75rem',
   },
   row: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.75rem',
-    padding: '0.7rem 0',
-    borderBottom: '1px solid var(--line, #e4ddd4)',
+    padding: '0.9rem 1.1rem',
+    marginBottom: '0.6rem',
+    background: 'var(--paper, #fff)',
+    border: '1px solid var(--line, #e8eaef)',
+    borderRadius: 'var(--radius, 14px)',
+    boxShadow: 'var(--shadow-sm, 0 1px 2px rgba(20,28,46,.05))',
+    transition: 'transform 140ms ease, box-shadow 140ms ease',
   },
   name: {
     flex: 1,
     fontSize: '1rem',
-    fontWeight: 500 as const,
+    fontWeight: 600 as const,
     textDecoration: 'none',
-    color: 'var(--ink, #2a1f14)',
+    color: 'var(--ink, #1e2430)',
   },
   badge: (role: string) => ({
     fontSize: '0.7rem',
     fontWeight: 600 as const,
-    letterSpacing: '0.04em',
-    padding: '0.2rem 0.55rem',
-    borderRadius: '99px',
+    letterSpacing: '0.03em',
+    padding: '0.25rem 0.6rem',
+    borderRadius: '999px',
     background:
       role === 'owner'
-        ? 'var(--leaf, #6b8f5e)'
+        ? 'var(--leaf-soft, #d8f5ea)'
         : role === 'editor'
-        ? 'var(--blossom, #c4855a)'
-        : '#9aa3a2',
-    color: '#fff',
-    textTransform: 'capitalize' as const,
+        ? 'var(--blossom-soft, #ffe6df)'
+        : '#eef0f4',
+    color:
+      role === 'owner'
+        ? 'var(--leaf-strong, #0ca678)'
+        : role === 'editor'
+        ? '#d2521f'
+        : 'var(--ink-soft, #5d6675)',
     whiteSpace: 'nowrap' as const,
   }),
   empty: {
-    opacity: 0.45,
+    color: 'var(--ink-faint, #98a1b0)',
     fontSize: '0.9rem',
-    padding: '1rem 0',
+    padding: '0.5rem 0',
   },
   error: {
     background: '#fef2f2',
     border: '1px solid #fca5a5',
-    borderRadius: '5px',
+    borderRadius: '10px',
     padding: '0.65rem 0.8rem',
     fontSize: '0.875rem',
     color: '#991b1b',
@@ -97,9 +106,8 @@ const s = {
     display: 'inline-block',
     marginBottom: '1.5rem',
     fontSize: '0.85rem',
-    color: 'var(--leaf, #6b8f5e)',
+    color: 'var(--ink-soft, #5d6675)',
     textDecoration: 'none',
-    opacity: 0.8,
   },
   headerRow: {
     display: 'flex',
@@ -110,15 +118,16 @@ const s = {
   },
   createBtn: {
     flexShrink: 0,
-    padding: '0.55rem 1rem',
-    borderRadius: '6px',
+    padding: '0.65rem 1.3rem',
+    borderRadius: '999px',
     border: 'none',
-    background: 'var(--leaf, #6b8f5e)',
+    background: 'var(--accent-grad, linear-gradient(135deg,#20c997,#0ca678))',
     color: '#fff',
     cursor: 'pointer',
-    fontFamily: 'Sarabun, serif',
+    fontFamily: FONT,
     fontSize: '0.9rem',
-    fontWeight: 500 as const,
+    fontWeight: 600 as const,
+    boxShadow: '0 4px 14px rgba(12,166,120,.3)',
     whiteSpace: 'nowrap' as const,
   },
 };
@@ -179,7 +188,7 @@ export function Trees() {
         {errorMsg && <div style={s.error}>{errorMsg}</div>}
 
         {fetchLoading ? (
-          <p style={{ opacity: 0.4, fontFamily: 'Sarabun, serif' }}>กำลังโหลด…</p>
+          <p style={{ color: 'var(--ink-faint, #98a1b0)', fontFamily: FONT }}>กำลังโหลด…</p>
         ) : (
           <>
             {/* Owned trees */}
@@ -215,7 +224,17 @@ export function Trees() {
 
 function TreeRow({ tree }: { tree: TreeSummary }) {
   return (
-    <div style={s.row}>
+    <div
+      style={s.row}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = 'var(--shadow, 0 8px 24px rgba(20,28,46,.08))';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm, 0 1px 2px rgba(20,28,46,.05))';
+      }}
+    >
       <Link to={`/tree/${tree.slug}`} style={s.name}>
         {tree.name}
         {tree.name_en && (
