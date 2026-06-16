@@ -1,17 +1,31 @@
 :root {
-  --paper: oklch(0.96 0.015 80);
-  --paper-2: oklch(0.93 0.02 75);
-  --ink: oklch(0.25 0.02 60);
-  --ink-soft: oklch(0.45 0.02 60);
-  --ink-faint: oklch(0.65 0.015 60);
-  --bark: oklch(0.4 0.05 50);
-  --leaf: oklch(0.55 0.08 140);
-  --leaf-soft: oklch(0.7 0.06 140);
-  --blossom: oklch(0.68 0.14 45);
-  --blossom-soft: oklch(0.85 0.06 45);
-  --sepia: oklch(0.78 0.04 70);
-  --line: oklch(0.85 0.02 70);
-  --rule: oklch(0.75 0.02 70);
+  /* Soft-modern design system. Surfaces are light; UI floats as rounded cards
+     on a neutral canvas (--bg). Accent is emerald. */
+  --bg: #eef0f4;            /* app canvas behind the floating cards */
+  --paper: #ffffff;         /* card / surface */
+  --paper-2: #f3f4f7;       /* subtle hover / inset surface */
+  --ink: #1e2430;
+  --ink-soft: #5d6675;
+  --ink-faint: #98a1b0;
+  --bark: #cbd1db;          /* tree connectors / structural strokes */
+  --leaf: #12b886;          /* primary accent (emerald) */
+  --leaf-strong: #0ca678;
+  --leaf-soft: #d8f5ea;
+  --blossom: #ff7a59;       /* secondary accent (warm coral) */
+  --blossom-soft: #ffe6df;
+  --sepia: #aab2c0;
+  --line: #e8eaef;
+  --rule: #e0e3ea;
+  /* shape */
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  /* elevation */
+  --shadow-sm: 0 1px 2px rgba(20,28,46,.05);
+  --shadow: 0 1px 3px rgba(20,28,46,.06), 0 8px 24px rgba(20,28,46,.06);
+  --shadow-lg: 0 16px 50px rgba(20,28,46,.16);
+  --accent-grad: linear-gradient(135deg, #20c997, #0ca678);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,15 +33,16 @@
 html, body { height: 100%; overflow: hidden; }
 
 body {
-  font-family: "Sarabun", "Cormorant Garamond", serif;
-  background: var(--paper);
+  font-family: "Prompt", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
   color: var(--ink);
   font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-.serif { font-family: "Cormorant Garamond", "Sarabun", serif; }
-.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+.serif { font-family: "Prompt", system-ui, sans-serif; }
+.mono { font-family: "Prompt", system-ui, sans-serif; }
 
 /* ─────── App shell ─────── */
 .app {
@@ -43,7 +58,9 @@ body {
   display: flex; align-items: center;
   padding: 0 24px;
   border-bottom: 1px solid var(--line);
-  background: var(--paper);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(1.4) blur(10px);
+  box-shadow: 0 2px 16px rgba(20, 28, 46, 0.05);
   gap: 20px;
   position: relative;
   /* Above the .drawer (z-index:10) so header dropdowns (UserMenu) stay clickable
@@ -54,7 +71,7 @@ body {
 
 .header-logo {
   display: flex; align-items: center; gap: 10px;
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 24px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -65,7 +82,7 @@ body {
   position: relative;
 }
 .header-logo small {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px; font-weight: 400;
   color: var(--ink-faint);
   letter-spacing: 0.1em;
@@ -81,7 +98,7 @@ body {
   text-align: center;
 }
 .tree-title-kicker {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -89,7 +106,7 @@ body {
   margin-bottom: 2px;
 }
 .tree-title-name {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 20px;
   font-weight: 500;
   font-style: italic;
@@ -98,32 +115,40 @@ body {
 .header-actions { display: flex; gap: 8px; }
 
 .header-btn {
-  padding: 8px 14px;
+  padding: 8px 15px;
   border: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink);
+  background: var(--paper);
+  color: var(--ink-soft);
   font-family: inherit;
   font-size: 13px;
-  border-radius: 4px;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
-  transition: all 120ms;
+  transition: all 140ms ease;
 }
-.header-btn:hover { background: var(--paper-2); border-color: var(--ink-soft); }
-.header-btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.header-btn.primary:hover { background: var(--blossom); border-color: var(--blossom); }
+.header-btn:hover { background: var(--paper-2); border-color: var(--rule); color: var(--ink); }
+.header-btn.primary {
+  background: var(--accent-grad); color: #fff; border-color: transparent;
+  box-shadow: 0 4px 14px rgba(12, 166, 120, 0.32);
+}
+.header-btn.primary:hover { filter: brightness(1.04); box-shadow: 0 6px 18px rgba(12, 166, 120, 0.38); }
 
 /* ─────── Sidebar ─────── */
 .sidebar {
-  border-right: 1px solid var(--line);
   background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin: 14px 0 14px 14px;
   padding: 20px 18px;
   overflow-y: auto;
   display: flex; flex-direction: column; gap: 20px;
 }
 
 .sidebar-section h4 {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.15em;
@@ -137,15 +162,19 @@ body {
 }
 .sidebar-search input {
   width: 100%;
-  padding: 10px 12px 10px 32px;
+  padding: 10px 12px 10px 34px;
   border: 1px solid var(--line);
-  border-radius: 4px;
-  background: transparent;
+  border-radius: var(--radius-sm);
+  background: var(--paper-2);
   font-family: inherit;
   font-size: 13px;
   color: var(--ink);
+  transition: border-color 140ms, box-shadow 140ms, background 140ms;
 }
-.sidebar-search input:focus { outline: none; border-color: var(--ink); }
+.sidebar-search input:focus {
+  outline: none; border-color: var(--leaf); background: var(--paper);
+  box-shadow: 0 0 0 3px rgba(18, 184, 134, 0.15);
+}
 .sidebar-search::before {
   content: '⌕';
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
@@ -160,20 +189,20 @@ body {
   gap: 1px;
 }
 .people-item {
-  padding: 8px 10px;
+  padding: 9px 11px;
   border: none;
   background: transparent;
   text-align: left;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 13px;
   color: var(--ink);
   display: flex; align-items: center; gap: 8px;
-  transition: background 100ms;
+  transition: background 120ms, box-shadow 120ms;
 }
 .people-item:hover { background: var(--paper-2); }
-.people-item.active { background: var(--blossom-soft); }
+.people-item.active { background: var(--leaf-soft); box-shadow: inset 0 0 0 1px rgba(18, 184, 134, 0.28); }
 .people-item .dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--ink-faint);
@@ -182,7 +211,7 @@ body {
 .people-item.alive .dot { background: var(--leaf); }
 .people-item .name { flex: 1; }
 .people-item .yr {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   color: var(--ink-faint);
 }
@@ -191,18 +220,21 @@ body {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
 }
 .stat-card {
-  padding: 10px 12px;
+  padding: 13px 14px;
+  background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 .stat-card .num {
-  font-family: "Cormorant Garamond", serif;
-  font-size: 28px;
-  font-weight: 500;
+  font-family: "Prompt", system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 600;
   line-height: 1;
+  color: var(--leaf);
 }
 .stat-card .lbl {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -357,7 +389,7 @@ body {
 }
 .up-head { margin-bottom: 10px; }
 .up-head-kicker {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -365,14 +397,14 @@ body {
   margin-bottom: 4px;
 }
 .up-head-title {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 22px;
   font-style: italic;
   font-weight: 500;
   line-height: 1;
 }
 .up-head-en {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   color: var(--ink-faint);
   margin-top: 3px;
@@ -388,7 +420,7 @@ body {
   display: flex; flex-direction: column; gap: 8px;
 }
 .up-status {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   color: var(--ink-faint);
 }
@@ -399,7 +431,7 @@ body {
   color: var(--ink-soft);
   margin: 10px 0;
   font-style: italic;
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 15px;
 }
 .passed-ring {
@@ -435,14 +467,14 @@ body {
   pointer-events: none;
 }
 .node-nick {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 15px;
   font-style: italic;
   color: var(--ink);
   font-weight: 500;
 }
 .node-dates {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   color: var(--ink-faint);
   letter-spacing: 0.05em;
@@ -456,9 +488,9 @@ body {
   display: flex; flex-direction: column;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 2px 10px oklch(0.25 0.02 60 / 0.08);
+  box-shadow: var(--shadow);
 }
 .zoom-controls button {
   width: 36px; height: 36px;
@@ -476,14 +508,14 @@ body {
 /* ─────── Drawer ─────── */
 .drawer {
   position: fixed;
-  top: 64px; right: 0;
+  top: 78px; right: 16px; bottom: 16px;
   width: 420px;
-  height: calc(100vh - 64px);
   background: var(--paper);
-  border-left: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   padding: 28px 24px;
   overflow-y: auto;
-  box-shadow: -10px 0 30px oklch(0.25 0.02 60 / 0.06);
+  box-shadow: var(--shadow-lg);
   z-index: 10;
   animation: slideIn 240ms ease-out;
 }
@@ -518,19 +550,21 @@ body {
 .photo-upload-btn {
   position: absolute; bottom: -6px; left: 50%;
   transform: translateX(-50%);
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
+  background: var(--accent-grad);
+  color: #fff;
+  border: 2px solid var(--paper);
   font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 10px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
   font-family: inherit;
+  box-shadow: 0 2px 8px rgba(12, 166, 120, 0.3);
 }
 .profile-ident { flex: 1; min-width: 0; }
 .profile-role {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -538,14 +572,14 @@ body {
   margin-bottom: 4px;
 }
 .profile-name {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 26px;
   font-weight: 500;
   line-height: 1.1;
   margin-bottom: 2px;
 }
 .profile-name-en {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 14px;
   font-style: italic;
   color: var(--ink-soft);
@@ -555,7 +589,7 @@ body {
   display: flex; flex-wrap: wrap; gap: 6px;
 }
 .meta-chip {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   padding: 3px 8px;
   border: 1px solid var(--line);
@@ -586,14 +620,14 @@ body {
   color: var(--ink);
 }
 .tab-label {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 18px;
   font-style: italic;
   flex: 1;
   text-align: left;
 }
 .tab-count {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   padding: 2px 6px;
   background: var(--paper-2);
@@ -608,7 +642,7 @@ body {
 /* Relation section */
 .relation-grid { display: flex; flex-direction: column; gap: 14px; }
 .rel-section h4 {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -654,7 +688,7 @@ body {
   position: absolute;
   left: -60px;
   top: 14px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 11px;
   color: var(--ink-faint);
   width: 40px;
@@ -670,7 +704,7 @@ body {
   box-shadow: 0 0 0 1px var(--blossom);
 }
 .timeline-item h5 {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 17px;
   font-weight: 500;
   font-style: italic;
@@ -709,7 +743,7 @@ body {
 }
 .photo-tile-label {
   position: absolute; bottom: 4px; left: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   color: var(--ink);
   background: oklch(0.96 0.015 80 / 0.75);
@@ -718,7 +752,7 @@ body {
 }
 .photo-tile.more {
   display: flex; align-items: center; justify-content: center;
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 22px;
   font-style: italic;
   color: var(--ink-soft);
@@ -747,13 +781,13 @@ body {
 }
 .memo-body { flex: 1; min-width: 0; }
 .memo-title {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 16px;
   font-style: italic;
   margin-bottom: 2px;
 }
 .memo-meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   color: var(--ink-faint);
   margin-bottom: 6px;
@@ -770,7 +804,7 @@ body {
   border-radius: 0.5px;
 }
 .memo-duration {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   color: var(--ink-faint);
   text-align: right;
@@ -779,26 +813,30 @@ body {
 
 /* Buttons */
 .btn-primary, .btn-secondary, .btn-ghost {
-  padding: 10px 16px;
+  padding: 11px 18px;
   font-family: inherit;
   font-size: 13px;
-  border-radius: 4px;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   border: 1px solid transparent;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  transition: all 120ms;
+  transition: all 140ms ease;
 }
 .btn-primary {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--accent-grad);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(12, 166, 120, 0.3);
 }
-.btn-primary:hover { background: var(--blossom); }
+.btn-primary:hover { filter: brightness(1.04); box-shadow: 0 6px 18px rgba(12, 166, 120, 0.36); }
 .btn-secondary {
-  background: transparent;
+  background: var(--paper);
   color: var(--ink);
   border-color: var(--line);
+  box-shadow: var(--shadow-sm);
 }
-.btn-secondary:hover { background: var(--paper-2); border-color: var(--ink-soft); }
+.btn-secondary:hover { background: var(--paper-2); border-color: var(--rule); }
 .btn-ghost { background: transparent; color: var(--ink-soft); }
 .btn-ghost:hover { color: var(--ink); }
 .full-width { width: 100%; }
@@ -825,7 +863,7 @@ body {
 }
 .pf-title {
   display: flex; justify-content: space-between; align-items: center;
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 18px;
   font-style: italic;
   margin-bottom: 12px;
@@ -867,7 +905,7 @@ body {
   border-top: 1px solid var(--line);
 }
 .pf-relation {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 18px;
   font-style: italic;
 }
@@ -879,7 +917,7 @@ body {
   font-size: 16px;
 }
 .pf-hops {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   color: var(--ink-faint);
   margin-top: 4px;
@@ -890,7 +928,7 @@ body {
 .merge-drawer { width: 460px; }
 .merge-header { margin-bottom: 20px; }
 .merge-kicker {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -898,7 +936,7 @@ body {
   margin-bottom: 6px;
 }
 .merge-header h2 {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 32px;
   font-weight: 500;
   line-height: 1;
@@ -935,7 +973,7 @@ body {
   margin-bottom: 18px;
 }
 .invite-kicker {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -943,7 +981,7 @@ body {
   margin-bottom: 8px;
 }
 .invite-link {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 22px;
   font-style: italic;
   margin-bottom: 6px;
@@ -954,7 +992,7 @@ body {
   background: var(--paper);
 }
 .invite-code {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 12px;
   color: var(--ink-soft);
   margin-bottom: 14px;
@@ -973,7 +1011,7 @@ body {
   background: var(--ink);
   color: var(--paper);
   display: flex; align-items: center; justify-content: center;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 11px;
   flex-shrink: 0;
 }
@@ -994,7 +1032,7 @@ body {
   border-radius: 4px;
 }
 .qr-label {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-style: italic;
   font-size: 14px;
   color: var(--ink-soft);
@@ -1002,7 +1040,7 @@ body {
 .qr-hint { font-size: 12px; color: var(--ink-soft); }
 
 .suggest-intro {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1020,19 +1058,19 @@ body {
   margin-bottom: 8px;
 }
 .suggest-name {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 20px;
   font-style: italic;
   font-weight: 500;
 }
 .suggest-meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   color: var(--ink-faint);
   margin-top: 2px;
 }
 .suggest-badge {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   padding: 3px 8px;
   border-radius: 10px;
@@ -1062,7 +1100,7 @@ body {
   animation: slideIn 200ms ease-out;
 }
 .tweaks-panel h4 {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 18px;
   font-style: italic;
   margin-bottom: 14px;
@@ -1072,7 +1110,7 @@ body {
 .tweak-row { margin-bottom: 12px; }
 .tweak-row label {
   display: block;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1168,7 +1206,7 @@ body.shape-square .node-photo {
   font-size: 13px;
 }
 .avp-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1177,7 +1215,7 @@ body.shape-square .node-photo {
 .active-view-pill select {
   border: none;
   background: transparent;
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-style: italic;
   font-size: 16px;
   color: var(--blossom);
