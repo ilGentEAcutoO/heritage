@@ -1,14 +1,16 @@
 /**
- * 11-user-menu.spec.ts — M1–M6 (UserMenu dropdown interactions on /demo/wongsuriya).
+ * 11-user-menu.spec.ts — M1–M6 (Header login/user-menu interactions on /demo/wongsuriya).
  *
- * TDD: UserMenu component does not exist yet. All tests are expected to fail
- * until TASK-003 (UserMenu.tsx) and TASK-004 (wiring into TreeView) are done.
+ * Per the shared contract:
+ *   - Guests see data-testid="header-login" (a react-router Link, role=link, href="/login",
+ *     accessible name "เข้าสู่ระบบ"). They do NOT see data-testid="user-menu-trigger".
+ *   - Authenticated users see data-testid="user-menu-trigger" (the 👤 UserMenu) and NOT
+ *     data-testid="header-login".
  *
- * Test IDs expected on the rendered component:
+ * Test IDs expected on the UserMenu component (authenticated only):
  *   data-testid="user-menu-trigger"   — the toggle button
  *   data-testid="user-menu"           — the dropdown panel
  *   data-testid="user-menu-item-home"   — หน้าหลัก link
- *   data-testid="user-menu-item-login"  — เข้าสู่ระบบ link
  *   data-testid="user-menu-item-trees"  — ต้นไม้ของฉัน link
  *   data-testid="user-menu-item-logout" — ออกจากระบบ button
  */
@@ -23,9 +25,9 @@ const DEMO_URL = '/demo/wongsuriya';
 
 test.describe('UserMenu', () => {
   // ---------------------------------------------------------------------------
-  // M1 — guest sees home + login; clicking home navigates to /
+  // M1 — guest: header-login visible, no user-menu-trigger
   // ---------------------------------------------------------------------------
-  test('M1 — guest on demo: trigger visible, menu shows หน้าหลัก + เข้าสู่ระบบ, click home → /', async ({
+  test('M1 — guest on demo: header-login visible, user-menu-trigger absent, no console errors', async ({
     browser,
   }) => {
     const ctx = await browser.newContext();
@@ -35,27 +37,15 @@ test.describe('UserMenu', () => {
     try {
       await page.goto(DEMO_URL);
 
-      // Trigger must be visible without interacting
-      const trigger = page.getByTestId('user-menu-trigger');
-      await expect(trigger).toBeVisible({ timeout: 10_000 });
+      // Wait for tree to load
+      await expect(page.getByTestId('tree-canvas')).toBeVisible({ timeout: 15_000 });
 
-      // Open the menu
-      await trigger.click();
+      // Guest sees the header-login link
+      const loginLink = page.getByTestId('header-login');
+      await expect(loginLink).toBeVisible({ timeout: 10_000 });
 
-      const menu = page.getByTestId('user-menu');
-      await expect(menu).toBeVisible({ timeout: 5_000 });
-
-      // Guest items present
-      await expect(page.getByTestId('user-menu-item-home')).toBeVisible();
-      await expect(page.getByTestId('user-menu-item-login')).toBeVisible();
-
-      // Auth-only items absent
-      await expect(page.getByTestId('user-menu-item-trees')).toBeHidden();
-      await expect(page.getByTestId('user-menu-item-logout')).toBeHidden();
-
-      // Click home → navigate to /
-      await page.getByTestId('user-menu-item-home').click();
-      await expect(page).toHaveURL('/', { timeout: 10_000 });
+      // Guest does NOT see user-menu-trigger
+      await expect(page.getByTestId('user-menu-trigger')).toHaveCount(0);
 
       expect(consoleMsgs.errors).toEqual([]);
       expect(consoleMsgs.warnings).toEqual([]);
@@ -65,9 +55,9 @@ test.describe('UserMenu', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // M2 — guest clicks เข้าสู่ระบบ → navigates to /login
+  // M2 — guest clicks header-login → navigates to /login
   // ---------------------------------------------------------------------------
-  test('M2 — guest login flow: click เข้าสู่ระบบ → /login', async ({ browser }) => {
+  test('M2 — guest login flow: click header-login → /login', async ({ browser }) => {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
     const consoleMsgs = attachConsoleCapture(page);
@@ -75,13 +65,13 @@ test.describe('UserMenu', () => {
     try {
       await page.goto(DEMO_URL);
 
-      const trigger = page.getByTestId('user-menu-trigger');
-      await expect(trigger).toBeVisible({ timeout: 10_000 });
-      await trigger.click();
+      // Wait for tree to load
+      await expect(page.getByTestId('tree-canvas')).toBeVisible({ timeout: 15_000 });
 
-      await expect(page.getByTestId('user-menu')).toBeVisible({ timeout: 5_000 });
+      const loginLink = page.getByTestId('header-login');
+      await expect(loginLink).toBeVisible({ timeout: 10_000 });
+      await loginLink.click();
 
-      await page.getByTestId('user-menu-item-login').click();
       await expect(page).toHaveURL(/\/login$/, { timeout: 10_000 });
 
       expect(consoleMsgs.errors).toEqual([]);
@@ -139,9 +129,9 @@ test.describe('UserMenu', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // M4 — logout from demo: after click logout, menu shows guest state
+  // M4 — logout from demo: header-login returns, user-menu-trigger gone
   // ---------------------------------------------------------------------------
-  test('M4 — logout from demo: click logout → guest menu state', async ({ browser }) => {
+  test('M4 — logout from demo: click logout → header-login visible, user-menu-trigger absent', async ({ browser }) => {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
     const consoleMsgs = attachConsoleCapture(page);
@@ -172,12 +162,10 @@ test.describe('UserMenu', () => {
         expect(meAfter.status()).toBe(401);
       }).toPass({ timeout: 10_000 });
 
-      // Re-open menu and confirm guest state
-      await expect(trigger).toBeVisible({ timeout: 10_000 });
-      await trigger.click();
-      await expect(page.getByTestId('user-menu')).toBeVisible({ timeout: 5_000 });
-      await expect(page.getByTestId('user-menu-item-login')).toBeVisible();
-      await expect(page.getByTestId('user-menu-item-logout')).toBeHidden();
+      // After logout: guest login link should appear and user-menu-trigger should be gone
+      const loginLink = page.getByTestId('header-login');
+      await expect(loginLink).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByTestId('user-menu-trigger')).toHaveCount(0);
 
       expect(consoleMsgs.errors).toEqual([]);
       expect(consoleMsgs.warnings).toEqual([]);
@@ -187,14 +175,19 @@ test.describe('UserMenu', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // M5 — pressing Escape closes the menu
+  // M5 — pressing Escape closes the menu (authenticated)
   // ---------------------------------------------------------------------------
   test('M5 — Escape closes menu', async ({ browser }) => {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
     const consoleMsgs = attachConsoleCapture(page);
 
+    const email = makeE2EEmail('m5');
+    const password = 'correctHorseBatteryStaple12';
+
     try {
+      await signupAndVerifyViaBackchannel(ctx.request, email, password);
+
       await page.goto(DEMO_URL);
 
       const trigger = page.getByTestId('user-menu-trigger');
@@ -217,14 +210,19 @@ test.describe('UserMenu', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // M6 — clicking outside (on canvas) closes the menu
+  // M6 — clicking outside (on canvas) closes the menu (authenticated)
   // ---------------------------------------------------------------------------
   test('M6 — click-outside closes menu', async ({ browser }) => {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
     const consoleMsgs = attachConsoleCapture(page);
 
+    const email = makeE2EEmail('m6');
+    const password = 'correctHorseBatteryStaple12';
+
     try {
+      await signupAndVerifyViaBackchannel(ctx.request, email, password);
+
       await page.goto(DEMO_URL);
 
       const trigger = page.getByTestId('user-menu-trigger');

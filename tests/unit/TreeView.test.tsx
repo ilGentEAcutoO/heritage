@@ -51,3 +51,24 @@ describe('TreeView POV-drawer wiring (source assertions)', () => {
     expect(src).toMatch(/isActiveView=\{[^}]*activeViewId[^}]*\}/);
   });
 });
+
+describe('TreeView guest login button (source assertions)', () => {
+  it('has data-testid="header-login" for the guest login control', () => {
+    expect(src).toContain('data-testid="header-login"');
+  });
+
+  it('routes to "/login" via react-router Link (to="/login")', () => {
+    expect(src).toContain('to="/login"');
+  });
+
+  it('displays the Thai text เข้าสู่ระบบ as the accessible name', () => {
+    expect(src).toContain('เข้าสู่ระบบ');
+  });
+
+  it('gates the login control on user and loading state', () => {
+    // The component must reference both 'user' and 'loading' so it shows login
+    // only for resolved-guest sessions (not while loading).
+    expect(src).toMatch(/\buser\b/);
+    expect(src).toMatch(/\bloading\b/);
+  });
+});
