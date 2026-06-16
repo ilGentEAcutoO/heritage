@@ -4,10 +4,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useSession } from '@app/hooks/useSession';
 import { apiClient } from '@app/lib/api';
 import type { TreeSummary } from '@app/lib/api';
+import { CreateTreeDialog } from '@app/components/CreateTreeDialog';
 
 const s = {
   page: {
@@ -100,6 +101,26 @@ const s = {
     textDecoration: 'none',
     opacity: 0.8,
   },
+  headerRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '1rem',
+    marginBottom: '2rem',
+  },
+  createBtn: {
+    flexShrink: 0,
+    padding: '0.55rem 1rem',
+    borderRadius: '6px',
+    border: 'none',
+    background: 'var(--leaf, #6b8f5e)',
+    color: '#fff',
+    cursor: 'pointer',
+    fontFamily: 'Sarabun, serif',
+    fontSize: '0.9rem',
+    fontWeight: 500 as const,
+    whiteSpace: 'nowrap' as const,
+  },
 };
 
 function roleThai(role: string): string {
@@ -110,9 +131,11 @@ function roleThai(role: string): string {
 
 export function Trees() {
   const { user, loading: sessionLoading } = useSession();
+  const navigate = useNavigate();
   const [trees, setTrees] = useState<TreeSummary[]>([]);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (sessionLoading || !user) return;
@@ -138,8 +161,20 @@ export function Trees() {
       <div style={s.inner}>
         <Link to="/" style={s.homeLink}>← หน้าหลัก</Link>
 
-        <h1 style={s.heading}>ต้นไม้ของฉัน</h1>
-        <p style={s.sub}>{user.displayName ?? user.email}</p>
+        <div style={s.headerRow}>
+          <div>
+            <h1 style={s.heading}>ต้นไม้ของฉัน</h1>
+            <p style={s.sub}>{user.displayName ?? user.email}</p>
+          </div>
+          <button
+            type="button"
+            data-testid="create-tree-button"
+            style={s.createBtn}
+            onClick={() => setDialogOpen(true)}
+          >
+            + สร้างต้นไม้ใหม่
+          </button>
+        </div>
 
         {errorMsg && <div style={s.error}>{errorMsg}</div>}
 
@@ -167,6 +202,13 @@ export function Trees() {
           </>
         )}
       </div>
+
+      {dialogOpen && (
+        <CreateTreeDialog
+          onClose={() => setDialogOpen(false)}
+          onCreated={(tree) => navigate(`/tree/${tree.slug}`)}
+        />
+      )}
     </div>
   );
 }

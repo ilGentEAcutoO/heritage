@@ -231,6 +231,13 @@ export const apiClient = {
   listTrees: () =>
     api<{ trees: TreeSummary[] }>('/api/trees'),
 
+  // Create a tree — requires auth. 409 'slug_taken' / 422 'validation_error'.
+  createTree: (body: { name: string; slug: string; visibility?: 'public' | 'private' | 'shared' }) =>
+    api<{ tree: TreeSummary }>('/api/trees', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
   // Shares — owner-only
   getShares: (slug: string) =>
     api<{ shares: Share[] }>(`/api/tree/${encodeURIComponent(slug)}/shares`),
