@@ -278,7 +278,7 @@ export function ProfileDrawer({
               x="60"
               y="75"
               textAnchor="middle"
-              fontFamily="Cormorant Garamond, serif"
+              fontFamily='"Prompt", system-ui, sans-serif'
               fontSize="48"
               fontWeight="600"
               fill="var(--ink)"
@@ -331,7 +331,7 @@ export function ProfileDrawer({
                 aria-checked={person.deceased}
                 aria-label="สถานะ: เสียชีวิต"
                 className="meta-chip"
-                style={{ cursor: 'pointer', background: person.deceased ? 'oklch(0.88 0.04 30)' : 'oklch(0.90 0.05 145)', border: '1px solid currentColor', opacity: 0.85 }}
+                style={{ cursor: 'pointer', borderRadius: 'var(--radius-pill, 999px)', background: person.deceased ? 'var(--blossom-soft, oklch(0.88 0.04 30))' : 'var(--leaf-soft, oklch(0.90 0.05 145))', color: 'var(--ink, #2a1f14)', border: '1px solid var(--line, #ddd)' }}
                 onClick={() => {
                   if (person.deceased) {
                     onSetStatus(person.id, false, null);
@@ -350,11 +350,12 @@ export function ProfileDrawer({
                   defaultValue={person.died ?? ''}
                   style={{
                     width: '14rem',
-                    padding: '0.2rem 0.5rem',
-                    borderRadius: '4px',
-                    border: '1px solid var(--ink, #2a1f14)',
-                    opacity: 0.7,
-                    fontFamily: 'inherit',
+                    padding: '0.5rem 0.7rem',
+                    borderRadius: '12px',
+                    border: '1px solid var(--line, #ddd)',
+                    background: 'var(--paper-2, #fff)',
+                    color: 'var(--ink, #2a1f14)',
+                    fontFamily: '"Prompt", system-ui, sans-serif',
                     fontSize: '0.85rem',
                   }}
                   // Commit on blur / Enter (not per keystroke) so the owner path
@@ -374,7 +375,7 @@ export function ProfileDrawer({
               {!canEdit && (
                 <span
                   data-testid="status-ephemeral-note"
-                  style={{ fontSize: '0.78rem', opacity: 0.55, fontStyle: 'italic' }}
+                  style={{ fontSize: '0.78rem', color: 'var(--ink-faint, #9a8c7a)', fontStyle: 'italic' }}
                 >
                   ทดลอง · ไม่บันทึก
                 </span>
@@ -407,7 +408,7 @@ export function ProfileDrawer({
                   type="button"
                   className="btn-secondary"
                   onClick={openEditMode}
-                  style={{ fontSize: '0.85rem' }}
+                  style={{ fontSize: '0.85rem', borderRadius: 'var(--radius-pill, 999px)' }}
                 >
                   แก้ไข
                 </button>
@@ -419,12 +420,12 @@ export function ProfileDrawer({
                   onClick={() => setDeleteConfirm(true)}
                   style={{
                     padding: '0.35rem 0.7rem',
-                    borderRadius: '5px',
+                    borderRadius: '999px',
                     border: '1px solid #fca5a5',
                     background: 'transparent',
                     color: '#991b1b',
                     cursor: 'pointer',
-                    fontFamily: 'Sarabun, serif',
+                    fontFamily: '"Prompt", system-ui, sans-serif',
                     fontSize: '0.85rem',
                   }}
                 >
@@ -433,19 +434,19 @@ export function ProfileDrawer({
               )}
               {onDeletePerson && deleteConfirm && !editMode && (
                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.82rem', opacity: 0.7 }}>ยืนยันลบ?</span>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--ink-soft, #6b5d4f)' }}>ยืนยันลบ?</span>
                   <button
                     type="button"
                     disabled={deleting}
                     onClick={handleDelete}
                     style={{
                       padding: '0.3rem 0.65rem',
-                      borderRadius: '5px',
+                      borderRadius: '10px',
                       border: 'none',
                       background: '#dc2626',
                       color: '#fff',
                       cursor: deleting ? 'not-allowed' : 'pointer',
-                      fontFamily: 'Sarabun, serif',
+                      fontFamily: '"Prompt", system-ui, sans-serif',
                       fontSize: '0.82rem',
                       opacity: deleting ? 0.5 : 1,
                     }}
@@ -458,11 +459,12 @@ export function ProfileDrawer({
                     onClick={() => setDeleteConfirm(false)}
                     style={{
                       padding: '0.3rem 0.65rem',
-                      borderRadius: '5px',
-                      border: '1px solid var(--line, #ddd)',
+                      borderRadius: '999px',
+                      border: 'none',
                       background: 'transparent',
+                      color: 'var(--ink-soft, #6b5d4f)',
                       cursor: 'pointer',
-                      fontFamily: 'Sarabun, serif',
+                      fontFamily: '"Prompt", system-ui, sans-serif',
                       fontSize: '0.82rem',
                     }}
                   >
@@ -475,12 +477,12 @@ export function ProfileDrawer({
 
           {/* Edit mode form */}
           {editMode && onUpdatePerson && (
-            <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--bg, #faf8f4)', borderRadius: '7px', border: '1px solid var(--line, #ddd)' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.6rem' }}>
+            <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--paper-2, #fff)', borderRadius: '14px', border: '1px solid var(--line, #ddd)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--ink-faint, #9a8c7a)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.6rem' }}>
                 แก้ไขข้อมูล
               </div>
 
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--ink-soft, #6b5d4f)', marginBottom: '0.25rem' }}>
                 ชื่อ
               </label>
               <input
@@ -488,10 +490,10 @@ export function ProfileDrawer({
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.5rem 0.7rem', borderRadius: '12px', border: '1px solid var(--line, #ddd)', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.9rem', background: 'var(--paper-2, #fff)', color: 'var(--ink, #2a1f14)', marginBottom: '0.5rem' }}
               />
 
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--ink-soft, #6b5d4f)', marginBottom: '0.25rem' }}>
                 ชื่อเล่น
               </label>
               <input
@@ -499,10 +501,10 @@ export function ProfileDrawer({
                 type="text"
                 value={editNick}
                 onChange={(e) => setEditNick(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.5rem 0.7rem', borderRadius: '12px', border: '1px solid var(--line, #ddd)', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.9rem', background: 'var(--paper-2, #fff)', color: 'var(--ink, #2a1f14)', marginBottom: '0.5rem' }}
               />
 
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--ink-soft, #6b5d4f)', marginBottom: '0.25rem' }}>
                 ปีเกิด
               </label>
               <input
@@ -511,10 +513,10 @@ export function ProfileDrawer({
                 value={editBorn}
                 onChange={(e) => setEditBorn(e.target.value)}
                 placeholder="เช่น 1960"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.5rem 0.7rem', borderRadius: '12px', border: '1px solid var(--line, #ddd)', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.9rem', background: 'var(--paper-2, #fff)', color: 'var(--ink, #2a1f14)', marginBottom: '0.5rem' }}
               />
 
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--ink-soft, #6b5d4f)', marginBottom: '0.25rem' }}>
                 บ้านเกิด
               </label>
               <input
@@ -522,10 +524,10 @@ export function ProfileDrawer({
                 type="text"
                 value={editHometown}
                 onChange={(e) => setEditHometown(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '0.4rem 0.6rem', borderRadius: '5px', border: '1px solid var(--line, #ddd)', fontFamily: 'Sarabun, serif', fontSize: '0.9rem', background: '#fff', marginBottom: '0.5rem' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '0.5rem 0.7rem', borderRadius: '12px', border: '1px solid var(--line, #ddd)', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.9rem', background: 'var(--paper-2, #fff)', color: 'var(--ink, #2a1f14)', marginBottom: '0.5rem' }}
               />
 
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--ink-soft, #6b5d4f)', marginBottom: '0.25rem' }}>
                 เพศ
               </label>
               <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem' }}>
@@ -533,7 +535,7 @@ export function ProfileDrawer({
                   type="button"
                   data-testid="edit-person-gender-m"
                   onClick={() => setEditGender('m')}
-                  style={{ flex: 1, padding: '0.35rem', borderRadius: '5px', border: `1px solid ${editGender === 'm' ? 'var(--leaf, #6b8f5e)' : 'var(--line, #ddd)'}`, background: editGender === 'm' ? 'var(--leaf, #6b8f5e)' : 'transparent', color: editGender === 'm' ? '#fff' : 'var(--ink, #2a1f14)', cursor: 'pointer', fontFamily: 'Sarabun, serif', fontSize: '0.85rem' }}
+                  style={{ flex: 1, padding: '0.35rem', borderRadius: '999px', border: `1px solid ${editGender === 'm' ? 'var(--leaf, #6b8f5e)' : 'var(--line, #ddd)'}`, background: editGender === 'm' ? 'var(--leaf-soft, #e6efe1)' : 'var(--paper, #faf8f4)', color: editGender === 'm' ? 'var(--leaf-strong, #4a6b3f)' : 'var(--ink-soft, #6b5d4f)', cursor: 'pointer', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.85rem' }}
                 >
                   ชาย
                 </button>
@@ -541,14 +543,14 @@ export function ProfileDrawer({
                   type="button"
                   data-testid="edit-person-gender-f"
                   onClick={() => setEditGender('f')}
-                  style={{ flex: 1, padding: '0.35rem', borderRadius: '5px', border: `1px solid ${editGender === 'f' ? 'var(--leaf, #6b8f5e)' : 'var(--line, #ddd)'}`, background: editGender === 'f' ? 'var(--leaf, #6b8f5e)' : 'transparent', color: editGender === 'f' ? '#fff' : 'var(--ink, #2a1f14)', cursor: 'pointer', fontFamily: 'Sarabun, serif', fontSize: '0.85rem' }}
+                  style={{ flex: 1, padding: '0.35rem', borderRadius: '999px', border: `1px solid ${editGender === 'f' ? 'var(--leaf, #6b8f5e)' : 'var(--line, #ddd)'}`, background: editGender === 'f' ? 'var(--leaf-soft, #e6efe1)' : 'var(--paper, #faf8f4)', color: editGender === 'f' ? 'var(--leaf-strong, #4a6b3f)' : 'var(--ink-soft, #6b5d4f)', cursor: 'pointer', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.85rem' }}
                 >
                   หญิง
                 </button>
               </div>
 
               {editError && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '5px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '10px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
                   {editError}
                 </div>
               )}
@@ -558,7 +560,7 @@ export function ProfileDrawer({
                   type="button"
                   onClick={closeEditMode}
                   disabled={editSaving}
-                  style={{ padding: '0.4rem 0.8rem', borderRadius: '5px', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'Sarabun, serif', fontSize: '0.85rem', opacity: 0.7 }}
+                  style={{ padding: '0.4rem 0.8rem', borderRadius: '999px', border: 'none', background: 'transparent', color: 'var(--ink-soft, #6b5d4f)', cursor: 'pointer', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.85rem' }}
                 >
                   ยกเลิก
                 </button>
@@ -567,7 +569,7 @@ export function ProfileDrawer({
                   data-testid="edit-person-save"
                   onClick={handleEditSave}
                   disabled={editSaving || !editName.trim()}
-                  style={{ padding: '0.4rem 0.9rem', borderRadius: '5px', border: 'none', background: 'var(--leaf, #6b8f5e)', color: '#fff', cursor: editSaving || !editName.trim() ? 'not-allowed' : 'pointer', opacity: editSaving || !editName.trim() ? 0.5 : 1, fontFamily: 'Sarabun, serif', fontSize: '0.85rem', fontWeight: 500 }}
+                  style={{ padding: '0.4rem 0.9rem', borderRadius: '999px', border: 'none', background: 'var(--accent-grad, linear-gradient(135deg,#20c997,#0ca678))', color: '#fff', cursor: editSaving || !editName.trim() ? 'not-allowed' : 'pointer', opacity: editSaving || !editName.trim() ? 0.5 : 1, boxShadow: '0 4px 14px rgba(12,166,120,.3)', fontFamily: '"Prompt", system-ui, sans-serif', fontSize: '0.85rem', fontWeight: 600 }}
                 >
                   {editSaving ? 'กำลังบันทึก…' : 'บันทึก'}
                 </button>
@@ -795,7 +797,7 @@ export function ProfileDrawer({
           </div>
 
           {photoError && (
-            <div data-testid="photo-error" style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '5px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+            <div data-testid="photo-error" style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '10px', padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: '#991b1b', marginBottom: '0.5rem' }}>
               {photoError}
             </div>
           )}

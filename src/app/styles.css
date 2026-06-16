@@ -594,10 +594,11 @@ body {
 }
 .meta-chip {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
-  padding: 3px 8px;
+  font-size: 11px;
+  padding: 4px 10px;
+  background: var(--paper-2);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: 999px;
   display: inline-flex; align-items: center; gap: 6px;
   color: var(--ink);
 }
@@ -625,21 +626,23 @@ body {
 }
 .tab-label {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 18px;
-  font-style: italic;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   flex: 1;
   text-align: left;
 }
 .tab-count {
   font-family: "Prompt", system-ui, sans-serif;
   font-size: 10px;
-  padding: 2px 6px;
+  font-weight: 500;
+  padding: 2px 8px;
   background: var(--paper-2);
-  border-radius: 10px;
+  border-radius: 999px;
   color: var(--ink-soft);
 }
 .tab-caret { color: var(--ink-faint); font-size: 14px; width: 14px; text-align: center; }
-.tab.open .tab-head { color: var(--blossom); }
+.tab.open .tab-head { color: var(--leaf); }
 .tab.open .tab-label { color: var(--ink); }
 .tab-body { padding: 4px 0 20px; }
 
@@ -741,8 +744,8 @@ body {
   position: absolute; inset: 0;
   background: repeating-linear-gradient(
     135deg,
-    oklch(0.82 0.03 70) 0 8px,
-    oklch(0.78 0.04 70) 8px 16px
+    var(--paper-2) 0 8px,
+    #e7e9ef 8px 16px
   );
 }
 .photo-tile-label {
@@ -750,9 +753,9 @@ body {
   font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   color: var(--ink);
-  background: oklch(0.96 0.015 80 / 0.75);
-  padding: 1px 4px;
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 5px;
+  border-radius: 6px;
 }
 .photo-tile.more {
   display: flex; align-items: center; justify-content: center;
@@ -917,7 +920,7 @@ body {
   font-weight: 600;
   color: var(--blossom);
   font-style: normal;
-  font-family: "Sarabun", sans-serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 16px;
 }
 .pf-hops {
@@ -1260,14 +1263,14 @@ body.shape-square .node-photo {
   color: var(--ink);
 }
 .person-node.lineage .node-nick {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-style: italic;
   font-size: 13px;
   opacity: 0.72;
   letter-spacing: 0.01em;
 }
 .person-node.lineage .node-dates {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "Prompt", system-ui, sans-serif;
   font-size: 9px;
   opacity: 0.5;
 }
@@ -1306,7 +1309,7 @@ body.shape-square .node-photo {
   margin-bottom: 10px;
 }
 .ll-kicker {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: "Prompt", system-ui, sans-serif;
   font-weight: 600;
   font-size: 15px;
   color: var(--ink);
@@ -1351,9 +1354,37 @@ body.shape-square .node-photo {
   min-width: 120px;
 }
 .btn-primary.is-on {
-  background: var(--bark);
+  background: var(--leaf-strong);
 }
 .btn-primary.is-on:hover {
-  background: oklch(0.40 0.04 50);
+  filter: brightness(0.95);
 }
-.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+.mono { font-family: "Prompt", system-ui, sans-serif; font-size: 0.9em; }
+
+/* ─────── Responsive ─────── */
+/* Tablet / small: collapse to a single column so the canvas gets full width.
+   The sidebar (search / people list / stats) is hidden — a slide-out nav would
+   be a follow-up; the tree canvas itself pans + zooms fine on touch. */
+@media (max-width: 820px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: 58px 1fr; }
+  .sidebar { display: none; }
+  .app-header { padding: 0 14px; gap: 10px; }
+  .header-btn { padding: 7px 11px; font-size: 12px; }
+  .drawer {
+    top: 66px; right: 10px; left: 10px; bottom: 10px;
+    width: auto;
+    border-radius: 18px;
+  }
+  .zoom-controls { bottom: 16px; right: 16px; }
+}
+
+/* Phone: free up the cramped header and make the drawer near full-bleed. */
+@media (max-width: 560px) {
+  .app { grid-template-rows: 54px 1fr; }
+  .app-header { padding: 0 10px; gap: 6px; }
+  .tree-title { display: none; }
+  .header-logo { font-size: 20px; gap: 6px; }
+  .header-logo small { display: none; }
+  .header-btn { padding: 6px 9px; font-size: 11px; gap: 4px; }
+  .drawer { top: 60px; right: 6px; left: 6px; bottom: 6px; padding: 20px 16px; border-radius: 16px; }
+}

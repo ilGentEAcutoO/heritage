@@ -358,10 +358,10 @@ export function TreeCanvas({
             return (
               <g
                 key={`leaf-${i}`}
-                transform={`translate(${mx - 20}, ${my}) rotate(${rot})`}
-                opacity="0.7"
+                transform={`translate(${mx - 16}, ${my}) rotate(${rot})`}
+                opacity="0.32"
               >
-                <path d="M 0 0 Q 6 -4 12 0 Q 6 4 0 0 Z" fill="var(--leaf)" />
+                <path d="M 0 0 Q 5 -3 10 0 Q 5 3 0 0 Z" fill="var(--leaf)" />
               </g>
             );
           })}
