@@ -1,65 +1,61 @@
-# Requirements — Workstream 07: Anonymous homepage = demo tree + top-right login button
+# Requirements — Workstream 08: Edit alive/deceased status (persist for owners + ephemeral try-it)
 
 > Created: 2026-06-16 · Status: PLANNING (awaiting approval)
 
 ## Raw request (user, 2026-06-16, Thai)
-> เข้ามาหน้า https://heritage.jairukchan.com/ ถ้ายังไม่ login เปิด demo tree แสดงไปเลยครับ
-> แล้วทำปุ่มเข้าสู่ระบบแสดงขวาบนไปเลย
+> ปกติเราเปลี่ยนสถานะ ว่ายังอยู่หรือเสียแล้วที่ไหน · ใน demo พอทำได้ไหม
+Follow-up decision: **ทั้งสอง** — demo/non-owner = ephemeral try-it (not saved); tree owner = real persisted edit.
 
-Translation: On the homepage `/`, if the visitor is **not logged in**, show the **demo tree
-directly**. And put a **"เข้าสู่ระบบ" (Login) button at the top-right**, visible immediately.
+## Research findings (current state)
+- "Status" = `people.died` (nullable integer **year**); `null` = alive today. No edit UI/endpoint exists.
+- `api.ts` header literally says *"Read-only API client. Mutations have been removed"* — content editing
+  was removed in a prior security remediation (`archive/02-security-remediation-login-removal`). Re-adding a
+  write path **reverses a hardening decision** → must be locked down.
+- Clean mutation template exists: `PATCH /api/tree/:slug/visibility` in `shares.ts` —
+  `resolveOwnerTree` (401 / 404 anti-enumeration), parse→validate, `db.update`, `purgeTreeCache`.
+- DB: `people.died integer` nullable; update scoped by `(id, tree_id)`.
+- Alive/dead is inferred from `died` in 6 render sites (see plan "Blast radius").
+- Data pipeline for a person field: D1 → `tree-query.ts` → API (`ApiTreeResponse`) → `adaptTree` →
+  `TreeData.people` (`Person`) → `layout.ts` → `PersonNode`/components.
 
-## Research findings (current behavior)
-- **Routing** (`src/app/App.tsx`): `/` → `<Landing />`; `/demo/wongsuriya` →
-  `<TreeView treeSlug="wongsuriya" />`; `/tree/:slug` → `<TreeView />`; `/trees` (protected).
-- **`/` today** (`src/app/pages/Landing.tsx`): a marketing splash (logo + tagline), with
-  **session-aware CTAs** — guests get a "ดู demo tree" link (→ /demo/wongsuriya) + a small
-  "เข้าสู่ระบบ →" link (→ /login); logged-in users get "ดูต้นไม้ของฉัน" (→ /trees) +
-  an "ออกจากระบบ" button (`data-testid="logout-button"`).
-- **Demo tree already exists** — `<TreeView treeSlug="wongsuriya" />`. The TreeView header
-  (`src/app/pages/TreeView.tsx`) already renders a top-right `<UserMenu />`. For **guests**
-  it's a "👤" trigger hiding Home + Login inside a dropdown; for **auth** users it shows
-  their initial + Home/Trees/Logout.
-- **Session** (`src/app/hooks/useSession.ts`): singleton; `loading: true` until
-  `GET /api/auth/me` resolves; guest = 401 → `user: null`; non-401 error → `user: null` + error.
-- **Demo data is public** — no backend change needed; reusing the public `wongsuriya` slug
-  at `/` exposes nothing new.
-
-## Agreed scope (from clarifying Q&A 2026-06-16)
-- [x] **Guest at `/`** → render the demo tree (`wongsuriya`) directly, in place (URL stays `/`).
-- [x] **Logged-in at `/`** → KEEP the existing Landing splash (My Trees + logout). *(Q1)*
-- [x] **Top-right login control for guests** → a **clear, visible "เข้าสู่ระบบ" button**
-      that **replaces the 👤 UserMenu** for guests, applied to the shared TreeView header
-      (so `/` guest, `/demo/wongsuriya`, `/tree/:slug` guests are consistent). *(Q2)*
-- [x] **Old guest marketing splash** → **dropped**. Guests never see it again; the
-      logged-in splash stays. *(Q3, reconciled — see note)*
-
-### ⚠️ Reconciliation note (confirm at approval)
-Q1 ("keep landing splash") and Q3 ("drop the splash") are only consistent under one reading,
-which we adopt: **drop the *guest* splash** (guests get the demo tree at `/`); **keep the
-*logged-in* splash** (logged-in users still see logo + "ดูต้นไม้ของฉัน" + logout at `/`).
-Net effect on code: `Landing.tsx` is **kept but simplified** — its dead guest branch is
-removed; it renders only the logged-in UI (and is only ever mounted for logged-in users).
+## Agreed scope (from Q&A 2026-06-16)
+- [x] **Owner** of a tree can toggle a person alive↔deceased; change **persists** (D1) via a new endpoint.
+- [x] **Non-owner** (guest on demo, or anyone viewing a tree they don't own) gets an **ephemeral** toggle
+      (local React state only, NOT saved; labeled "ทดลอง · ไม่บันทึก"). *(Q2 = any non-owned tree)*
+- [x] **"Deceased, year unknown" supported** → needs a new `deceased` boolean column. *(Q1 = optional year)*
+      States: alive `(deceased=false, died=null)` · deceased+year `(true, <year>)` · deceased unknown `(true, null)`.
+- [x] Scope is **only the alive/deceased status** (+ optional death year). NOT name/born/other fields.
+- [x] Edit permission = **owner only** for v1 (accepted-`editor` shares = future).
 
 ## Technical decisions
-- **D1 — Render-in-place, not redirect.** Guest `/` mounts `<TreeView treeSlug="wongsuriya" />`;
-  URL stays `/`. ("แสดงไปเลย" + clean URL.)
-- **D2 — Session gate to avoid flash.** New `Home.tsx` branches on `useSession()`:
-  `loading` → minimal neutral placeholder (same bg, no spinner) → then `user ? <Landing/> :
-  <TreeView treeSlug="wongsuriya" />`. Fail-open: a non-401 `/me` error → treated as guest
-  (shows public demo; exposes nothing private).
-- **D3 — Login button is a `<Link>`, not a `<button>`.** `<Link to="/login"
-  data-testid="header-login">เข้าสู่ระบบ</Link>`, styled as a prominent header CTA. Rendered
-  only when `!loading && !user`; auth users keep `<UserMenu />`. **Why a Link:** preserves
-  e2e S9 (05-logout), which asserts a `role=link` named "เข้าสู่ระบบ" after logout.
+- **Schema:** add `people.deceased integer({mode:'boolean'}) NOT NULL DEFAULT 0`. Migration backfills
+  `deceased = (died IS NOT NULL)` for existing rows. `deceased` becomes the **source of truth** for
+  alive/dead; `died` stays the optional year detail.
+- **Endpoint:** `PATCH /api/tree/:slug/person/:personId` (new `routes/people.ts`, mirror `shares.ts`):
+  session + origin-check + owner-only (`resolveOwnerTree`, extracted to a small shared lib) + fetch person
+  scoped to `tree_id` (404 if not in this tree) + zod body `{ deceased: boolean, died: number|null }` +
+  consistency rules (`!deceased ⇒ died=null`; `deceased && died!=null ⇒ born ≤ died ≤ currentYear`) +
+  `purgeTreeCache`. Returns `{ deceased, died }`.
+- **Client:** `apiClient.setPersonStatus(slug, personId, { deceased, died })`; carry `deceased` through
+  `ApiTreeResponse` + `adaptTree`; update the stale "read-only" header comment.
+- **UI:** ProfileDrawer status control = toggle (ยังมีชีวิต ⟷ เสียชีวิต) + year input shown only when
+  deceased (blank allowed = ไม่ทราบปี). TreeView owns: `canEdit = !!user && user.id === meta.ownerId`,
+  a `statusOverrides` local map, and `onSetStatus(personId, deceased, died)` →
+  owner: optimistic local update + `apiClient.setPersonStatus` (revert on error); non-owner: local override
+  only. All views (canvas/sidebar/drawer/stats) read people **merged with overrides**.
 
-## Security considerations
-- No new endpoints; reuses the already-public demo tree + existing `/api/auth/me`.
-- No auth bypass: `/` guest renders the hardcoded public `wongsuriya` slug only — never a
-  private tree.
-- Fail-open on `/me` error renders only public demo content (acceptable; no private data).
-- Login button is a plain client-side link to `/login`; no CSRF/origin surface change.
+## Security considerations (write endpoint — re-introducing a mutation)
+- Owner-only via `resolveOwnerTree`; non-owner ⇒ 404 (anti-enumeration, matches shares).
+- Person update scoped to `tree_id` → cannot edit another tree's person by id.
+- Inherits global session + origin-check middleware (same as visibility PATCH).
+- zod body validation + numeric range checks; reject malformed/out-of-range.
+- `purgeTreeCache` so cached public reads reflect the change.
+- Consider a light per-user rate limit (optional v1; owner-scoped, low abuse risk).
+
+## ⚠️ Operational dependency (flag at approval)
+The `deceased` column needs a **prod D1 migration** (`pnpm db:migrate:remote`, needs CF creds). It is an
+**additive** column, so the safe order is **migrate prod FIRST, then deploy code** (the new worker query
+selects `deceased` — if the column is missing, tree reads break). Local dev uses `db:migrate:local`.
 
 ## Out of scope
-- No backend/API changes. No change to `/demo/wongsuriya`, `/tree/:slug`, `/trees`, or auth
-  flows themselves. No visual redesign of the demo tree. Dependabot advisories (separate).
+- Editing name/born/gender/relations; editor-role (shares) editing; tree creation; bulk edits.
