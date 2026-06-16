@@ -11,13 +11,13 @@
  */
 
 import { Hono } from 'hono';
-import type { Context } from 'hono';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import type { HonoEnv } from '../types';
 import * as schema from '../../db/schema';
 import { newId } from '../lib/ids';
 import { purgeTreeCache } from '../lib/cache-purge';
+import { resolveOwnerTree } from '../lib/resolve-owner-tree';
 
 export const sharesRouter = new Hono<HonoEnv>();
 
@@ -48,42 +48,6 @@ const inviteSchema = z.object({
     .pipe(z.string().email().max(254)),
   role: z.enum(['viewer', 'editor']).default('viewer'),
 });
-
-// ---------------------------------------------------------------------------
-// Helper: resolve tree + verify ownership
-// Returns { ok: true, tree, user, db } or { ok: false, status: 401 | 404 }
-// ---------------------------------------------------------------------------
-
-type ResolveResult =
-  | { ok: true; tree: typeof schema.trees.$inferSelect; user: NonNullable<HonoEnv['Variables']['user']>; db: HonoEnv['Variables']['db'] }
-  | { ok: false; status: 401 | 404 };
-
-async function resolveOwnerTree(
-  c: Context<HonoEnv>,
-  slug: string,
-): Promise<ResolveResult> {
-  const db = c.var.db;
-  const user = c.var.user;
-
-  if (!user) {
-    return { ok: false, status: 401 };
-  }
-
-  const tree = await db.query.trees.findFirst({
-    where: eq(schema.trees.slug, slug),
-  });
-
-  if (!tree) {
-    return { ok: false, status: 404 };
-  }
-
-  if (tree.owner_id !== user.id) {
-    // Anti-enumeration: return 404 even when tree exists
-    return { ok: false, status: 404 };
-  }
-
-  return { ok: true, tree, user, db };
-}
 
 function rowToShare(row: typeof schema.tree_shares.$inferSelect): Share {
   const createdAt =

@@ -19,6 +19,7 @@ import imgRouter from './routes/img';
 import { authRouter } from './routes/auth';
 import { sharesRouter } from './routes/shares';
 import { treesRouter } from './routes/trees';
+import { peopleRouter } from './routes/people';
 import { dbMiddleware } from './middleware/db';
 import { sessionMiddleware } from './middleware/session';
 import { originCheck } from './middleware/origin-check';
@@ -48,6 +49,7 @@ app.get('/api/health', (c) => c.json({ ok: true, name: 'heritage', ts: Date.now(
 
 app.route('/api/auth', authRouter);
 app.route('/api/tree', sharesRouter); // paths: /api/tree/:slug/shares, /:slug/visibility
+app.route('/api/tree', peopleRouter); // paths: /api/tree/:slug/person/:personId
 app.route('/api/tree', treeRouter);   // paths: /api/tree/:slug (gated read)
 app.route('/api/trees', treesRouter);
 app.route('/api/img', imgRouter);
