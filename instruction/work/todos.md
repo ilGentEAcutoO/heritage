@@ -28,12 +28,17 @@
 - [x] Wave B: ThemePicker/NodeStylePicker popovers tokenized (radius/shadow tokens, dead fallbacks dropped)
 - [x] a11y: role=alert on errors + aria-live on status across all auth pages + Trees
 
-## Remaining Wave C (NOT done — verification is auth-gated; scoped for a focused follow-up)
-- [ ] ProfileDrawer re-tokenize (874 lines, ~half hardcoded inline styles + raw delete reds) → --danger tokens + .btn-danger
-- [ ] Standalone pages off inline styles + JS-hover → CSS classes: Landing, Trees, UserMenu, NotFound
-- [ ] TweaksPanel re-skin to soft-modern (currently wireframe: hard border, 6px radius, uppercase EN labels)
-- [ ] Auth slice .auth-card/.auth-input/.auth-btn/.auth-link classes + single <AuthLogo> (Phase 0 ring already covers focus)
-- [ ] Optional: extract a real <Popover> primitive (pickers already work + are tokenized)
+## Wave C — mostly DONE (2026-06-17, all deployed)
+- [x] ProfileDrawer re-tokenize → --danger tokens, stripped dead fallbacks, normalized radii, role=alert/aria-live
+- [x] TweaksPanel re-skin to soft-modern + Thai labels + aria-pressed; ⚙ toggle aria-label
+- [x] Dead CSS-variable fallback sweep app-wide (71 removed; the stale sage/tan palette is gone everywhere)
+
+## Remaining (the last polish layer — structural inline→class, needs NEW css + is auth-gated to verify)
+- [ ] Standalone pages: move Landing / Trees / UserMenu off inline styles + JS-hover onto CSS classes
+      (need new .menu/.menu-item + .tree-row classes for real :hover/:focus-visible; colors already tokenized)
+- [ ] Auth slice: extract .auth-card/.auth-input/.auth-btn/.auth-link + single <AuthLogo> across the 6 auth pages
+      (Phase 0 focus ring + aria-live already landed; remaining gain is hover states + one logo source)
+- [ ] Optional: extract a real <Popover> primitive (the two pickers already work + are tokenized)
 
 ## File Lock Registry
 | File | Locked by | Task | Since |
