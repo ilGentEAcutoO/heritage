@@ -4,12 +4,16 @@
  * Mirrors the CreateTreeDialog modal style. Accepts an optional `relativeTo`
  * person; when provided, shows a relation selector so the new person can be
  * immediately connected to the reference person.
+ *
+ * Shell (overlay, focus-trap, ESC, entrance) comes from <Modal>; form styling
+ * from the shared .field-* / .segmented / .btn-* classes.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { apiClient } from '@app/lib/api';
 import type { ApiError } from '@app/lib/api';
 import type { Person } from '@app/lib/types';
+import { Modal } from './Modal';
 
 export interface AddPersonDialogProps {
   slug: string;
@@ -21,129 +25,6 @@ export interface AddPersonDialogProps {
 
 type RelationChoice = 'none' | 'child' | 'parent' | 'spouse';
 
-const s = {
-  overlay: {
-    position: 'fixed' as const,
-    inset: 0,
-    background: 'rgba(20,28,46,0.45)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2000,
-    padding: '1rem',
-  },
-  panel: {
-    width: '100%',
-    maxWidth: '440px',
-    background: 'var(--paper, #fff)',
-    color: 'var(--ink)',
-    borderRadius: 'var(--radius-lg, 20px)',
-    boxShadow: 'var(--shadow-lg, 0 16px 50px rgba(20,28,46,.16))',
-    padding: '1.75rem',
-    maxHeight: '90vh',
-    overflowY: 'auto' as const,
-  },
-  title: {
-    fontSize: '1.4rem',
-    fontWeight: 600 as const,
-    color: 'var(--ink)',
-    margin: '0 0 1rem',
-  },
-  label: {
-    display: 'block',
-    fontSize: '0.8rem',
-    fontWeight: 600 as const,
-    color: 'var(--ink-soft)',
-    margin: '0.85rem 0 0.3rem',
-  },
-  input: {
-    width: '100%',
-    boxSizing: 'border-box' as const,
-    padding: '0.6rem 0.75rem',
-    borderRadius: '12px',
-    border: '1px solid var(--line)',
-    fontSize: '0.95rem',
-    background: 'var(--paper-2)',
-    color: 'var(--ink)',
-  },
-  select: {
-    width: '100%',
-    boxSizing: 'border-box' as const,
-    padding: '0.6rem 0.75rem',
-    borderRadius: '12px',
-    border: '1px solid var(--line)',
-    fontSize: '0.95rem',
-    background: 'var(--paper-2)',
-    color: 'var(--ink)',
-    cursor: 'pointer',
-  },
-  genderRow: { display: 'flex', gap: '0.5rem', marginTop: '0.3rem' },
-  genderBtn: (active: boolean) => ({
-    flex: 1,
-    padding: '0.55rem 0.4rem',
-    borderRadius: '999px',
-    border: `1px solid ${active ? 'var(--leaf)' : 'var(--line)'}`,
-    background: active ? 'var(--leaf-soft)' : 'var(--paper)',
-    color: active ? 'var(--leaf-strong)' : 'var(--ink-soft)',
-    fontWeight: active ? 600 : 500,
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-    textAlign: 'center' as const,
-    boxShadow: active ? 'none' : 'var(--shadow-sm)',
-  }),
-  error: {
-    background: '#fef2f2',
-    border: '1px solid #fca5a5',
-    borderRadius: '10px',
-    padding: '0.55rem 0.7rem',
-    fontSize: '0.85rem',
-    color: '#991b1b',
-    margin: '0.85rem 0 0',
-  },
-  actions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '0.6rem',
-    marginTop: '1.5rem',
-  },
-  cancel: {
-    padding: '0.6rem 1.3rem',
-    borderRadius: '999px',
-    border: '1px solid var(--line)',
-    background: 'var(--paper)',
-    color: 'var(--ink-soft)',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: 500 as const,
-    boxShadow: 'var(--shadow-sm)',
-  },
-  submit: (enabled: boolean) => ({
-    padding: '0.6rem 1.3rem',
-    borderRadius: '999px',
-    border: 'none',
-    background: 'var(--accent-grad, linear-gradient(135deg,#20c997,#0ca678))',
-    color: '#fff',
-    cursor: enabled ? 'pointer' : 'not-allowed',
-    opacity: enabled ? 1 : 0.5,
-    fontSize: '0.9rem',
-    fontWeight: 600 as const,
-    boxShadow: '0 4px 14px rgba(12,166,120,.3)',
-  }),
-  divider: {
-    borderTop: '1px solid var(--line)',
-    margin: '1rem 0 0',
-    paddingTop: '0.75rem',
-  },
-  sectionTitle: {
-    fontSize: '0.8rem',
-    fontWeight: 600 as const,
-    color: 'var(--ink-faint)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-    marginBottom: '0.5rem',
-  },
-};
-
 export function AddPersonDialog({ slug, relativeTo, onClose, onCreated }: AddPersonDialogProps) {
   const [name, setName] = useState('');
   const [nick, setNick] = useState('');
@@ -153,22 +34,12 @@ export function AddPersonDialog({ slug, relativeTo, onClose, onCreated }: AddPer
   const [relation, setRelation] = useState<RelationChoice>('none');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const submittingRef = useRef(false);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !submittingRef.current) onClose();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
 
   const canSubmit = name.trim().length > 0 && !submitting;
 
   async function handleSubmit() {
     if (!canSubmit) return;
     setSubmitting(true);
-    submittingRef.current = true;
     setError('');
 
     try {
@@ -222,149 +93,144 @@ export function AddPersonDialog({ slug, relativeTo, onClose, onCreated }: AddPer
       } else if (err.status === 401) setError('กรุณาเข้าสู่ระบบใหม่');
       else setError('เพิ่มคนไม่สำเร็จ — ลองใหม่อีกครั้ง');
       setSubmitting(false);
-      submittingRef.current = false;
     }
   }
 
   return (
-    <div
-      style={s.overlay}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget && !submitting) onClose();
-      }}
-    >
-      <div
-        style={s.panel}
-        data-testid="add-person-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label="เพิ่มคนในตระกูล"
-      >
-        <h2 style={s.title}>เพิ่มคนในตระกูล</h2>
+    <Modal onClose={onClose} busy={submitting} labelledBy="ap-title" size="md" testId="add-person-dialog">
+      <h2 className="modal-title" id="ap-title">เพิ่มคนในตระกูล</h2>
 
-        {/* Name (required) */}
-        <label style={s.label} htmlFor="ap-name">
-          ชื่อ <span style={{ color: '#991b1b' }}>*</span>
-        </label>
-        <input
-          id="ap-name"
-          data-testid="add-person-name"
-          style={s.input}
-          value={name}
-          autoFocus
-          placeholder="เช่น สมชาย วงศ์สุริยา"
-          onChange={(e) => setName(e.target.value)}
-        />
+      {/* Name (required) */}
+      <label className="field-label" htmlFor="ap-name">
+        ชื่อ <span style={{ color: 'var(--danger-ink, #991b1b)' }}>*</span>
+      </label>
+      <input
+        id="ap-name"
+        data-testid="add-person-name"
+        className="field-input"
+        value={name}
+        autoFocus
+        placeholder="เช่น สมชาย วงศ์สุริยา"
+        onChange={(e) => setName(e.target.value)}
+      />
 
-        {/* Nick */}
-        <label style={s.label} htmlFor="ap-nick">
-          ชื่อเล่น
-        </label>
-        <input
-          id="ap-nick"
-          data-testid="add-person-nick"
-          style={s.input}
-          value={nick}
-          placeholder="เช่น ชาย"
-          onChange={(e) => setNick(e.target.value)}
-        />
+      {/* Nick */}
+      <label className="field-label" htmlFor="ap-nick">
+        ชื่อเล่น
+      </label>
+      <input
+        id="ap-nick"
+        data-testid="add-person-nick"
+        className="field-input"
+        value={nick}
+        placeholder="เช่น ชาย"
+        onChange={(e) => setNick(e.target.value)}
+      />
 
-        {/* Born */}
-        <label style={s.label} htmlFor="ap-born">
-          ปีเกิด
-        </label>
-        <input
-          id="ap-born"
-          data-testid="add-person-born"
-          style={s.input}
-          type="number"
-          value={born}
-          placeholder="เช่น 1960"
-          onChange={(e) => setBorn(e.target.value)}
-        />
+      {/* Born */}
+      <label className="field-label" htmlFor="ap-born">
+        ปีเกิด
+      </label>
+      <input
+        id="ap-born"
+        data-testid="add-person-born"
+        className="field-input"
+        type="number"
+        inputMode="numeric"
+        value={born}
+        placeholder="เช่น 1960"
+        onChange={(e) => setBorn(e.target.value)}
+      />
 
-        {/* Hometown */}
-        <label style={s.label} htmlFor="ap-hometown">
-          บ้านเกิด
-        </label>
-        <input
-          id="ap-hometown"
-          data-testid="add-person-hometown"
-          style={s.input}
-          value={hometown}
-          placeholder="เช่น เชียงใหม่"
-          onChange={(e) => setHometown(e.target.value)}
-        />
+      {/* Hometown */}
+      <label className="field-label" htmlFor="ap-hometown">
+        บ้านเกิด
+      </label>
+      <input
+        id="ap-hometown"
+        data-testid="add-person-hometown"
+        className="field-input"
+        value={hometown}
+        placeholder="เช่น เชียงใหม่"
+        onChange={(e) => setHometown(e.target.value)}
+      />
 
-        {/* Gender */}
-        <label style={s.label}>เพศ</label>
-        <div style={s.genderRow}>
-          <button
-            type="button"
-            data-testid="add-person-gender-m"
-            style={s.genderBtn(gender === 'm')}
-            onClick={() => setGender('m')}
-          >
-            ชาย
-          </button>
-          <button
-            type="button"
-            data-testid="add-person-gender-f"
-            style={s.genderBtn(gender === 'f')}
-            onClick={() => setGender('f')}
-          >
-            หญิง
-          </button>
-        </div>
-
-        {/* Relation to relativeTo (optional) */}
-        {relativeTo && (
-          <div style={s.divider}>
-            <div style={s.sectionTitle}>ความสัมพันธ์</div>
-            <label style={s.label} htmlFor="ap-relation">
-              เกี่ยวข้องกับ {relativeTo.nick || relativeTo.name} เป็น
-            </label>
-            <select
-              id="ap-relation"
-              data-testid="add-person-relation"
-              style={s.select}
-              value={relation}
-              onChange={(e) => setRelation(e.target.value as RelationChoice)}
-            >
-              <option value="none">ไม่ระบุ</option>
-              <option value="child">ลูก (child)</option>
-              <option value="parent">พ่อแม่ (parent)</option>
-              <option value="spouse">คู่ครอง (spouse)</option>
-            </select>
-          </div>
-        )}
-
-        {error && (
-          <div style={s.error} data-testid="add-person-error">
-            {error}
-          </div>
-        )}
-
-        <div style={s.actions}>
-          <button
-            type="button"
-            style={s.cancel}
-            onClick={onClose}
-            disabled={submitting}
-          >
-            ยกเลิก
-          </button>
-          <button
-            type="button"
-            data-testid="add-person-submit"
-            style={s.submit(canSubmit)}
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-          >
-            {submitting ? 'กำลังเพิ่ม…' : 'เพิ่มคน'}
-          </button>
-        </div>
+      {/* Gender */}
+      <label className="field-label">เพศ</label>
+      <div className="segmented" role="group" aria-label="เพศ">
+        <button
+          type="button"
+          data-testid="add-person-gender-m"
+          className="segmented-btn"
+          aria-pressed={gender === 'm'}
+          onClick={() => setGender('m')}
+        >
+          ชาย
+        </button>
+        <button
+          type="button"
+          data-testid="add-person-gender-f"
+          className="segmented-btn"
+          aria-pressed={gender === 'f'}
+          onClick={() => setGender('f')}
+        >
+          หญิง
+        </button>
       </div>
-    </div>
+
+      {/* Relation to relativeTo (optional) */}
+      {relativeTo && (
+        <div style={{ borderTop: '1px solid var(--line)', margin: '1rem 0 0', paddingTop: '0.75rem' }}>
+          <div
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: 'var(--ink-faint)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              marginBottom: '0.5rem',
+            }}
+          >
+            ความสัมพันธ์
+          </div>
+          <label className="field-label" htmlFor="ap-relation">
+            เกี่ยวข้องกับ {relativeTo.nick || relativeTo.name} เป็น
+          </label>
+          <select
+            id="ap-relation"
+            data-testid="add-person-relation"
+            className="field-input"
+            value={relation}
+            onChange={(e) => setRelation(e.target.value as RelationChoice)}
+          >
+            <option value="none">ไม่ระบุ</option>
+            <option value="child">ลูก (child)</option>
+            <option value="parent">พ่อแม่ (parent)</option>
+            <option value="spouse">คู่ครอง (spouse)</option>
+          </select>
+        </div>
+      )}
+
+      {error && (
+        <div className="form-error" role="alert" data-testid="add-person-error">
+          {error}
+        </div>
+      )}
+
+      <div className="modal-actions">
+        <button type="button" className="btn-secondary" onClick={onClose} disabled={submitting}>
+          ยกเลิก
+        </button>
+        <button
+          type="button"
+          data-testid="add-person-submit"
+          className="btn-primary"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+        >
+          {submitting ? 'กำลังเพิ่ม…' : 'เพิ่มคน'}
+        </button>
+      </div>
+    </Modal>
   );
 }

@@ -6,11 +6,16 @@
  *   currentVisibility — initial visibility from TreeData.meta.visibility
  *   open              — controlled open state
  *   onClose           — callback to close
+ *
+ * Shell (overlay, focus-trap, ESC, click-outside, entrance) comes from <Modal>;
+ * form styling from the shared .field-* / .btn-* classes. Bespoke list rows and
+ * one-off layout keep minimal inline styles built from design tokens.
  */
 
 import { useState, useEffect, useCallback, FormEvent, useRef } from 'react';
 import { apiClient } from '@app/lib/api';
 import type { Share } from '@app/lib/api';
+import { Modal } from './Modal';
 
 type Visibility = 'public' | 'private' | 'shared';
 
@@ -21,222 +26,69 @@ interface ShareDialogProps {
   onClose: () => void;
 }
 
-const s = {
-  backdrop: {
-    position: 'fixed' as const,
-    inset: 0,
-    background: 'rgba(20,28,46,0.45)',
-    zIndex: 1000,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dialog: {
-    position: 'relative' as const,
-    background: 'var(--paper, #fff)',
-    border: '1px solid var(--line, #e4ddd4)',
-    borderRadius: 'var(--radius-lg, 20px)',
-    padding: '1.75rem',
-    width: '100%',
-    maxWidth: '520px',
-    maxHeight: '90vh',
-    overflowY: 'auto' as const,
-    boxShadow: 'var(--shadow-lg, 0 16px 50px rgba(20,28,46,.16))',
-    color: 'var(--ink, #2a1f14)',
-  },
-  heading: {
-    fontSize: '1.4rem',
-    fontWeight: 600 as const,
-    margin: '0 0 1.25rem',
-  },
-  closeBtn: {
-    position: 'absolute' as const,
-    top: '1rem',
-    right: '1rem',
-    background: 'none',
-    border: 'none',
-    fontSize: '1.2rem',
-    cursor: 'pointer',
-    color: 'var(--ink-faint, #999)',
-    lineHeight: 1,
-    padding: '0.2rem 0.4rem',
-    borderRadius: '999px',
-  },
-  sectionLabel: {
-    fontSize: '0.72rem',
-    fontWeight: 700 as const,
-    letterSpacing: '0.07em',
-    textTransform: 'uppercase' as const,
-    color: 'var(--ink-faint, #999)',
-    marginBottom: '0.6rem',
-    display: 'block',
-  },
-  radioGroup: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.5rem',
-    marginBottom: '1.5rem',
-  },
-  radioRow: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '0.6rem',
-    cursor: 'pointer',
-    padding: '0.6rem 0.7rem',
-    borderRadius: '12px',
-    border: '1px solid var(--line, #e4ddd4)',
-    background: 'var(--paper, #fff)',
-  },
-  radioRowActive: {
-    // Override the full `border` shorthand (not just borderColor) so the active
-    // state never mixes shorthand + longhand for the same element — React warns
-    // ("don't mix shorthand and non-shorthand") when those alternate on rerender.
-    border: '1px solid var(--leaf, #6b8f5e)',
-    background: 'var(--leaf-soft, rgba(107,143,94,0.06))',
-  },
-  radioLabel: {
-    fontWeight: 600 as const,
-    fontSize: '0.9rem',
-    color: 'var(--ink, #2a1f14)',
-  },
-  radioDesc: {
-    fontSize: '0.78rem',
-    color: 'var(--ink-soft, #6b7280)',
-    marginTop: '0.1rem',
-  },
-  divider: {
-    border: 'none',
-    borderTop: '1px solid var(--line, #e4ddd4)',
-    margin: '1.25rem 0',
-  },
-  inviteRow: {
-    display: 'flex',
-    gap: '0.5rem',
-    marginBottom: '1rem',
-  },
-  input: {
-    flex: 1,
-    padding: '0.6rem 0.75rem',
-    border: '1px solid var(--line, #ddd)',
-    borderRadius: '12px',
-    fontSize: '0.9rem',
-    color: 'var(--ink, #2a1f14)',
-    background: 'var(--paper-2, #faf8f4)',
-  },
-  select: {
-    padding: '0.6rem 0.75rem',
-    border: '1px solid var(--line, #ddd)',
-    borderRadius: '12px',
-    fontSize: '0.85rem',
-    color: 'var(--ink, #2a1f14)',
-    background: 'var(--paper-2, #faf8f4)',
-    cursor: 'pointer',
-  },
-  inviteBtn: {
-    padding: '0.6rem 1.3rem',
-    background: 'var(--accent-grad, linear-gradient(135deg,#20c997,#0ca678))',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '999px',
-    fontWeight: 600 as const,
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap' as const,
-    boxShadow: '0 4px 14px rgba(12,166,120,.3)',
-    transition: 'opacity 0.15s',
-  },
-  shareList: {
-    listStyle: 'none',
-    margin: 0,
-    padding: 0,
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.4rem',
-  },
-  shareItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.6rem',
-    padding: '0.55rem 0.7rem',
-    borderRadius: '12px',
-    border: '1px solid var(--line, #e4ddd4)',
-    background: 'var(--paper, #fff)',
-    fontSize: '0.88rem',
-  },
-  shareEmail: {
-    flex: 1,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  },
-  statusBadge: (status: string) => ({
-    fontSize: '0.68rem',
-    fontWeight: 600 as const,
-    padding: '0.2rem 0.55rem',
-    borderRadius: '999px',
-    background:
-      status === 'accepted'
-        ? 'var(--leaf-soft, rgba(107,143,94,0.15))'
-        : status === 'revoked'
-        ? 'var(--paper-2, #f3f3f3)'
-        : 'rgba(196,133,90,0.15)',
-    color:
-      status === 'accepted'
-        ? 'var(--leaf-strong, #6b8f5e)'
-        : status === 'revoked'
-        ? 'var(--ink-faint, #999)'
-        : 'var(--blossom, #c4855a)',
-  }),
-  revokeBtn: {
-    background: 'var(--paper, #fff)',
-    border: '1px solid var(--line, #ddd)',
-    borderRadius: '999px',
-    padding: '0.25rem 0.6rem',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
-    color: 'var(--ink-soft, #999)',
-    boxShadow: 'var(--shadow-sm)',
-    transition: 'border-color 0.15s, color 0.15s',
-  },
-  error: {
-    background: '#fef2f2',
-    border: '1px solid #fca5a5',
-    borderRadius: '10px',
-    padding: '0.5rem 0.7rem',
-    fontSize: '0.825rem',
-    color: '#991b1b',
-    marginBottom: '0.75rem',
-  },
-  loading: {
-    color: 'var(--ink-faint, #999)',
-    fontSize: '0.85rem',
-    padding: '0.5rem 0',
-  },
-  copyLinkRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    marginTop: '0.25rem',
-  },
-  copyLinkBtn: {
-    padding: '0.6rem 1.3rem',
-    background: 'var(--accent-grad, linear-gradient(135deg,#20c997,#0ca678))',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '999px',
-    fontWeight: 600 as const,
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap' as const,
-    boxShadow: '0 4px 14px rgba(12,166,120,.3)',
-    transition: 'opacity 0.15s',
-  },
-  copyLinkConfirm: {
-    fontSize: '0.85rem',
-    color: 'var(--leaf-strong, #6b8f5e)',
-    fontWeight: 600 as const,
-  },
+const sectionLabel = {
+  fontSize: '0.72rem',
+  fontWeight: 700 as const,
+  letterSpacing: '0.07em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--ink-faint)',
+  marginBottom: '0.6rem',
+  display: 'block',
 };
+
+const radioRow = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '0.6rem',
+  padding: '0.6rem 0.7rem',
+  borderRadius: '12px',
+  border: '1px solid var(--line)',
+  background: 'var(--paper)',
+};
+
+const radioRowActive = {
+  // Override the full `border` shorthand (not just borderColor) so the active
+  // state never mixes shorthand + longhand for the same element — React warns
+  // ("don't mix shorthand and non-shorthand") when those alternate on rerender.
+  border: '1px solid var(--leaf)',
+  background: 'var(--leaf-soft)',
+};
+
+const divider = {
+  border: 'none',
+  borderTop: '1px solid var(--line)',
+  margin: '1.25rem 0',
+};
+
+const shareItem = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.6rem',
+  padding: '0.55rem 0.7rem',
+  borderRadius: '12px',
+  border: '1px solid var(--line)',
+  background: 'var(--paper)',
+  fontSize: '0.88rem',
+};
+
+const statusBadge = (status: string) => ({
+  fontSize: '0.68rem',
+  fontWeight: 600 as const,
+  padding: '0.2rem 0.55rem',
+  borderRadius: '999px',
+  background:
+    status === 'accepted'
+      ? 'var(--leaf-soft)'
+      : status === 'revoked'
+      ? 'var(--paper-2)'
+      : 'var(--blossom-soft)',
+  color:
+    status === 'accepted'
+      ? 'var(--leaf-strong)'
+      : status === 'revoked'
+      ? 'var(--ink-faint)'
+      : 'var(--blossom)',
+});
 
 const VISIBILITY_OPTIONS: { value: Visibility; label: string; desc: string }[] = [
   { value: 'public', label: 'สาธารณะ (Public)', desc: 'ทุกคนดูได้โดยไม่ต้องเข้าสู่ระบบ' },
@@ -255,7 +107,6 @@ export function ShareDialog({ slug, currentVisibility, open, onClose }: ShareDia
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
 
   const fetchShares = useCallback(async () => {
     setSharesLoading(true);
@@ -288,16 +139,6 @@ export function ShareDialog({ slug, currentVisibility, open, onClose }: ShareDia
     if (visibility === 'shared') fetchShares();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibility]);
-
-  // Close on Esc
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
 
   // Clear the copy-confirmation timer on unmount (the dialog unmounts on close)
   // so the 2s timeout can't fire setCopied on an unmounted component.
@@ -381,166 +222,157 @@ export function ShareDialog({ slug, currentVisibility, open, onClose }: ShareDia
   const activeShares = shares.filter((s) => s.status !== 'revoked');
 
   return (
-    <div
-      style={s.backdrop}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="presentation"
-    >
-      <div
-        ref={dialogRef}
-        style={s.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-label="จัดการการแชร์ต้นไม้"
-      >
-        <button
-          style={s.closeBtn}
-          onClick={onClose}
-          aria-label="ปิด"
-          title="ปิด (Esc)"
-        >
-          ✕
-        </button>
+    <Modal onClose={onClose} label="จัดการการแชร์ต้นไม้" size="lg">
+      <h2 className="modal-title" id="share-dialog-title">จัดการการแชร์</h2>
 
-        <h2 style={s.heading}>จัดการการแชร์</h2>
-
-        {/* Visibility section */}
-        <span style={s.sectionLabel}>การมองเห็น</span>
-        <div style={s.radioGroup}>
-          {VISIBILITY_OPTIONS.map((opt) => {
-            const isActive = visibility === opt.value;
-            return (
-              <label
-                key={opt.value}
-                style={{
-                  ...s.radioRow,
-                  ...(isActive ? s.radioRowActive : {}),
-                  cursor: visChanging ? 'wait' : 'pointer',
-                }}
-              >
-                <input
-                  type="radio"
-                  name="visibility"
-                  value={opt.value}
-                  checked={isActive}
-                  disabled={visChanging}
-                  onChange={() => handleVisibilityChange(opt.value)}
-                  style={{ marginTop: '0.1rem', accentColor: 'var(--leaf, #6b8f5e)' }}
-                />
-                <div>
-                  <div style={s.radioLabel}>{opt.label}</div>
-                  <div style={s.radioDesc}>{opt.desc}</div>
-                </div>
-              </label>
-            );
-          })}
-        </div>
-
-        {/* Copy link section — only shown when public */}
-        {visibility === 'public' && (
-          <>
-            <hr style={s.divider} />
-            <span style={s.sectionLabel}>ลิงก์สาธารณะ</span>
-            <div style={s.copyLinkRow}>
-              <button
-                type="button"
-                data-testid="share-copy-link"
-                style={s.copyLinkBtn}
-                onClick={handleCopyLink}
-                title={`${location.origin}/tree/${slug}`}
-              >
-                คัดลอกลิงก์
-              </button>
-              {copied && (
-                <span style={s.copyLinkConfirm}>คัดลอกแล้ว ✓</span>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Invite section — only shown when shared */}
-        {visibility === 'shared' && (
-          <>
-            <hr style={s.divider} />
-            <span style={s.sectionLabel}>เชิญผู้เข้าถึง</span>
-
-            {errorMsg && <div style={s.error}>{errorMsg}</div>}
-
-            <form onSubmit={handleInvite}>
-              <div style={s.inviteRow}>
-                <input
-                  style={s.input}
-                  type="email"
-                  placeholder="อีเมล"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  required
-                  disabled={inviting}
-                  aria-label="อีเมลผู้รับเชิญ"
-                />
-                <select
-                  style={s.select}
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as 'viewer' | 'editor')}
-                  disabled={inviting}
-                  aria-label="บทบาท"
-                >
-                  <option value="viewer">ดูได้</option>
-                  <option value="editor">แก้ไขได้</option>
-                </select>
-                <button
-                  style={{ ...s.inviteBtn, opacity: inviting ? 0.65 : 1 }}
-                  type="submit"
-                  disabled={inviting}
-                >
-                  {inviting ? '…' : 'เชิญ'}
-                </button>
+      {/* Visibility section */}
+      <span style={sectionLabel}>การมองเห็น</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+        {VISIBILITY_OPTIONS.map((opt) => {
+          const isActive = visibility === opt.value;
+          return (
+            <label
+              key={opt.value}
+              style={{
+                ...radioRow,
+                ...(isActive ? radioRowActive : {}),
+                cursor: visChanging ? 'wait' : 'pointer',
+              }}
+            >
+              <input
+                type="radio"
+                name="visibility"
+                value={opt.value}
+                checked={isActive}
+                disabled={visChanging}
+                onChange={() => handleVisibilityChange(opt.value)}
+                style={{ marginTop: '0.1rem', accentColor: 'var(--leaf)' }}
+              />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--ink)' }}>{opt.label}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', marginTop: '0.1rem' }}>{opt.desc}</div>
               </div>
-            </form>
-
-            {/* Share list */}
-            {sharesLoading ? (
-              <p style={s.loading}>กำลังโหลด…</p>
-            ) : activeShares.length === 0 ? (
-              <p style={{ ...s.loading, fontSize: '0.85rem' }}>ยังไม่มีผู้เข้าถึง</p>
-            ) : (
-              <ul style={s.shareList}>
-                {activeShares.map((share) => (
-                  <li key={share.id} style={s.shareItem}>
-                    <span style={s.shareEmail} title={share.email}>
-                      {share.email}
-                    </span>
-                    <span style={{ fontSize: '0.78rem', opacity: 0.55 }}>
-                      {share.role === 'editor' ? 'แก้ไขได้' : 'ดูได้'}
-                    </span>
-                    <span style={s.statusBadge(share.status)}>
-                      {share.status === 'accepted'
-                        ? 'รับแล้ว'
-                        : share.status === 'pending'
-                        ? 'รอดำเนินการ'
-                        : 'ยกเลิกแล้ว'}
-                    </span>
-                    <button
-                      style={s.revokeBtn}
-                      onClick={() => handleRevoke(share.id)}
-                      title="ยกเลิกสิทธิ์"
-                    >
-                      ยกเลิก
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        )}
-
-        {/* Error when NOT in shared mode */}
-        {visibility !== 'shared' && errorMsg && (
-          <div style={s.error}>{errorMsg}</div>
-        )}
+            </label>
+          );
+        })}
       </div>
-    </div>
+
+      {/* Copy link section — only shown when public */}
+      {visibility === 'public' && (
+        <>
+          <hr style={divider} />
+          <span style={sectionLabel}>ลิงก์สาธารณะ</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
+            <button
+              type="button"
+              data-testid="share-copy-link"
+              className="btn-primary"
+              onClick={handleCopyLink}
+              title={`${location.origin}/tree/${slug}`}
+            >
+              คัดลอกลิงก์
+            </button>
+            {copied && (
+              <span style={{ fontSize: '0.85rem', color: 'var(--leaf-strong)', fontWeight: 600 }} aria-live="polite">คัดลอกแล้ว ✓</span>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Invite section — only shown when shared */}
+      {visibility === 'shared' && (
+        <>
+          <hr style={divider} />
+          <span style={sectionLabel}>เชิญผู้เข้าถึง</span>
+
+          {errorMsg && <div className="form-error" role="alert">{errorMsg}</div>}
+
+          <form onSubmit={handleInvite}>
+            <div style={{ display: 'flex', gap: '0.5rem', margin: '1rem 0' }}>
+              <input
+                className="field-input"
+                style={{ flex: 1 }}
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="อีเมล"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                required
+                disabled={inviting}
+                aria-label="อีเมลผู้รับเชิญ"
+              />
+              <select
+                className="field-input"
+                style={{ width: 'auto', cursor: 'pointer', fontSize: '0.85rem' }}
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as 'viewer' | 'editor')}
+                disabled={inviting}
+                aria-label="บทบาท"
+              >
+                <option value="viewer">ดูได้</option>
+                <option value="editor">แก้ไขได้</option>
+              </select>
+              <button
+                className="btn-primary"
+                style={{ whiteSpace: 'nowrap' }}
+                type="submit"
+                disabled={inviting}
+              >
+                {inviting ? '…' : 'เชิญ'}
+              </button>
+            </div>
+          </form>
+
+          {/* Share list */}
+          {sharesLoading ? (
+            <p style={{ color: 'var(--ink-faint)', fontSize: '0.85rem', padding: '0.5rem 0' }} aria-live="polite">กำลังโหลด…</p>
+          ) : activeShares.length === 0 ? (
+            <p style={{ color: 'var(--ink-faint)', fontSize: '0.85rem', padding: '0.5rem 0' }}>ยังไม่มีผู้เข้าถึง</p>
+          ) : (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {activeShares.map((share) => (
+                <li key={share.id} style={shareItem}>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={share.email}>
+                    {share.email}
+                  </span>
+                  <span style={{ fontSize: '0.78rem', opacity: 0.55 }}>
+                    {share.role === 'editor' ? 'แก้ไขได้' : 'ดูได้'}
+                  </span>
+                  <span style={statusBadge(share.status)}>
+                    {share.status === 'accepted'
+                      ? 'รับแล้ว'
+                      : share.status === 'pending'
+                      ? 'รอดำเนินการ'
+                      : 'ยกเลิกแล้ว'}
+                  </span>
+                  <button
+                    className="btn-ghost"
+                    style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                    onClick={() => handleRevoke(share.id)}
+                    title="ยกเลิกสิทธิ์"
+                  >
+                    ยกเลิก
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
+      {/* Error when NOT in shared mode */}
+      {visibility !== 'shared' && errorMsg && (
+        <div className="form-error" role="alert">{errorMsg}</div>
+      )}
+
+      <div className="modal-actions">
+        <button type="button" className="btn-secondary" onClick={onClose} aria-label="ปิด">
+          ปิด
+        </button>
+      </div>
+    </Modal>
   );
 }
