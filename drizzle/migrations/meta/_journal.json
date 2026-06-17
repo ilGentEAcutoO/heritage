@@ -57,6 +57,13 @@
       "when": 1781590104424,
       "tag": "0007_flat_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1781658999330,
+      "tag": "0008_graceful_leper_queen",
+      "breakpoints": true
     }
   ]
 }

@@ -29,6 +29,8 @@ import { TweaksPanel } from '@app/components/TweaksPanel';
 import { UserMenu } from '@app/components/UserMenu';
 import { AddPersonDialog } from '@app/components/AddPersonDialog';
 import { ThemePicker } from '@app/components/ThemePicker';
+import { NodeStylePicker } from '@app/components/NodeStylePicker';
+import type { NodeStyleValue } from '@app/components/NodeStylePicker';
 
 interface TreeViewProps {
   /** Passed directly for fixed-slug routes (e.g. /demo/wongsuriya). */
@@ -88,6 +90,10 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   // Local theme preview for non-owners (e.g. demo visitors): lets anyone try
   // the palettes without persisting. `undefined` = no preview (use stored theme).
   const [previewTheme, setPreviewTheme] = useState<string | null | undefined>(undefined);
+
+  // Local node style preview for non-owners: lets anyone try shapes without persisting.
+  // `undefined` = no preview (use stored nodeStyle, then fall back to tweaks.nodeShape).
+  const [previewNodeStyle, setPreviewNodeStyle] = useState<NodeStyleValue | null | undefined>(undefined);
 
   // Optimistic local overrides for person status (deceased / died)
   const [statusOverrides, setStatusOverrides] = useState<Record<string, { deceased: boolean; died: number | null }>>({});
@@ -194,6 +200,30 @@ export function TreeView({ treeSlug }: TreeViewProps) {
       }
     },
     [canEdit, onSetTheme],
+  );
+
+  // onSetNodeStyle: PATCH node-style (owner only) then refetch
+  const onSetNodeStyle = useCallback(
+    async (nodeStyle: NodeStyleValue | null) => {
+      if (!canEdit || !slug) return;
+      await apiClient.setNodeStyle(slug, nodeStyle);
+      refetch();
+    },
+    [canEdit, slug, refetch],
+  );
+
+  // handleSelectNodeStyle: owner persists (PATCH); everyone else gets an ephemeral
+  // local preview (no network) so demo/non-owner viewers can try the shapes.
+  const handleSelectNodeStyle = useCallback(
+    (nodeStyle: NodeStyleValue | null) => {
+      if (canEdit) {
+        setPreviewNodeStyle(undefined); // owner persists; drop any stale preview
+        void onSetNodeStyle(nodeStyle);
+      } else {
+        setPreviewNodeStyle(nodeStyle); // local-only preview, resets on reload
+      }
+    },
+    [canEdit, onSetNodeStyle],
   );
 
   // Derived from data
@@ -361,8 +391,13 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   // A non-owner's local preview (if any) takes precedence over the stored theme.
   const effectiveTheme = previewTheme !== undefined ? previewTheme : data.meta.theme;
 
+  // Tree-level node style: preview > stored > viewer's local tweak (tweaks.nodeShape).
+  const effectiveNodeStyle = (
+    (previewNodeStyle !== undefined ? previewNodeStyle : data.meta.nodeStyle) ?? tweaks.nodeShape
+  ) as NodeStyleValue;
+
   return (
-    <div className="app" style={paletteStyle(effectiveTheme)}>
+    <div className={`app${effectiveNodeStyle && effectiveNodeStyle !== 'circle' ? ` shape-${effectiveNodeStyle}` : ''}`} style={paletteStyle(effectiveTheme)}>
       {/* Header */}
       <header className="app-header" data-screen-label="App Header">
         {/* Hamburger — visible only on mobile (≤820px), hidden on desktop via CSS */}
@@ -423,6 +458,12 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           <ThemePicker
             currentTheme={effectiveTheme}
             onSelect={handleSelectTheme}
+            previewOnly={!canEdit}
+          />
+          {/* Node style picker — everyone can preview shapes; owner persists. */}
+          <NodeStylePicker
+            currentNodeStyle={effectiveNodeStyle}
+            onSelect={handleSelectNodeStyle}
             previewOnly={!canEdit}
           />
           {/* Share button — shown only to the tree owner */}
@@ -490,7 +531,6 @@ export function TreeView({ treeSlug }: TreeViewProps) {
         selectedId={selectedId}
         highlightPath={highlightPath}
         layoutStyle={tweaks.showTrunk ? 'organic' : 'plain'}
-        nodeStyle={tweaks.nodeShape}
         labelMode={activeViewId ? 'relation' : 'name'}
         activeViewId={activeViewId}
         expandedLineages={expandedLineages}

@@ -32,6 +32,8 @@ export interface TreeMeta {
   ownerId: string | null;
   /** Palette key set by the owner; null = default (paper) palette. */
   theme: string | null;
+  /** Node shape set by the owner; null = use viewer's local tweak. */
+  nodeStyle: string | null;
 }
 
 export interface PersonRow {
@@ -329,6 +331,7 @@ export async function getTreeData(
       visibility,
       ownerId: treeRow.owner_id,
       theme: treeRow.theme ?? null,
+      nodeStyle: treeRow.node_style ?? null,
     },
     people: shapedPeople,
     relations: shapedRelations,

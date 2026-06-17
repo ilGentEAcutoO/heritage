@@ -1208,18 +1208,18 @@ body.theme-blueprint {
   --rule: oklch(0.80 0.025 240);
 }
 
-body.shape-polaroid .node-photo {
+.app.shape-polaroid .node-photo {
   border-radius: 3px;
   padding: 4px 4px 20px;
   background: var(--paper);
   box-shadow: 0 3px 8px oklch(0.25 0.02 60 / 0.2);
 }
-body.shape-polaroid .node-photo svg { border-radius: 2px; }
-body.shape-polaroid .node-photo svg circle { rx: 0; ry: 0; }
-body.shape-polaroid .node-label { top: 84px; }
+.app.shape-polaroid .node-photo svg { border-radius: 2px; }
+.app.shape-polaroid .node-photo svg circle { rx: 0; ry: 0; }
+.app.shape-polaroid .node-label { top: 84px; }
 
-body.shape-square .node-photo svg circle[r="28"] { display: none; }
-body.shape-square .node-photo {
+.app.shape-square .node-photo svg circle[r="28"] { display: none; }
+.app.shape-square .node-photo {
   border-radius: 3px;
   overflow: hidden;
   border: 1.5px solid var(--ink);

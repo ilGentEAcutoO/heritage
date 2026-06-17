@@ -28,6 +28,7 @@ function makeRawTree(
       visibility: 'public',
       ownerId: null,
       theme: null,
+      nodeStyle: null,
     },
     people,
     relations: [],

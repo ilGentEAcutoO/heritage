@@ -31,7 +31,6 @@ export interface TreeCanvasProps {
   selectedId: string | null;
   highlightPath: string[] | null;
   layoutStyle: 'organic' | 'plain';
-  nodeStyle: 'circle' | 'polaroid' | 'square';
   labelMode: 'name' | 'relation';
   activeViewId: string | null;
   expandedLineages: Set<string>;

@@ -49,8 +49,9 @@ function applyThemeToBody(tweaks: Tweaks) {
   document.body.className = '';
   if (tweaks.theme === 'forest') document.body.classList.add('theme-forest');
   if (tweaks.theme === 'blueprint') document.body.classList.add('theme-blueprint');
-  if (tweaks.nodeShape === 'polaroid') document.body.classList.add('shape-polaroid');
-  if (tweaks.nodeShape === 'square') document.body.classList.add('shape-square');
+  // Shape classes are no longer set on body — they're applied on the .app container
+  // via className from effectiveNodeStyle in TreeView, so the tree-level style takes
+  // precedence over the tweak and the CSS selectors stay scoped to the .app root.
 }
 
 interface UseTweaksResult {

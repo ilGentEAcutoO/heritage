@@ -44,6 +44,9 @@ export const trees = sqliteTable(
     // Per-tree theme palette key (e.g. 'forest'); null = default palette.
     // Set by the owner, applied for all viewers of the tree.
     theme: text('theme'),
+    // Per-tree node shape ('circle' | 'polaroid' | 'square'); null = use the viewer's
+    // local tweak (tweaks.nodeShape). Set by the owner, applied for all viewers.
+    node_style: text('node_style'),
   },
   (t) => ({
     slugIdx: index('idx_trees_slug').on(t.slug),

@@ -46,6 +46,12 @@ const themeSchema = z.object({
     .nullable(),
 });
 
+const nodeStyleSchema = z.object({
+  nodeStyle: z
+    .enum(['circle', 'polaroid', 'square'])
+    .nullable(),
+});
+
 // N-R3-7 remediation: zod-validate invite body (email format + role enum).
 // Normalise (trim + lowercase) BEFORE `.email()` so whitespace-padded inputs
 // survive the validator, then cap length at RFC-5321 maximum (254).
@@ -328,4 +334,41 @@ sharesRouter.patch('/:slug/theme', async (c) => {
   await purgeTreeCache(c.req.url, slug);
 
   return c.json({ theme });
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /:slug/node-style — owner only
+// ---------------------------------------------------------------------------
+
+sharesRouter.patch('/:slug/node-style', async (c) => {
+  const { slug } = c.req.param();
+  const ctx = await resolveOwnerTree(c, slug);
+  if (!ctx.ok) {
+    return c.json({ error: ctx.status === 401 ? 'unauthorized' : 'not found' }, ctx.status);
+  }
+
+  const { db, tree } = ctx;
+
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'invalid_body' }, 400);
+  }
+
+  const parsed = nodeStyleSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: 'validation_error', details: parsed.error.flatten() }, 422);
+  }
+
+  const { nodeStyle } = parsed.data;
+
+  await db
+    .update(schema.trees)
+    .set({ node_style: nodeStyle })
+    .where(eq(schema.trees.id, tree.id));
+
+  await purgeTreeCache(c.req.url, slug);
+
+  return c.json({ nodeStyle });
 });

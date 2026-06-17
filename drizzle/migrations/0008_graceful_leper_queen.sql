@@ -1,0 +1,1 @@
+ALTER TABLE `trees` ADD `node_style` text;
