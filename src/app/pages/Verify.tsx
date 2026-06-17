@@ -3,7 +3,7 @@
  * Reads ?token= from URL, auto-POSTs on mount, shows loading/success/fail.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '@app/lib/api';
 import type { ApiError } from '@app/lib/api';
@@ -68,30 +68,29 @@ export function Verify() {
 
   const [status, setStatus] = useState<Status>(token ? 'loading' : 'missing');
 
+  // The verify token is single-use (the server atomically consumes it). React
+  // StrictMode double-invokes effects in dev, and any accidental remount would
+  // re-fire the POST — the second call hits an already-consumed token (410) and
+  // would clobber the success state, leaving the user stranded on this page.
+  // Guard so the POST fires exactly once per token value.
+  const verifiedToken = useRef<string | null>(null);
+
   useEffect(() => {
     if (!token) return;
-
-    let cancelled = false;
+    if (verifiedToken.current === token) return;
+    verifiedToken.current = token;
 
     apiClient
       .verify(token)
       .then(() => {
-        if (cancelled) return;
         setStatus('success');
         // Give user a moment to read the success message, then navigate
-        setTimeout(() => {
-          if (!cancelled) navigate('/trees');
-        }, 1800);
+        setTimeout(() => navigate('/trees'), 1800);
       })
       .catch((err: ApiError) => {
-        if (cancelled) return;
         void err;
         setStatus('error');
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [token, navigate]);
 
   return (
