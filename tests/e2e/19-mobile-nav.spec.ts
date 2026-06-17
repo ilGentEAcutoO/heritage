@@ -46,10 +46,14 @@ test.describe('Mobile slide-out navigation', () => {
     // Primary assertion: "open" class applied
     await expect(sidebar).toHaveClass(/\bopen\b/, { timeout: 3_000 });
 
-    // Geometry sanity check: sidebar must now be on-screen
-    const box = await sidebar.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
+    // Now actually visible (visibility:hidden → visible on open)
+    await expect(sidebar).toBeVisible({ timeout: 3_000 });
+
+    // Geometry: the drawer slides in over ~220ms — poll until it settles
+    // fully on-screen (left edge >= 0) rather than sampling mid-animation.
+    await expect
+      .poll(async () => (await sidebar.boundingBox())?.x ?? -1, { timeout: 3_000 })
+      .toBeGreaterThanOrEqual(0);
 
     // aria-expanded must reflect open state
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
