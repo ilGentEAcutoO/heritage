@@ -1253,42 +1253,42 @@ body {
 }
 .suggest-actions { display: flex; gap: 8px; }
 
-/* ─────── Tweaks panel ─────── */
+/* ─────── Tweaks panel (soft-modern, matches the dialog/card system) ─────── */
 .tweaks-panel {
   position: fixed;
   bottom: 24px; left: 24px;
   width: 260px;
   background: var(--paper);
-  border: 1px solid var(--ink);
-  border-radius: 6px;
-  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 18px;
   z-index: 20;
-  box-shadow: 0 10px 30px oklch(0.25 0.02 60 / 0.2);
+  box-shadow: var(--shadow-lg);
   animation: slideIn 200ms ease-out;
 }
 .tweaks-panel h4 {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 18px;
-  font-style: italic;
+  font-size: 15px;
+  font-weight: 600;
   margin-bottom: 14px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
 }
-.tweak-row { margin-bottom: 12px; }
+.tweak-row { margin-bottom: 14px; }
 .tweak-row label {
   display: block;
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
   margin-bottom: 6px;
 }
 .tweak-options {
   display: flex; gap: 4px;
+  background: var(--paper-2);
   border: 1px solid var(--line);
-  padding: 2px;
-  border-radius: 4px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
 }
 .tweak-options button {
   flex: 1;
@@ -1297,13 +1297,17 @@ body {
   border: none;
   font-family: inherit;
   font-size: 11px;
+  font-weight: 500;
   color: var(--ink-soft);
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--radius-pill);
+  transition: background 140ms ease, color 140ms ease;
 }
+.tweak-options button:hover { color: var(--ink); }
 .tweak-options button.active {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--leaf-soft);
+  color: var(--leaf-strong);
+  font-weight: 600;
 }
 
 /* ─────── Theme variants (soft pastel — mirrors src/app/lib/palettes.ts) ─────── */

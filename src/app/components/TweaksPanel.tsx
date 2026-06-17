@@ -9,38 +9,27 @@ export interface TweaksPanelProps {
 }
 
 /**
- * Tweaks panel — ported from the `<div className="tweaks-panel">` in
- * Family Tree.html (lines 246–272).
- *
- * Renders theme / nodeShape / trunk toggles. Panel only renders when `open`.
+ * Tweaks panel — viewer-local theme / nodeShape / trunk toggles.
+ * Renders only when `open`. Styling lives in styles.css (.tweaks-panel).
  */
 export function TweaksPanel({ open, tweaks, onChange }: TweaksPanelProps) {
   if (!open) return null;
 
   return (
     <div className="tweaks-panel">
-      <h4>Tweaks</h4>
+      <h4>ปรับแต่ง</h4>
 
       {/* Theme */}
       <div className="tweak-row">
-        <label>Theme</label>
-        <div className="tweak-options">
-          <button
-            className={tweaks.theme === 'paper' ? 'active' : ''}
-            onClick={() => onChange('theme', 'paper')}
-          >
+        <label id="tweak-theme-label">ธีม</label>
+        <div className="tweak-options" role="group" aria-labelledby="tweak-theme-label">
+          <button aria-pressed={tweaks.theme === 'paper'} className={tweaks.theme === 'paper' ? 'active' : ''} onClick={() => onChange('theme', 'paper')}>
             Paper
           </button>
-          <button
-            className={tweaks.theme === 'forest' ? 'active' : ''}
-            onClick={() => onChange('theme', 'forest')}
-          >
+          <button aria-pressed={tweaks.theme === 'forest'} className={tweaks.theme === 'forest' ? 'active' : ''} onClick={() => onChange('theme', 'forest')}>
             Sage
           </button>
-          <button
-            className={tweaks.theme === 'blueprint' ? 'active' : ''}
-            onClick={() => onChange('theme', 'blueprint')}
-          >
+          <button aria-pressed={tweaks.theme === 'blueprint'} className={tweaks.theme === 'blueprint' ? 'active' : ''} onClick={() => onChange('theme', 'blueprint')}>
             Sky
           </button>
         </div>
@@ -48,24 +37,15 @@ export function TweaksPanel({ open, tweaks, onChange }: TweaksPanelProps) {
 
       {/* Node shape */}
       <div className="tweak-row">
-        <label>Node shape</label>
-        <div className="tweak-options">
-          <button
-            className={tweaks.nodeShape === 'circle' ? 'active' : ''}
-            onClick={() => onChange('nodeShape', 'circle')}
-          >
+        <label id="tweak-shape-label">รูปโหนด</label>
+        <div className="tweak-options" role="group" aria-labelledby="tweak-shape-label">
+          <button aria-pressed={tweaks.nodeShape === 'circle'} className={tweaks.nodeShape === 'circle' ? 'active' : ''} onClick={() => onChange('nodeShape', 'circle')}>
             Circle
           </button>
-          <button
-            className={tweaks.nodeShape === 'polaroid' ? 'active' : ''}
-            onClick={() => onChange('nodeShape', 'polaroid')}
-          >
+          <button aria-pressed={tweaks.nodeShape === 'polaroid'} className={tweaks.nodeShape === 'polaroid' ? 'active' : ''} onClick={() => onChange('nodeShape', 'polaroid')}>
             Polaroid
           </button>
-          <button
-            className={tweaks.nodeShape === 'square' ? 'active' : ''}
-            onClick={() => onChange('nodeShape', 'square')}
-          >
+          <button aria-pressed={tweaks.nodeShape === 'square'} className={tweaks.nodeShape === 'square' ? 'active' : ''} onClick={() => onChange('nodeShape', 'square')}>
             Square
           </button>
         </div>
@@ -73,19 +53,13 @@ export function TweaksPanel({ open, tweaks, onChange }: TweaksPanelProps) {
 
       {/* Trunk decoration */}
       <div className="tweak-row">
-        <label>Trunk decoration</label>
-        <div className="tweak-options">
-          <button
-            className={tweaks.showTrunk ? 'active' : ''}
-            onClick={() => onChange('showTrunk', true)}
-          >
-            On
+        <label id="tweak-trunk-label">ลำต้น</label>
+        <div className="tweak-options" role="group" aria-labelledby="tweak-trunk-label">
+          <button aria-pressed={tweaks.showTrunk} className={tweaks.showTrunk ? 'active' : ''} onClick={() => onChange('showTrunk', true)}>
+            เปิด
           </button>
-          <button
-            className={!tweaks.showTrunk ? 'active' : ''}
-            onClick={() => onChange('showTrunk', false)}
-          >
-            Off
+          <button aria-pressed={!tweaks.showTrunk} className={!tweaks.showTrunk ? 'active' : ''} onClick={() => onChange('showTrunk', false)}>
+            ปิด
           </button>
         </div>
       </div>

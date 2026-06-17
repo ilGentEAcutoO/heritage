@@ -498,7 +498,9 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           <button
             className="header-btn"
             onClick={() => setTweaksOpen((s) => !s)}
-            title="Tweaks"
+            title="ปรับแต่ง"
+            aria-label="ปรับแต่ง"
+            aria-expanded={tweaksOpen}
           >
             ⚙
           </button>
