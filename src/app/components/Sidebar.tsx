@@ -63,8 +63,8 @@ export function Sidebar({
               style={{
                 padding: '0.2rem 0.55rem',
                 borderRadius: '5px',
-                border: '1px solid var(--leaf, #6b8f5e)',
-                background: 'var(--leaf, #6b8f5e)',
+                border: '1px solid var(--leaf)',
+                background: 'var(--leaf)',
                 color: '#fff',
                 cursor: 'pointer',
                 fontFamily: '"Prompt", system-ui, sans-serif',

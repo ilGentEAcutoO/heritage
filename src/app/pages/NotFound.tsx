@@ -14,8 +14,8 @@ export function NotFound() {
         alignItems: 'center',
         justifyContent: 'center',
         fontFamily: '"Prompt", system-ui, sans-serif',
-        background: 'var(--bg, #faf8f4)',
-        color: 'var(--ink, #2a1f14)',
+        background: 'var(--bg)',
+        color: 'var(--ink)',
         gap: '1rem',
       }}
     >
@@ -32,7 +32,7 @@ export function NotFound() {
       <p style={{ margin: 0, opacity: 0.6 }}>ไม่พบหน้านี้</p>
       <Link
         to="/"
-        style={{ color: 'var(--leaf, #6b8f5e)', textDecoration: 'underline' }}
+        style={{ color: 'var(--leaf)', textDecoration: 'underline' }}
       >
         กลับหน้าหลัก
       </Link>

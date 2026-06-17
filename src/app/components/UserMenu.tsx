@@ -88,10 +88,10 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
             top: 'calc(100% + 8px)',
             right: 0,
             minWidth: 200,
-            background: 'var(--paper, #fff)',
-            border: '1px solid var(--line, #ddd)',
+            background: 'var(--paper)',
+            border: '1px solid var(--line)',
             borderRadius: 14,
-            boxShadow: 'var(--shadow, 0 8px 30px rgba(20,28,46,.10))',
+            boxShadow: 'var(--shadow)',
             zIndex: 1000,
             padding: '6px',
             fontFamily: '"Prompt", system-ui, sans-serif',
@@ -104,15 +104,15 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
               <div
                 style={{
                   padding: '10px 12px 10px',
-                  borderBottom: '1px solid var(--line, #ddd)',
+                  borderBottom: '1px solid var(--line)',
                   marginBottom: 4,
                 }}
               >
-                <div style={{ fontWeight: 600, color: 'var(--ink, #2a1f14)' }}>
+                <div style={{ fontWeight: 600, color: 'var(--ink)' }}>
                   {user.displayName ?? user.email}
                 </div>
                 {user.displayName && (
-                  <div style={{ fontSize: 12, color: 'var(--ink-faint, #94a0b8)' }}>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
                     {user.email}
                   </div>
                 )}
@@ -128,7 +128,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                   display: 'block',
                   padding: '8px 12px',
                   borderRadius: 12,
-                  color: 'var(--ink, #2a1f14)',
+                  color: 'var(--ink)',
                   textDecoration: 'none',
                 }}
               >
@@ -145,7 +145,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                   display: 'block',
                   padding: '8px 12px',
                   borderRadius: 12,
-                  color: 'var(--ink, #2a1f14)',
+                  color: 'var(--ink)',
                   textDecoration: 'none',
                 }}
               >
@@ -168,7 +168,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                   background: 'transparent',
                   border: 'none',
                   cursor: loggingOut ? 'wait' : 'pointer',
-                  color: 'var(--blossom, #2a1f14)',
+                  color: 'var(--blossom)',
                   fontFamily: '"Prompt", system-ui, sans-serif',
                   fontSize: 14,
                   fontWeight: 600,
@@ -190,7 +190,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                   display: 'block',
                   padding: '8px 12px',
                   borderRadius: 12,
-                  color: 'var(--ink, #2a1f14)',
+                  color: 'var(--ink)',
                   textDecoration: 'none',
                 }}
               >
@@ -207,7 +207,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                   display: 'block',
                   padding: '8px 12px',
                   borderRadius: 12,
-                  color: 'var(--leaf-strong, #2a1f14)',
+                  color: 'var(--leaf-strong)',
                   textDecoration: 'none',
                   fontWeight: 600,
                 }}

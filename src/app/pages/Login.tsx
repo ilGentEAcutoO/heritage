@@ -27,9 +27,9 @@ const s = {
     maxWidth: '400px',
     background: 'var(--paper)',
     border: '1px solid var(--line)',
-    borderRadius: 'var(--radius-lg, 20px)',
+    borderRadius: 'var(--radius-lg)',
     padding: '2rem',
-    boxShadow: 'var(--shadow-lg, 0 16px 50px rgba(20,28,46,.16))',
+    boxShadow: 'var(--shadow-lg)',
   },
   logo: { display: 'block', margin: '0 auto 1.25rem', textAlign: 'center' as const },
   heading: {
@@ -61,7 +61,7 @@ const s = {
     fontFamily: '"Prompt", system-ui, sans-serif',
     fontSize: '0.9rem',
     fontWeight: active ? 600 : 400,
-    color: active ? 'var(--leaf-strong, var(--leaf))' : 'var(--ink-soft)',
+    color: active ? 'var(--leaf-strong)' : 'var(--ink-soft)',
     cursor: 'pointer',
     transition: 'color 0.15s, border-color 0.15s',
   }),
@@ -91,7 +91,7 @@ const s = {
     background: 'var(--accent-grad)',
     color: '#fff',
     border: 'none',
-    borderRadius: 'var(--radius-pill, 999px)',
+    borderRadius: 'var(--radius-pill)',
     fontFamily: '"Prompt", system-ui, sans-serif',
     fontSize: '1rem',
     fontWeight: 600,
@@ -114,7 +114,7 @@ const s = {
     borderRadius: '10px',
     padding: '0.65rem 0.8rem',
     fontSize: '0.875rem',
-    color: 'var(--leaf-strong, var(--leaf))',
+    color: 'var(--leaf-strong)',
     marginBottom: '1rem',
   },
   info: {
@@ -132,7 +132,7 @@ const s = {
     fontSize: '0.875rem',
     color: 'var(--ink-faint)',
   },
-  link: { color: 'var(--leaf-strong, var(--leaf))', textDecoration: 'none' as const },
+  link: { color: 'var(--leaf-strong)', textDecoration: 'none' as const },
 };
 
 export function Login() {
@@ -219,7 +219,7 @@ export function Login() {
               opacity={0.4}
             />
             <circle cx="28" cy="20" r="6" fill="var(--blossom)" />
-            <path d="M28 26 L28 52" stroke="var(--leaf-strong, var(--leaf))" strokeWidth={3} />
+            <path d="M28 26 L28 52" stroke="var(--leaf-strong)" strokeWidth={3} />
           </svg>
         </div>
 

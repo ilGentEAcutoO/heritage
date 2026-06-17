@@ -35,8 +35,8 @@ export function Landing() {
         gap: '1.4rem',
         fontFamily: '"Prompt", system-ui, sans-serif',
         background:
-          'radial-gradient(80% 60% at 50% 0%, #ffffff 0%, var(--bg, #eef0f4) 70%)',
-        color: 'var(--ink, #1e2430)',
+          'radial-gradient(80% 60% at 50% 0%, #ffffff 0%, var(--bg) 70%)',
+        color: 'var(--ink)',
       }}
     >
       {/* Logo mark in a soft floating badge */}
@@ -49,18 +49,18 @@ export function Landing() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: 'var(--shadow, 0 8px 24px rgba(20,28,46,.1))',
-          border: '1px solid var(--line, #e8eaef)',
+          boxShadow: 'var(--shadow)',
+          border: '1px solid var(--line)',
         }}
       >
         <svg viewBox="0 0 56 56" width={48} height={48} aria-hidden="true" style={{ display: 'block' }}>
           <path
             d="M28 52 Q28 36 16 28 Q8 24 12 16 Q20 12 28 20 Q36 12 44 16 Q48 24 40 28 Q28 36 28 52"
-            fill="var(--leaf, #12b886)"
+            fill="var(--leaf)"
             opacity={0.45}
           />
-          <circle cx="28" cy="20" r="6" fill="var(--blossom, #ff7a59)" />
-          <path d="M28 26 L28 52" stroke="var(--bark, #cbd1db)" strokeWidth={3} />
+          <circle cx="28" cy="20" r="6" fill="var(--blossom)" />
+          <path d="M28 26 L28 52" stroke="var(--bark)" strokeWidth={3} />
         </svg>
       </div>
 
@@ -83,7 +83,7 @@ export function Landing() {
         style={{
           fontSize: '1.05rem',
           margin: 0,
-          color: 'var(--ink-soft, #5d6675)',
+          color: 'var(--ink-soft)',
           textAlign: 'center',
         }}
       >
@@ -106,7 +106,7 @@ export function Landing() {
             style={{
               padding: '0.75rem 1.8rem',
               borderRadius: '999px',
-              background: 'var(--accent-grad, linear-gradient(135deg,#20c997,#0ca678))',
+              background: 'var(--accent-grad)',
               color: '#fff',
               textDecoration: 'none',
               fontWeight: 600,
@@ -138,7 +138,7 @@ export function Landing() {
               background: 'transparent',
               border: 'none',
               cursor: loggingOut ? 'wait' : 'pointer',
-              color: 'var(--ink-faint, #98a1b0)',
+              color: 'var(--ink-faint)',
               fontSize: '0.85rem',
               opacity: loggingOut ? 0.4 : 1,
               padding: 0,

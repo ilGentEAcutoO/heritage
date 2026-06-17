@@ -334,7 +334,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: '"Prompt", system-ui, sans-serif',
-          background: 'var(--bg, #faf8f4)',
+          background: 'var(--bg)',
         }}
       >
         <p style={{ opacity: 0.5 }}>กำลังโหลด…</p>
@@ -353,8 +353,8 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: '"Prompt", system-ui, sans-serif',
-          background: 'var(--bg, #faf8f4)',
-          color: 'var(--ink, #2a1f14)',
+          background: 'var(--bg)',
+          color: 'var(--ink)',
           gap: '1rem',
           padding: '2rem',
           textAlign: 'center',
@@ -380,7 +380,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           style={{
             padding: '0.65rem 1.5rem',
             borderRadius: '6px',
-            background: 'var(--leaf, #6b8f5e)',
+            background: 'var(--leaf)',
             color: '#fff',
             textDecoration: 'none',
             fontWeight: 500,
@@ -391,7 +391,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
         </Link>
         <Link
           to="/"
-          style={{ color: 'var(--leaf, #6b8f5e)', fontSize: '0.9rem', opacity: 0.8 }}
+          style={{ color: 'var(--leaf)', fontSize: '0.9rem', opacity: 0.8 }}
         >
           กลับหน้าหลัก
         </Link>
@@ -490,7 +490,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
               className="header-btn"
               onClick={() => setShareOpen(true)}
               title="จัดการการแชร์"
-              style={{ color: 'var(--leaf, #6b8f5e)' }}
+              style={{ color: 'var(--leaf)' }}
             >
               แชร์
             </button>
@@ -511,7 +511,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
               to="/login"
               className="header-btn"
               data-testid="header-login"
-              style={{ background: 'var(--leaf, #6b8f5e)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}
+              style={{ background: 'var(--leaf)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}
             >
               เข้าสู่ระบบ
             </Link>

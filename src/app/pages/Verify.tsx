@@ -25,7 +25,7 @@ const s = {
     maxWidth: '400px',
     background: 'var(--paper)',
     border: '1px solid var(--line)',
-    borderRadius: 'var(--radius, 14px)',
+    borderRadius: 'var(--radius)',
     padding: '2rem',
     textAlign: 'center' as const,
     boxShadow: 'var(--shadow)',
@@ -100,11 +100,11 @@ export function Verify() {
           <svg viewBox="0 0 56 56" width={40} height={40} aria-hidden="true">
             <path
               d="M28 52 Q28 36 16 28 Q8 24 12 16 Q20 12 28 20 Q36 12 44 16 Q48 24 40 28 Q28 36 28 52"
-              fill="var(--leaf, #6b8f5e)"
+              fill="var(--leaf)"
               opacity={0.4}
             />
-            <circle cx="28" cy="20" r="6" fill="var(--blossom, #c4855a)" />
-            <path d="M28 26 L28 52" stroke="var(--leaf-strong, #0ca678)" strokeWidth={3} />
+            <circle cx="28" cy="20" r="6" fill="var(--blossom)" />
+            <path d="M28 26 L28 52" stroke="var(--leaf-strong)" strokeWidth={3} />
           </svg>
         </div>
 

@@ -15,7 +15,7 @@ export function Home() {
     // Minimal neutral placeholder — no spinner to avoid flash of loading UI.
     return (
       <div
-        style={{ minHeight: '100vh', background: 'var(--bg, #faf8f4)' }}
+        style={{ minHeight: '100vh', background: 'var(--bg)' }}
         aria-busy="true"
       />
     );

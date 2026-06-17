@@ -102,7 +102,7 @@ export function AddPersonDialog({ slug, relativeTo, onClose, onCreated }: AddPer
 
       {/* Name (required) */}
       <label className="field-label" htmlFor="ap-name">
-        ชื่อ <span style={{ color: 'var(--danger-ink, #991b1b)' }}>*</span>
+        ชื่อ <span style={{ color: 'var(--danger-ink)' }}>*</span>
       </label>
       <input
         id="ap-name"

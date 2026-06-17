@@ -25,7 +25,7 @@ const s = {
     maxWidth: '400px',
     background: 'var(--paper)',
     border: '1px solid var(--line)',
-    borderRadius: 'var(--radius, 14px)',
+    borderRadius: 'var(--radius)',
     padding: '2rem',
     boxShadow: 'var(--shadow)',
   },

@@ -19,8 +19,8 @@ const s = {
     alignItems: 'center',
     padding: '3rem 2rem',
     fontFamily: FONT,
-    background: 'radial-gradient(80% 50% at 50% 0%, #ffffff 0%, var(--bg, #eef0f4) 70%)',
-    color: 'var(--ink, #1e2430)',
+    background: 'radial-gradient(80% 50% at 50% 0%, #ffffff 0%, var(--bg) 70%)',
+    color: 'var(--ink)',
   },
   inner: {
     width: '100%',
@@ -35,7 +35,7 @@ const s = {
   },
   sub: {
     fontSize: '0.9rem',
-    color: 'var(--ink-faint, #98a1b0)',
+    color: 'var(--ink-faint)',
     margin: '0 0 2rem',
   },
   section: {
@@ -46,7 +46,7 @@ const s = {
     fontWeight: 600 as const,
     letterSpacing: '0.1em',
     textTransform: 'uppercase' as const,
-    color: 'var(--ink-faint, #98a1b0)',
+    color: 'var(--ink-faint)',
     margin: '0 0 0.75rem',
   },
   row: {
@@ -55,10 +55,10 @@ const s = {
     gap: '0.75rem',
     padding: '0.9rem 1.1rem',
     marginBottom: '0.6rem',
-    background: 'var(--paper, #fff)',
-    border: '1px solid var(--line, #e8eaef)',
-    borderRadius: 'var(--radius, 14px)',
-    boxShadow: 'var(--shadow-sm, 0 1px 2px rgba(20,28,46,.05))',
+    background: 'var(--paper)',
+    border: '1px solid var(--line)',
+    borderRadius: 'var(--radius)',
+    boxShadow: 'var(--shadow-sm)',
     transition: 'transform 140ms ease, box-shadow 140ms ease',
   },
   name: {
@@ -66,7 +66,7 @@ const s = {
     fontSize: '1rem',
     fontWeight: 600 as const,
     textDecoration: 'none',
-    color: 'var(--ink, #1e2430)',
+    color: 'var(--ink)',
   },
   badge: (role: string) => ({
     fontSize: '0.7rem',
@@ -76,20 +76,20 @@ const s = {
     borderRadius: '999px',
     background:
       role === 'owner'
-        ? 'var(--leaf-soft, #d8f5ea)'
+        ? 'var(--leaf-soft)'
         : role === 'editor'
-        ? 'var(--blossom-soft, #ffe6df)'
+        ? 'var(--blossom-soft)'
         : '#eef0f4',
     color:
       role === 'owner'
-        ? 'var(--leaf-strong, #0ca678)'
+        ? 'var(--leaf-strong)'
         : role === 'editor'
         ? '#d2521f'
-        : 'var(--ink-soft, #5d6675)',
+        : 'var(--ink-soft)',
     whiteSpace: 'nowrap' as const,
   }),
   empty: {
-    color: 'var(--ink-faint, #98a1b0)',
+    color: 'var(--ink-faint)',
     fontSize: '0.9rem',
     padding: '0.5rem 0',
   },
@@ -106,7 +106,7 @@ const s = {
     display: 'inline-block',
     marginBottom: '1.5rem',
     fontSize: '0.85rem',
-    color: 'var(--ink-soft, #5d6675)',
+    color: 'var(--ink-soft)',
     textDecoration: 'none',
   },
   headerRow: {
@@ -121,7 +121,7 @@ const s = {
     padding: '0.65rem 1.3rem',
     borderRadius: '999px',
     border: 'none',
-    background: 'var(--accent-grad, linear-gradient(135deg,#20c997,#0ca678))',
+    background: 'var(--accent-grad)',
     color: '#fff',
     cursor: 'pointer',
     fontFamily: FONT,
@@ -188,7 +188,7 @@ export function Trees() {
         {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
 
         {fetchLoading ? (
-          <p style={{ color: 'var(--ink-faint, #98a1b0)', fontFamily: FONT }} aria-live="polite">กำลังโหลด…</p>
+          <p style={{ color: 'var(--ink-faint)', fontFamily: FONT }} aria-live="polite">กำลังโหลด…</p>
         ) : (
           <>
             {/* Owned trees */}
@@ -228,11 +228,11 @@ function TreeRow({ tree }: { tree: TreeSummary }) {
       style={s.row}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = 'var(--shadow, 0 8px 24px rgba(20,28,46,.08))';
+        e.currentTarget.style.boxShadow = 'var(--shadow)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-sm, 0 1px 2px rgba(20,28,46,.05))';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
       }}
     >
       <Link to={`/tree/${tree.slug}`} style={s.name}>
