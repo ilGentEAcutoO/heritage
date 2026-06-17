@@ -35,7 +35,7 @@ export function Landing() {
         gap: '1.4rem',
         fontFamily: '"Prompt", system-ui, sans-serif',
         background:
-          'radial-gradient(80% 60% at 50% 0%, #ffffff 0%, var(--bg) 70%)',
+          'radial-gradient(80% 60% at 50% 0%, var(--paper) 0%, var(--bg) 70%)',
         color: 'var(--ink)',
       }}
     >
@@ -45,7 +45,7 @@ export function Landing() {
           width: 96,
           height: 96,
           borderRadius: '28px',
-          background: '#fff',
+          background: 'var(--paper)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -101,28 +101,7 @@ export function Landing() {
         }}
       >
         {!loading && user && (
-          <Link
-            to="/trees"
-            style={{
-              padding: '0.75rem 1.8rem',
-              borderRadius: '999px',
-              background: 'var(--accent-grad)',
-              color: '#fff',
-              textDecoration: 'none',
-              fontWeight: 600,
-              fontSize: '0.98rem',
-              boxShadow: '0 6px 18px rgba(12,166,120,.32)',
-              transition: 'filter 0.15s, box-shadow 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.filter = 'brightness(1.04)';
-              e.currentTarget.style.boxShadow = '0 8px 22px rgba(12,166,120,.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.filter = 'brightness(1)';
-              e.currentTarget.style.boxShadow = '0 6px 18px rgba(12,166,120,.32)';
-            }}
-          >
+          <Link to="/trees" className="btn-primary">
             ดูต้นไม้ของฉัน →
           </Link>
         )}
@@ -132,18 +111,9 @@ export function Landing() {
           <button
             type="button"
             data-testid="logout-button"
+            className="btn-ghost"
             onClick={handleLogout}
             disabled={loggingOut}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: loggingOut ? 'wait' : 'pointer',
-              color: 'var(--ink-faint)',
-              fontSize: '0.85rem',
-              opacity: loggingOut ? 0.4 : 1,
-              padding: 0,
-              fontFamily: '"Prompt", system-ui, sans-serif',
-            }}
           >
             {loggingOut ? 'กำลังออก…' : 'ออกจากระบบ'}
           </button>

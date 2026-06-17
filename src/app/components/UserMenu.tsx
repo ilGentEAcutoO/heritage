@@ -80,39 +80,16 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
       </button>
 
       {open && (
-        <div
-          data-testid="user-menu"
-          role="menu"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
-            minWidth: 200,
-            background: 'var(--paper)',
-            border: '1px solid var(--line)',
-            borderRadius: 14,
-            boxShadow: 'var(--shadow)',
-            zIndex: 1000,
-            padding: '6px',
-            fontFamily: '"Prompt", system-ui, sans-serif',
-            fontSize: 14,
-          }}
-        >
+        <div data-testid="user-menu" role="menu" className="menu">
           {user ? (
             <>
               {/* Auth header */}
-              <div
-                style={{
-                  padding: '10px 12px 10px',
-                  borderBottom: '1px solid var(--line)',
-                  marginBottom: 4,
-                }}
-              >
-                <div style={{ fontWeight: 600, color: 'var(--ink)' }}>
+              <div className="menu-header">
+                <div className="menu-name">
                   {user.displayName ?? user.email}
                 </div>
                 {user.displayName && (
-                  <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
+                  <div className="menu-email">
                     {user.email}
                   </div>
                 )}
@@ -123,14 +100,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 to="/"
                 data-testid="user-menu-item-home"
                 role="menuitem"
+                className="menu-item"
                 onClick={() => setOpen(false)}
-                style={{
-                  display: 'block',
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  color: 'var(--ink)',
-                  textDecoration: 'none',
-                }}
               >
                 🏠 หน้าหลัก
               </Link>
@@ -140,14 +111,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 to="/trees"
                 data-testid="user-menu-item-trees"
                 role="menuitem"
+                className="menu-item"
                 onClick={() => setOpen(false)}
-                style={{
-                  display: 'block',
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  color: 'var(--ink)',
-                  textDecoration: 'none',
-                }}
               >
                 🌳 ต้นไม้ของฉัน
               </Link>
@@ -157,23 +122,9 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 type="button"
                 data-testid="user-menu-item-logout"
                 role="menuitem"
+                className="menu-item danger"
                 onClick={handleLogout}
                 disabled={loggingOut}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: loggingOut ? 'wait' : 'pointer',
-                  color: 'var(--blossom)',
-                  fontFamily: '"Prompt", system-ui, sans-serif',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  opacity: loggingOut ? 0.4 : 1,
-                }}
               >
                 {loggingOut ? 'กำลังออก…' : 'ออกจากระบบ'}
               </button>
@@ -185,14 +136,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 to="/"
                 data-testid="user-menu-item-home"
                 role="menuitem"
+                className="menu-item"
                 onClick={() => setOpen(false)}
-                style={{
-                  display: 'block',
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  color: 'var(--ink)',
-                  textDecoration: 'none',
-                }}
               >
                 🏠 หน้าหลัก
               </Link>
@@ -202,15 +147,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element | null {
                 to="/login"
                 data-testid="user-menu-item-login"
                 role="menuitem"
+                className="menu-item strong"
                 onClick={() => setOpen(false)}
-                style={{
-                  display: 'block',
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  color: 'var(--leaf-strong)',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                }}
               >
                 เข้าสู่ระบบ
               </Link>

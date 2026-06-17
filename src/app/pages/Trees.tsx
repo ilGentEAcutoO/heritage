@@ -19,7 +19,7 @@ const s = {
     alignItems: 'center',
     padding: '3rem 2rem',
     fontFamily: FONT,
-    background: 'radial-gradient(80% 50% at 50% 0%, #ffffff 0%, var(--bg) 70%)',
+    background: 'radial-gradient(80% 50% at 50% 0%, var(--paper) 0%, var(--bg) 70%)',
     color: 'var(--ink)',
   },
   inner: {
@@ -49,58 +49,10 @@ const s = {
     color: 'var(--ink-faint)',
     margin: '0 0 0.75rem',
   },
-  row: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0.9rem 1.1rem',
-    marginBottom: '0.6rem',
-    background: 'var(--paper)',
-    border: '1px solid var(--line)',
-    borderRadius: 'var(--radius)',
-    boxShadow: 'var(--shadow-sm)',
-    transition: 'transform 140ms ease, box-shadow 140ms ease',
-  },
-  name: {
-    flex: 1,
-    fontSize: '1rem',
-    fontWeight: 600 as const,
-    textDecoration: 'none',
-    color: 'var(--ink)',
-  },
-  badge: (role: string) => ({
-    fontSize: '0.7rem',
-    fontWeight: 600 as const,
-    letterSpacing: '0.03em',
-    padding: '0.25rem 0.6rem',
-    borderRadius: '999px',
-    background:
-      role === 'owner'
-        ? 'var(--leaf-soft)'
-        : role === 'editor'
-        ? 'var(--blossom-soft)'
-        : '#eef0f4',
-    color:
-      role === 'owner'
-        ? 'var(--leaf-strong)'
-        : role === 'editor'
-        ? '#d2521f'
-        : 'var(--ink-soft)',
-    whiteSpace: 'nowrap' as const,
-  }),
   empty: {
     color: 'var(--ink-faint)',
     fontSize: '0.9rem',
     padding: '0.5rem 0',
-  },
-  error: {
-    background: '#fef2f2',
-    border: '1px solid #fca5a5',
-    borderRadius: '10px',
-    padding: '0.65rem 0.8rem',
-    fontSize: '0.875rem',
-    color: '#991b1b',
-    margin: '1rem 0',
   },
   homeLink: {
     display: 'inline-block',
@@ -185,7 +137,7 @@ export function Trees() {
           </button>
         </div>
 
-        {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
+        {errorMsg && <div className="form-error" role="alert">{errorMsg}</div>}
 
         {fetchLoading ? (
           <p style={{ color: 'var(--ink-faint)', fontFamily: FONT }} aria-live="polite">กำลังโหลด…</p>
@@ -223,29 +175,19 @@ export function Trees() {
 }
 
 function TreeRow({ tree }: { tree: TreeSummary }) {
+  const badgeClass =
+    tree.role === 'owner' ? 'owner' : tree.role === 'editor' ? 'editor' : '';
   return (
-    <div
-      style={s.row}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = 'var(--shadow)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-      }}
-    >
-      <Link to={`/tree/${tree.slug}`} style={s.name}>
+    <Link to={`/tree/${tree.slug}`} className="tree-row">
+      <span className="tree-row-name">
         {tree.name}
         {tree.name_en && (
-          <span style={{ opacity: 0.45, fontWeight: 400, marginLeft: '0.4rem', fontSize: '0.9em' }}>
-            · {tree.name_en}
-          </span>
+          <span className="tree-row-name-en">· {tree.name_en}</span>
         )}
-      </Link>
-      <span style={s.badge(tree.role)} title={tree.role}>
+      </span>
+      <span className={`tree-row-badge ${badgeClass}`.trim()} title={tree.role}>
         {roleThai(tree.role)}
       </span>
-    </div>
+    </Link>
   );
 }
