@@ -13,7 +13,7 @@ export function NotFound() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: 'Sarabun, serif',
+        fontFamily: '"Prompt", system-ui, sans-serif',
         background: 'var(--bg, #faf8f4)',
         color: 'var(--ink, #2a1f14)',
         gap: '1rem',
@@ -21,7 +21,7 @@ export function NotFound() {
     >
       <h1
         style={{
-          fontFamily: 'Cormorant Garamond, serif',
+          fontFamily: '"Prompt", system-ui, sans-serif',
           fontSize: '4rem',
           margin: 0,
           opacity: 0.25,

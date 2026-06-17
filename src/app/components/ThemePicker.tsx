@@ -89,7 +89,7 @@ export function ThemePicker({ currentTheme, onSelect, previewOnly = false }: The
             boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
             zIndex: 1000,
             padding: '6px 0',
-            fontFamily: 'Sarabun, serif',
+            fontFamily: '"Prompt", system-ui, sans-serif',
             fontSize: 14,
           }}
         >
@@ -115,7 +115,7 @@ export function ThemePicker({ currentTheme, onSelect, previewOnly = false }: The
                   border: 'none',
                   cursor: 'pointer',
                   color: 'var(--ink, #2a1f14)',
-                  fontFamily: 'Sarabun, serif',
+                  fontFamily: '"Prompt", system-ui, sans-serif',
                   fontSize: 14,
                   fontWeight: isActive ? 600 : 400,
                 }}

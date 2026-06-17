@@ -44,7 +44,7 @@ export function Sidebar({
         <h4>ค้นหา / Search</h4>
         <div className="sidebar-search">
           <input
-            placeholder="ชื่อ, ชื่อเล่น, บ้านเกิด..."
+            placeholder="ชื่อ, ชื่อเล่น, บ้านเกิด…"
             value={query}
             onChange={e => onQueryChange(e.target.value)}
           />
@@ -67,7 +67,7 @@ export function Sidebar({
                 background: 'var(--leaf, #6b8f5e)',
                 color: '#fff',
                 cursor: 'pointer',
-                fontFamily: 'Sarabun, serif',
+                fontFamily: '"Prompt", system-ui, sans-serif',
                 fontSize: '0.78rem',
                 fontWeight: 500,
                 lineHeight: 1.4,

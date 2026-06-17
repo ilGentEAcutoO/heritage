@@ -280,8 +280,26 @@ export function TreeView({ treeSlug }: TreeViewProps) {
       (acc, n) => acc + n,
       0,
     );
-    // Rough generation count: distinct born-decade buckets
-    const generations = 4; // known from data; could compute from layout
+    // Real generation depth = longest parent chain (memoized DFS, cycle-safe).
+    const byId = new Map(mergedPeople.map((p) => [p.id, p]));
+    const depthCache = new Map<string, number>();
+    const depthOf = (id: string, seen: Set<string>): number => {
+      const cached = depthCache.get(id);
+      if (cached !== undefined) return cached;
+      if (seen.has(id)) return 1; // guard against malformed cyclic parent links
+      const parents = (byId.get(id)?.parents ?? []).filter((pid) => byId.has(pid));
+      let d = 1;
+      if (parents.length) {
+        seen.add(id);
+        d = 1 + Math.max(...parents.map((pid) => depthOf(pid, seen)));
+        seen.delete(id);
+      }
+      depthCache.set(id, d);
+      return d;
+    };
+    const generations = total
+      ? Math.max(...mergedPeople.map((p) => depthOf(p.id, new Set())))
+      : 0;
     return { total, generations, alive, photos };
   }, [data, mergedPeople]);
 
@@ -297,7 +315,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
 
   if (!slug) {
     return (
-      <div style={{ padding: '2rem', fontFamily: 'Sarabun, serif' }}>
+      <div style={{ padding: '2rem', fontFamily: '"Prompt", system-ui, sans-serif' }}>
         ไม่พบ tree slug
       </div>
     );
@@ -315,11 +333,11 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontFamily: 'Sarabun, serif',
+          fontFamily: '"Prompt", system-ui, sans-serif',
           background: 'var(--bg, #faf8f4)',
         }}
       >
-        <p style={{ opacity: 0.5 }}>กำลังโหลด...</p>
+        <p style={{ opacity: 0.5 }}>กำลังโหลด…</p>
       </div>
     );
   }
@@ -334,7 +352,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          fontFamily: 'Sarabun, serif',
+          fontFamily: '"Prompt", system-ui, sans-serif',
           background: 'var(--bg, #faf8f4)',
           color: 'var(--ink, #2a1f14)',
           gap: '1rem',
@@ -344,7 +362,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
       >
         <h1
           style={{
-            fontFamily: 'Cormorant Garamond, serif',
+            fontFamily: '"Prompt", system-ui, sans-serif',
             fontSize: '2rem',
             fontWeight: 600,
             margin: 0,
@@ -432,7 +450,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
 
         <div className="tree-title">
           <div className="tree-title-kicker">
-            My Tree · {totalPeople} people · 4 generations
+            My Tree · {totalPeople} people · {stats.generations} generations
           </div>
           <div className="tree-title-name">
             {data.meta.treeName}

@@ -374,6 +374,13 @@ body {
   border-radius: 14px;
 }
 
+/* Tabular figures so multi-digit counts / years / dates don't wobble or misalign. */
+.stat-card .num,
+.people-item .yr,
+.tab-count,
+.node-dates,
+.tree-title-kicker { font-variant-numeric: tabular-nums; }
+
 .node-photo {
   position: relative;
   width: 60px; height: 60px;
