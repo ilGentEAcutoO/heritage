@@ -115,6 +115,35 @@ body {
 
 .header-actions { display: flex; gap: 8px; }
 
+/* Hamburger toggle — hidden on desktop; shown only at ≤820px (see media query below) */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.nav-toggle:hover { background: var(--paper-2); border-color: var(--rule); }
+.nav-toggle-bar {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: var(--ink-soft);
+  border-radius: 1px;
+  transition: background 140ms ease;
+}
+.nav-toggle:hover .nav-toggle-bar { background: var(--ink); }
+
 .header-btn {
   padding: 8px 15px;
   border: 1px solid var(--line);
@@ -1363,12 +1392,46 @@ body.shape-square .node-photo {
 
 /* ─────── Responsive ─────── */
 /* Tablet / small: collapse to a single column so the canvas gets full width.
-   The sidebar (search / people list / stats) is hidden — a slide-out nav would
-   be a follow-up; the tree canvas itself pans + zooms fine on touch. */
+   The sidebar slides in from the left as a fixed off-canvas drawer; the
+   hamburger toggle in the header opens/closes it. */
 @media (max-width: 820px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 58px 1fr; }
-  .sidebar { display: none; }
-  .app-header { padding: 0 14px; gap: 10px; }
+
+  /* Show hamburger toggle */
+  .nav-toggle { display: inline-flex; }
+
+  /* Off-canvas sidebar drawer.
+     visibility:hidden removes it from the tab order while closed;
+     the transition delay keeps it hidden until the slide-out finishes. */
+  .sidebar {
+    position: fixed;
+    top: 58px; left: 0; bottom: 0;
+    width: min(290px, 86vw);
+    margin: 0;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    transform: translateX(-110%);
+    visibility: hidden;
+    transition: transform 220ms ease, visibility 0s linear 220ms;
+    z-index: 30;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 220ms ease, visibility 0s linear 0s;
+  }
+
+  /* Backdrop behind the open drawer — starts below the header so the
+     hamburger toggle remains reachable and the header bar stays unobscured */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    top: 58px;
+    background: rgba(20, 28, 46, 0.38);
+    z-index: 28;
+  }
+
+  /* Header floats above backdrop(28) and sidebar(30) so the toggle stays live */
+  .app-header { padding: 0 14px; gap: 10px; z-index: 31; }
   .header-btn { padding: 7px 11px; font-size: 12px; }
   .drawer {
     top: 66px; right: 10px; left: 10px; bottom: 10px;
@@ -1386,5 +1449,12 @@ body.shape-square .node-photo {
   .header-logo { font-size: 20px; gap: 6px; }
   .header-logo small { display: none; }
   .header-btn { padding: 6px 9px; font-size: 11px; gap: 4px; }
+  .sidebar { top: 54px; }
+  .nav-backdrop { top: 54px; }
   .drawer { top: 60px; right: 6px; left: 6px; bottom: 6px; padding: 20px 16px; border-radius: 16px; }
+}
+
+/* Respect reduced-motion preference — skip the slide but keep visibility toggling */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar { transition: visibility 0s; }
 }

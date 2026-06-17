@@ -7,7 +7,7 @@
  * Used for both the anonymous demo (/demo/wongsuriya) and auth'd trees (/tree/:slug).
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 import { useTree } from '@app/hooks/useTree';
@@ -53,6 +53,37 @@ export function TreeView({ treeSlug }: TreeViewProps) {
   const [expandedLineages, setExpandedLineages] = useState<Set<string>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
   const [addPersonOpen, setAddPersonOpen] = useState(false);
+
+  // Mobile nav state
+  const [navOpen, setNavOpen] = useState(false);
+  const navToggleRef = useRef<HTMLButtonElement>(null);
+
+  // Unified close helper: always returns focus to the hamburger.
+  // NOT used for person-select (that opens the ProfileDrawer, so focus should
+  // go there, not back to the toggle).
+  const closeNav = useCallback(() => {
+    setNavOpen(false);
+    navToggleRef.current?.focus();
+  }, []);
+
+  // ESC closes mobile nav; listener is only active while nav is open
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeNav();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [navOpen, closeNav]);
+
+  // Move focus into the sidebar search input when the nav opens so keyboard
+  // users can immediately type a name. A full focus trap is out of scope for
+  // this drawer — ESC and backdrop-click return focus to the toggle.
+  useEffect(() => {
+    if (!navOpen) return;
+    const input = document.getElementById('sidebar-nav')?.querySelector<HTMLElement>('input');
+    input?.focus();
+  }, [navOpen]);
 
   // Local theme preview for non-owners (e.g. demo visitors): lets anyone try
   // the palettes without persisting. `undefined` = no preview (use stored theme).
@@ -334,6 +365,22 @@ export function TreeView({ treeSlug }: TreeViewProps) {
     <div className="app" style={paletteStyle(effectiveTheme)}>
       {/* Header */}
       <header className="app-header" data-screen-label="App Header">
+        {/* Hamburger — visible only on mobile (≤820px), hidden on desktop via CSS */}
+        <button
+          ref={navToggleRef}
+          type="button"
+          className="nav-toggle"
+          data-testid="nav-toggle"
+          aria-label="เมนู"
+          aria-expanded={navOpen}
+          aria-controls="sidebar-nav"
+          onClick={() => setNavOpen((s) => !s)}
+        >
+          <span className="nav-toggle-bar" />
+          <span className="nav-toggle-bar" />
+          <span className="nav-toggle-bar" />
+        </button>
+
         <div className="header-logo">
           <svg className="logo-mark" viewBox="0 0 28 28" aria-hidden="true">
             <path
@@ -411,16 +458,29 @@ export function TreeView({ treeSlug }: TreeViewProps) {
         </div>
       </header>
 
+      {/* Mobile backdrop — only in DOM while nav is open; click closes nav */}
+      {navOpen && (
+        <div
+          className="nav-backdrop"
+          onClick={closeNav}
+        />
+      )}
+
       {/* Sidebar */}
       <Sidebar
         data={data}
         selectedId={selectedId}
-        onSelect={setSelectedId}
+        onSelect={(id) => {
+          setSelectedId(id);
+          // Close only (no focus return) — ProfileDrawer receives focus next
+          setNavOpen(false);
+        }}
         query={query}
         onQueryChange={setQuery}
         filteredPeople={filteredPeople}
         stats={stats}
         onAddPerson={canEdit ? () => setAddPersonOpen(true) : undefined}
+        open={navOpen}
       />
 
       {/* Tree canvas */}

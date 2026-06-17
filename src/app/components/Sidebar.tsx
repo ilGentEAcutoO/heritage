@@ -15,6 +15,8 @@ export interface SidebarProps {
   };
   /** When provided, renders a "+ เพิ่มคน" button in the people list header. */
   onAddPerson?: () => void;
+  /** Whether the mobile slide-out drawer is open. Has no effect on desktop (>820px). */
+  open?: boolean;
 }
 
 /**
@@ -29,13 +31,14 @@ export function Sidebar({
   filteredPeople,
   stats,
   onAddPerson,
+  open,
 }: SidebarProps) {
   const sorted = [...filteredPeople].sort(
     (a, b) => (a.born ?? 0) - (b.born ?? 0),
   );
 
   return (
-    <aside className="sidebar">
+    <aside id="sidebar-nav" className={`sidebar${open ? ' open' : ''}`}>
       {/* Search */}
       <div className="sidebar-section">
         <h4>ค้นหา / Search</h4>
