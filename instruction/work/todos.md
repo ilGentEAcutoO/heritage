@@ -1,5 +1,41 @@
 # Active Tasks
 
+> Last updated: 2026-06-17 07:35
+> Workstream: 15-optional-followups — user picked all 3 optional items from workflow-todo (goal: "มีงานอะไรค้างบ้าง").
+> Order: (1) mobile slide-out nav ✅ SHIPPED → (3) per-tree node style [needs plan/brainstorm — NEXT] → (2) archive 09–14 via workflow-end.
+
+## TASK-15A — Mobile slide-out nav (≤820px)
+- Status: ✅ SHIPPED & LIVE on https://heritage.jairukchan.com
+- Impl (Sonnet) → Opus adversarial review (FIX-FIRST) → 2 fix rounds → e2e timing fix. Review found (all valid):
+  z-index header-under-backdrop · HIGH e2e `not.toBeVisible()` broken vs translateX-offscreen drawer · MEDIUM
+  closed drawer still in tab order. Root-cause fix: `visibility:hidden` on closed mobile drawer (fixes a11y
+  tab-order AND Playwright visibility) + header z-index:31 mobile-only + closeNav focus-return + focus-into-search
+  on open + `expect.poll` geometry (avoids 220ms slide-in race) + class-based e2e assertions.
+- Proof: typecheck 0 · 601/601 vitest (56 files) · build OK · CI 27657268697 green · Deploy 27657333104 green ·
+  e2e 19-mobile-nav MN1/MN2/MN3 green vs PROD (390×800, no console errors) · desktop unchanged (real-browser
+  screenshot live). Commits: a0a97db feat(ui) · 40315b6 test(e2e) poll-geometry.
+- Why: at ≤820px `.sidebar { display:none }` hides search · people list · stats · legend — mobile users can't reach them.
+- Design (chosen, standard): slide-out from LEFT + dim backdrop · hamburger top-left in header (visible only ≤820px) ·
+  close on: select person / ESC / backdrop click · a11y: aria-expanded + aria-controls, focus return to toggle,
+  prefers-reduced-motion respected. Desktop (>820px) unchanged (sidebar stays a grid column).
+- Files: `src/app/pages/TreeView.tsx`, `src/app/components/Sidebar.tsx`, `src/app/styles.css`,
+  `tests/unit/*mobile-nav*.test.tsx` (new source-assertion test), `tests/e2e/19-mobile-nav.spec.ts` (new).
+- Verify: typecheck 0 · `npm test` green · build · e2e + real-browser (Claude-in-Chrome) at mobile viewport.
+
+## TASK-15C — Per-tree node-shape "style" (needs plan)
+- Status: ⚪ pending (blocked on workflow-plan + brainstorm — no requirement yet)
+- Note: choose node shape/style per tree (persist on tree meta). Plan before code.
+
+## TASK-15B — Archive workstreams 09–14 (workflow-end)
+- Status: ⚪ pending (do last — after 15A/15C ship so all new work archives together)
+- Note: security review (tree clean) + summary → move 09–14 records into instruction/archive/.
+
+## File Lock Registry (15-optional-followups)
+| File | Locked by | Task | Since |
+|------|-----------|------|-------|
+| _(none — TASK-15A locks released after ship)_ | | | |
+
+---
 ## RESUME CONTEXT
 > Exit time: 2026-06-17 (workflow-exit)
 > Reason: user /workflow-exit
