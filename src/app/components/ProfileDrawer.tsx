@@ -252,7 +252,7 @@ export function ProfileDrawer({
                   fill={
                     person.gender === 'f'
                       ? 'oklch(0.86 0.04 40)'
-                      : 'oklch(0.84 0.03 200)'
+                      : 'oklch(0.82 0.04 130)'
                   }
                 />
                 <rect
@@ -261,7 +261,7 @@ export function ProfileDrawer({
                   fill={
                     person.gender === 'f'
                       ? 'oklch(0.80 0.05 40)'
-                      : 'oklch(0.78 0.04 200)'
+                      : 'oklch(0.74 0.05 130)'
                   }
                 />
               </pattern>

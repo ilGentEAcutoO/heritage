@@ -1,38 +1,40 @@
 :root {
-  /* Soft-modern design system. Surfaces are light; UI floats as rounded cards
-     on a neutral canvas (--bg). Accent is emerald. */
-  --bg: #eef0f4;            /* app canvas behind the floating cards */
-  --paper: #ffffff;         /* card / surface */
-  --paper-2: #f3f4f7;       /* subtle hover / inset surface */
-  --ink: #1e2430;
-  --ink-soft: #5d6675;
-  --ink-faint: #98a1b0;
-  --bark: #cbd1db;          /* tree connectors / structural strokes */
-  --leaf: #12b886;          /* primary accent (emerald) */
-  --leaf-strong: #0ca678;
-  --leaf-soft: #d8f5ea;
-  --blossom: #ff7a59;       /* secondary accent (warm coral) */
-  --blossom-soft: #ffe6df;
-  --sepia: #aab2c0;
-  --line: #e8eaef;
-  --rule: #e0e3ea;
+  /* Warm Heritage — a vintage family-album system. Warm cream surfaces, espresso
+     ink, brass/gold primary accent, olive tree foliage, terracotta highlights.
+     Token NAMES are unchanged so every component re-themes from this one block:
+     --leaf is the primary accent (now gold); --bark is the olive tree stroke. */
+  --bg: #f1e8d8;            /* warm cream canvas */
+  --paper: #fdfaf3;         /* card / surface */
+  --paper-2: #f5ecdb;       /* subtle hover / inset surface */
+  --ink: #3a2e24;           /* espresso */
+  --ink-soft: #6f5f4d;
+  --ink-faint: #a89274;
+  --bark: #7e8a57;          /* tree connectors / foliage strokes (olive) */
+  --leaf: #b08945;          /* primary accent (brass / gold) */
+  --leaf-strong: #8f6c2f;
+  --leaf-soft: #efe3c8;
+  --blossom: #bb6a43;       /* secondary accent (terracotta) */
+  --blossom-soft: #f1ddcf;
+  --sepia: #a89274;
+  --line: #e6dcc6;
+  --rule: #d8c8aa;
   /* shape */
   --radius-sm: 10px;
   --radius: 14px;
   --radius-lg: 20px;
   --radius-pill: 999px;
-  /* elevation */
-  --shadow-sm: 0 1px 2px rgba(20,28,46,.05);
-  --shadow: 0 1px 3px rgba(20,28,46,.06), 0 8px 24px rgba(20,28,46,.06);
-  --shadow-lg: 0 16px 50px rgba(20,28,46,.16);
-  --accent-grad: linear-gradient(135deg, #20c997, #0ca678);
-  /* soft emerald focus glow, available to components that want it on inputs */
-  --focus-ring: 0 0 0 3px rgba(18, 184, 134, 0.28);
-  /* destructive actions — one source instead of hardcoded reds scattered around */
-  --danger: #dc2626;
-  --danger-soft: #fef2f2;
-  --danger-border: #fca5a5;
-  --danger-ink: #991b1b;
+  /* elevation — warm, brown-tinted shadows */
+  --shadow-sm: 0 1px 2px rgba(58,40,20,.07);
+  --shadow: 0 1px 3px rgba(58,40,20,.07), 0 10px 26px rgba(58,40,20,.10);
+  --shadow-lg: 0 22px 56px rgba(58,40,20,.20);
+  --accent-grad: linear-gradient(135deg, #c39a52, #a37a37);
+  /* soft gold focus glow */
+  --focus-ring: 0 0 0 3px rgba(176, 137, 69, 0.30);
+  /* destructive actions — warm red on cream */
+  --danger: #c0492b;
+  --danger-soft: #f7e6df;
+  --danger-border: #e0a890;
+  --danger-ink: #8f3418;
   color-scheme: light;
 }
 
@@ -60,14 +62,28 @@ body:has(.app) { overflow: hidden; }
 body {
   font-family: "Prompt", system-ui, -apple-system, sans-serif;
   background: var(--bg);
+  /* faint paper grain over the cream canvas — the album-page texture */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   color: var(--ink);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-.serif { font-family: "Prompt", system-ui, sans-serif; }
+/* Trirong = the heritage serif display face; Prompt stays the body/UI face. */
+.serif { font-family: "Trirong", Georgia, serif; }
 .mono { font-family: "Prompt", system-ui, sans-serif; }
+
+/* Serif display on the brand + headline surfaces (album-cover feel). */
+.header-logo,
+.tree-title-name,
+.modal-title,
+.auth-title,
+.stat-card .num,
+.node-nick,
+.up-head-title {
+  font-family: "Trirong", Georgia, serif;
+}
 
 /* ─────── App shell ─────── */
 .app {
@@ -228,7 +244,7 @@ body {
 }
 .sidebar-search input:focus {
   outline: none; border-color: var(--leaf); background: var(--paper);
-  box-shadow: 0 0 0 3px rgba(18, 184, 134, 0.15);
+  box-shadow: 0 0 0 3px rgba(176, 137, 69, 0.15);
 }
 .sidebar-search::before {
   content: '⌕';
@@ -257,7 +273,7 @@ body {
   transition: background 120ms, box-shadow 120ms;
 }
 .people-item:hover { background: var(--paper-2); }
-.people-item.active { background: var(--leaf-soft); box-shadow: inset 0 0 0 1px rgba(18, 184, 134, 0.28); }
+.people-item.active { background: var(--leaf-soft); box-shadow: inset 0 0 0 1px rgba(176, 137, 69, 0.28); }
 .people-item .dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--ink-faint);
@@ -305,7 +321,7 @@ body {
 .legend-row { display: flex; align-items: center; gap: 8px; }
 .legend-sw { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--ink); }
 .legend-sw.me { background: var(--blossom); }
-.legend-sw.alive { background: oklch(0.84 0.03 200); }
+.legend-sw.alive { background: oklch(0.68 0.07 135); }
 .legend-sw.passed { background: var(--sepia); opacity: 0.6; }
 .legend-sw.ext { background: var(--paper); border: 1px dashed var(--leaf); }
 
@@ -322,8 +338,8 @@ body {
 
 .paper-bg {
   position: absolute; inset: 0;
-  /* Modern workspace dot-grid (Figma/Miro feel) */
-  background-image: radial-gradient(rgba(110, 122, 145, 0.16) 1.2px, transparent 1.2px);
+  /* Warm album-page dot-grid */
+  background-image: radial-gradient(rgba(120, 90, 50, 0.12) 1.2px, transparent 1.2px);
   background-size: 24px 24px;
   pointer-events: none;
 }
@@ -529,7 +545,7 @@ body {
 
 .person-node.selected .node-photo {
   transform: scale(1.15);
-  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px rgba(18, 184, 134, 0.55), 0 12px 28px rgba(18, 184, 134, 0.32);
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px rgba(176, 137, 69, 0.55), 0 12px 28px rgba(176, 137, 69, 0.32);
 }
 .person-node.highlighted .node-photo {
   box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--blossom);

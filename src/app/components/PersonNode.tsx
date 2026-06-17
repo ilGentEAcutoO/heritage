@@ -96,7 +96,7 @@ export function PersonNode({
                 fill={
                   person.gender === 'f'
                     ? 'oklch(0.86 0.04 40)'
-                    : 'oklch(0.84 0.03 200)'
+                    : 'oklch(0.82 0.04 130)'
                 }
               />
               <rect
@@ -105,7 +105,7 @@ export function PersonNode({
                 fill={
                   person.gender === 'f'
                     ? 'oklch(0.80 0.05 40)'
-                    : 'oklch(0.78 0.04 200)'
+                    : 'oklch(0.74 0.05 130)'
                 }
               />
             </pattern>
@@ -122,7 +122,7 @@ export function PersonNode({
             x="30"
             y="36"
             textAnchor="middle"
-            fontFamily="Prompt, system-ui, sans-serif"
+            fontFamily="Trirong, Georgia, serif"
             fontSize="22"
             fontWeight="600"
             fill="var(--ink)"

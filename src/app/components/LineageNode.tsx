@@ -44,7 +44,7 @@ export function LineageNode({
             fill={
               node.gender === 'f'
                 ? 'oklch(0.88 0.03 40)'
-                : 'oklch(0.87 0.025 200)'
+                : 'oklch(0.85 0.035 130)'
             }
             stroke="var(--leaf)"
             strokeWidth="1.5"
@@ -54,7 +54,7 @@ export function LineageNode({
             x="22"
             y="27"
             textAnchor="middle"
-            fontFamily="Prompt, system-ui, sans-serif"
+            fontFamily="Trirong, Georgia, serif"
             fontSize="14"
             fontWeight="500"
             fill="var(--ink)"
