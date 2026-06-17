@@ -28,6 +28,11 @@
   --accent-grad: linear-gradient(135deg, #20c997, #0ca678);
   /* soft emerald focus glow, available to components that want it on inputs */
   --focus-ring: 0 0 0 3px rgba(18, 184, 134, 0.28);
+  /* destructive actions — one source instead of hardcoded reds scattered around */
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --danger-border: #fca5a5;
+  --danger-ink: #991b1b;
   color-scheme: light;
 }
 
@@ -920,7 +925,88 @@ body {
 .btn-secondary:hover { background: var(--paper-2); border-color: var(--rule); }
 .btn-ghost { background: transparent; color: var(--ink-soft); }
 .btn-ghost:hover { color: var(--ink); }
+.btn-primary:disabled, .btn-secondary:disabled, .btn-ghost:disabled {
+  opacity: 0.5; cursor: not-allowed; filter: none; box-shadow: var(--shadow-sm);
+}
 .full-width { width: 100%; }
+
+/* ─────── Shared dialog shell (see Modal.tsx) ─────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  background: rgba(20, 28, 46, 0.45);
+  z-index: 2000;
+  animation: modalOverlayIn 140ms ease-out;
+}
+.modal-panel {
+  width: 100%;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.75rem;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  font-family: "Prompt", system-ui, sans-serif;
+  animation: modalPanelIn 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes modalOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalPanelIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.modal-title { font-size: 1.5rem; font-weight: 600; margin: 0 0 1rem; color: var(--ink); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.25rem; }
+
+/* ─────── Shared form fields ─────── */
+.field-label {
+  display: block; font-size: 0.8rem; font-weight: 600;
+  color: var(--ink-soft); margin: 0.85rem 0 0.3rem;
+}
+.field-input {
+  width: 100%; box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  font-family: inherit; font-size: 0.95rem;
+  background: var(--paper-2); color: var(--ink);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.field-input:hover { border-color: var(--rule); }
+.field-input:focus { border-color: var(--leaf); background: var(--paper); }
+.field-hint { font-size: 0.75rem; color: var(--ink-faint); margin-top: 0.25rem; }
+.form-error {
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--danger-ink);
+  margin: 0.85rem 0 0;
+}
+
+/* Segmented choice (visibility, gender, …) */
+.segmented { display: flex; gap: 0.5rem; margin-top: 0.3rem; }
+.segmented-btn {
+  flex: 1; padding: 0.5rem 0.4rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink-soft);
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  cursor: pointer; text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+.segmented-btn:hover { border-color: var(--rule); background: var(--paper-2); }
+.segmented-btn[aria-pressed="true"] {
+  border-color: var(--leaf); background: var(--leaf-soft);
+  color: var(--leaf-strong); font-weight: 600; box-shadow: none;
+}
+
+/* Destructive button — reuses the .btn-* sizing from above */
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { filter: brightness(1.05); }
 
 .empty-state {
   padding: 20px;
