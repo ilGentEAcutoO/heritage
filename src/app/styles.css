@@ -986,6 +986,170 @@ body {
   margin: 0.85rem 0 0;
 }
 
+/* ─────── Auth pages (login, signup, verify, magic, reset) ───────
+   One shared treatment for the six standalone auth screens. They used to each
+   hand-roll an inline style object, which drifted (card radius/shadow, link
+   green) and skipped hover/focus states. These classes are the single source
+   of truth; the mark lives in <AuthLogo /> (components/AuthLogo.tsx). */
+.auth-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  font-family: "Prompt", system-ui, sans-serif;
+  color: var(--ink);
+  /* Soft emerald glow on the neutral canvas, behind the floating card. */
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--leaf-soft) 0%, transparent 55%),
+    var(--bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 2rem;
+}
+
+/* Decorative leaf/blossom badge atop the card */
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.25rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.auth-logo svg { display: block; }
+
+.auth-title {
+  font-family: "Prompt", system-ui, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  text-align: center;
+  color: var(--ink);
+}
+.auth-subtitle {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-align: center;
+  margin: 0 0 1.5rem;
+}
+
+/* Segmented tabs (Password / Magic-link) on the login card */
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 1.5rem;
+}
+.auth-tab {
+  flex: 1;
+  padding: 0.55rem 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-family: "Prompt", system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+.auth-tab:hover { color: var(--ink); }
+.auth-tab.active {
+  font-weight: 600;
+  color: var(--leaf-strong);
+  border-bottom-color: var(--leaf);
+}
+
+/* Secondary links (forgot password, sign up, switch tab, …) */
+.auth-link {
+  color: var(--leaf-strong);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 140ms ease;
+}
+.auth-link:hover { color: var(--leaf); text-decoration: underline; }
+
+/* Footer row of secondary links under the form */
+.auth-footer {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+/* Body copy for the status pages (verify / magic loading + error) */
+.auth-body {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0 0 1.25rem;
+}
+
+/* Success / info banner — soft emerald, mirrors .form-error's shape */
+.auth-success {
+  background: var(--leaf-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--leaf-strong);
+  margin: 0.85rem 0 0;
+}
+.auth-info {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0.85rem 0 0;
+}
+
+/* Centered status card (verify / magic) — text-aligns the whole card. Banners
+   here are followed by body copy / links, so give them a trailing gap too. */
+.auth-card.is-status { text-align: center; }
+.auth-card.is-status .auth-success,
+.auth-card.is-status .auth-info,
+.auth-card.is-status .form-error {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+/* Loading spinner for the magic-link landing */
+.auth-spinner {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid var(--line);
+  border-top-color: var(--leaf);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: authSpin 0.8s linear infinite;
+}
+@keyframes authSpin { to { transform: rotate(360deg); } }
+
+/* Field spacing inside auth forms: inputs/hints used to carry inline margins. */
+.auth-card .field-input { margin-bottom: 1rem; }
+.auth-card .field-hint { margin-top: -0.75rem; margin-bottom: 1rem; }
+.auth-card .btn-primary.full-width { margin-top: 0.25rem; }
+
 /* Segmented choice (visibility, gender, …) */
 .segmented { display: flex; gap: 0.5rem; margin-top: 0.3rem; }
 .segmented-btn {

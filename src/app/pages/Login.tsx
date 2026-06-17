@@ -7,133 +7,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSession } from '@app/hooks/useSession';
 import { apiClient } from '@app/lib/api';
 import type { ApiError } from '@app/lib/api';
+import { AuthLogo } from '@app/components/AuthLogo';
 
 type Tab = 'password' | 'magic';
-
-const s = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem',
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    background: 'var(--bg)',
-    color: 'var(--ink)',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '400px',
-    background: 'var(--paper)',
-    border: '1px solid var(--line)',
-    borderRadius: 'var(--radius-lg)',
-    padding: '2rem',
-    boxShadow: 'var(--shadow-lg)',
-  },
-  logo: { display: 'block', margin: '0 auto 1.25rem', textAlign: 'center' as const },
-  heading: {
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    fontSize: '1.75rem',
-    fontWeight: 600,
-    margin: '0 0 0.25rem',
-    textAlign: 'center' as const,
-    color: 'var(--ink)',
-  },
-  sub: {
-    fontSize: '0.85rem',
-    color: 'var(--ink-soft)',
-    textAlign: 'center' as const,
-    margin: '0 0 1.5rem',
-  },
-  tabBar: {
-    display: 'flex',
-    borderBottom: '1px solid var(--line)',
-    marginBottom: '1.5rem',
-  },
-  tab: (active: boolean): React.CSSProperties => ({
-    flex: 1,
-    padding: '0.55rem 0',
-    background: 'none',
-    border: 'none',
-    borderBottom: active ? '2px solid var(--leaf)' : '2px solid transparent',
-    marginBottom: '-1px',
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    fontSize: '0.9rem',
-    fontWeight: active ? 600 : 400,
-    color: active ? 'var(--leaf-strong)' : 'var(--ink-soft)',
-    cursor: 'pointer',
-    transition: 'color 0.15s, border-color 0.15s',
-  }),
-  label: {
-    display: 'block',
-    fontSize: '0.8rem',
-    fontWeight: 600,
-    marginBottom: '0.3rem',
-    letterSpacing: '0.03em',
-    color: 'var(--ink-soft)',
-  },
-  input: {
-    width: '100%',
-    padding: '0.6rem 0.75rem',
-    border: '1px solid var(--line)',
-    borderRadius: '12px',
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    fontSize: '0.95rem',
-    color: 'var(--ink)',
-    background: 'var(--paper-2)',
-    boxSizing: 'border-box' as const,
-    marginBottom: '1rem',
-  },
-  btn: {
-    width: '100%',
-    padding: '0.6rem 1.3rem',
-    background: 'var(--accent-grad)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 'var(--radius-pill)',
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    fontSize: '1rem',
-    fontWeight: 600,
-    boxShadow: '0 4px 14px rgba(12,166,120,.3)',
-    cursor: 'pointer',
-    transition: 'opacity 0.15s',
-  },
-  error: {
-    background: '#fef2f2',
-    border: '1px solid #fca5a5',
-    borderRadius: '10px',
-    padding: '0.65rem 0.8rem',
-    fontSize: '0.875rem',
-    color: '#991b1b',
-    marginBottom: '1rem',
-  },
-  success: {
-    background: 'var(--leaf-soft)',
-    border: '1px solid var(--line)',
-    borderRadius: '10px',
-    padding: '0.65rem 0.8rem',
-    fontSize: '0.875rem',
-    color: 'var(--leaf-strong)',
-    marginBottom: '1rem',
-  },
-  info: {
-    background: 'var(--paper-2)',
-    border: '1px solid var(--line)',
-    borderRadius: '10px',
-    padding: '0.65rem 0.8rem',
-    fontSize: '0.875rem',
-    color: 'var(--ink-soft)',
-    marginBottom: '1rem',
-  },
-  footer: {
-    textAlign: 'center' as const,
-    marginTop: '1.25rem',
-    fontSize: '0.875rem',
-    color: 'var(--ink-faint)',
-  },
-  link: { color: 'var(--leaf-strong)', textDecoration: 'none' as const },
-};
 
 export function Login() {
   const navigate = useNavigate();
@@ -209,29 +85,19 @@ export function Login() {
   }
 
   return (
-    <div style={s.page}>
-      <div style={s.card}>
-        <div style={s.logo}>
-          <svg viewBox="0 0 56 56" width={40} height={40} aria-hidden="true">
-            <path
-              d="M28 52 Q28 36 16 28 Q8 24 12 16 Q20 12 28 20 Q36 12 44 16 Q48 24 40 28 Q28 36 28 52"
-              fill="var(--leaf)"
-              opacity={0.4}
-            />
-            <circle cx="28" cy="20" r="6" fill="var(--blossom)" />
-            <path d="M28 26 L28 52" stroke="var(--leaf-strong)" strokeWidth={3} />
-          </svg>
-        </div>
+    <div className="auth-screen">
+      <div className="auth-card">
+        <AuthLogo />
 
-        <h1 style={s.heading}>เข้าสู่ระบบ</h1>
-        <p style={s.sub}>Heritage · เก็บเรื่องราวของครอบครัว</p>
+        <h1 className="auth-title">เข้าสู่ระบบ</h1>
+        <p className="auth-subtitle">Heritage · เก็บเรื่องราวของครอบครัว</p>
 
         {/* Tab switcher */}
-        <div style={s.tabBar} role="tablist">
+        <div className="auth-tabs" role="tablist">
           <button
             role="tab"
             aria-selected={activeTab === 'password'}
-            style={s.tab(activeTab === 'password')}
+            className={activeTab === 'password' ? 'auth-tab active' : 'auth-tab'}
             onClick={() => handleTabSwitch('password')}
             type="button"
           >
@@ -240,7 +106,7 @@ export function Login() {
           <button
             role="tab"
             aria-selected={activeTab === 'magic'}
-            style={s.tab(activeTab === 'magic')}
+            className={activeTab === 'magic' ? 'auth-tab active' : 'auth-tab'}
             onClick={() => handleTabSwitch('magic')}
             type="button"
             data-testid="magic-tab"
@@ -253,16 +119,16 @@ export function Login() {
         {activeTab === 'password' && (
           <>
             {justReset && (
-              <div style={s.success} aria-live="polite">รีเซ็ตรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสใหม่</div>
+              <div className="auth-success" aria-live="polite">รีเซ็ตรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสใหม่</div>
             )}
 
-            {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
+            {errorMsg && <div className="form-error" role="alert">{errorMsg}</div>}
 
             <form onSubmit={handlePasswordSubmit}>
-              <label style={s.label} htmlFor="login-email">อีเมล</label>
+              <label className="field-label" htmlFor="login-email">อีเมล</label>
               <input
                 id="login-email"
-                style={s.input}
+                className="field-input"
                 type="email"
                 autoComplete="email"
                 required
@@ -270,10 +136,10 @@ export function Login() {
                 onChange={(e) => setEmail(e.target.value)}
               />
 
-              <label style={s.label} htmlFor="login-password">รหัสผ่าน</label>
+              <label className="field-label" htmlFor="login-password">รหัสผ่าน</label>
               <input
                 id="login-password"
-                style={s.input}
+                className="field-input"
                 type="password"
                 autoComplete="current-password"
                 required
@@ -282,7 +148,7 @@ export function Login() {
               />
 
               <button
-                style={{ ...s.btn, opacity: submitting ? 0.7 : 1 }}
+                className="btn-primary full-width"
                 type="submit"
                 disabled={submitting}
               >
@@ -290,10 +156,10 @@ export function Login() {
               </button>
             </form>
 
-            <div style={s.footer}>
-              <Link to="/auth/reset" style={s.link}>ลืมรหัสผ่าน?</Link>
+            <div className="auth-footer">
+              <Link to="/auth/reset" className="auth-link">ลืมรหัสผ่าน?</Link>
               {' · '}
-              <Link to="/signup" style={s.link}>สมัครสมาชิก</Link>
+              <Link to="/signup" className="auth-link">สมัครสมาชิก</Link>
             </div>
           </>
         )}
@@ -301,10 +167,10 @@ export function Login() {
         {/* Magic link tab */}
         {activeTab === 'magic' && (
           <>
-            {magicError && <div style={s.error} role="alert">{magicError}</div>}
+            {magicError && <div className="form-error" role="alert">{magicError}</div>}
 
             {magicSent ? (
-              <div style={s.info} data-testid="magic-sent" aria-live="polite">
+              <div className="auth-info" data-testid="magic-sent" aria-live="polite">
                 ถ้ามีบัญชีกับอีเมลนี้ เราได้ส่งลิงก์เข้าสู่ระบบให้แล้ว ตรวจสอบกล่องจดหมายของคุณ
                 <br />
                 <small style={{ opacity: 0.75 }}>
@@ -313,10 +179,10 @@ export function Login() {
               </div>
             ) : (
               <form onSubmit={handleMagicSubmit}>
-                <label style={s.label} htmlFor="magic-email">อีเมล</label>
+                <label className="field-label" htmlFor="magic-email">อีเมล</label>
                 <input
                   id="magic-email"
-                  style={s.input}
+                  className="field-input"
                   type="email"
                   autoComplete="email"
                   required
@@ -326,7 +192,7 @@ export function Login() {
                 />
 
                 <button
-                  style={{ ...s.btn, opacity: magicSubmitting ? 0.7 : 1 }}
+                  className="btn-primary full-width"
                   type="submit"
                   disabled={magicSubmitting}
                 >
@@ -335,10 +201,10 @@ export function Login() {
               </form>
             )}
 
-            <div style={s.footer}>
-              <Link to="/signup" style={s.link}>สมัครสมาชิก</Link>
+            <div className="auth-footer">
+              <Link to="/signup" className="auth-link">สมัครสมาชิก</Link>
               {' · '}
-              <Link to="/login" style={s.link} onClick={() => handleTabSwitch('password')}>
+              <Link to="/login" className="auth-link" onClick={() => handleTabSwitch('password')}>
                 ใช้รหัสผ่าน
               </Link>
             </div>

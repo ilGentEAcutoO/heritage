@@ -12,79 +12,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '@app/lib/api';
 import type { ApiError } from '@app/lib/api';
-
-const s = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem',
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    background: 'var(--bg)',
-    color: 'var(--ink)',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '400px',
-    background: 'var(--paper)',
-    border: '1px solid var(--line)',
-    borderRadius: 'var(--radius)',
-    padding: '2rem',
-    textAlign: 'center' as const,
-    boxShadow: 'var(--shadow)',
-  },
-  logo: { margin: '0 auto 1.25rem' },
-  heading: {
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    fontSize: '1.75rem',
-    fontWeight: 600,
-    margin: '0 0 1rem',
-    color: 'var(--ink)',
-  },
-  body: {
-    fontSize: '0.95rem',
-    lineHeight: 1.6,
-    color: 'var(--ink-soft)',
-    margin: '0 0 1.25rem',
-  },
-  error: {
-    background: '#fef2f2',
-    border: '1px solid #fca5a5',
-    borderRadius: '10px',
-    padding: '0.75rem',
-    fontSize: '0.875rem',
-    color: '#991b1b',
-    marginBottom: '1rem',
-  },
-  btn: {
-    display: 'inline-block',
-    padding: '0.6rem 1.3rem',
-    background: 'var(--accent-grad)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '999px',
-    fontFamily: '"Prompt", system-ui, sans-serif',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    textDecoration: 'none' as const,
-    boxShadow: '0 4px 14px rgba(12,166,120,.3)',
-    transition: 'opacity 0.15s',
-  },
-  link: { color: 'var(--leaf)', textDecoration: 'none' as const },
-  spinner: {
-    display: 'inline-block',
-    width: '1.5rem',
-    height: '1.5rem',
-    border: '3px solid var(--line)',
-    borderTopColor: 'var(--leaf)',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-    margin: '0 auto 1rem',
-  },
-};
+import { AuthLogo } from '@app/components/AuthLogo';
 
 type Status = 'loading' | 'error';
 
@@ -128,41 +56,30 @@ export function Magic() {
   }, [token, navigate]);
 
   return (
-    <div style={s.page}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <div style={s.card} aria-live="polite">
-        <div style={s.logo}>
-          <svg viewBox="0 0 56 56" width={40} height={40} aria-hidden="true">
-            <path
-              d="M28 52 Q28 36 16 28 Q8 24 12 16 Q20 12 28 20 Q36 12 44 16 Q48 24 40 28 Q28 36 28 52"
-              fill="var(--leaf)"
-              opacity={0.4}
-            />
-            <circle cx="28" cy="20" r="6" fill="var(--blossom)" />
-            <path d="M28 26 L28 52" stroke="var(--bark)" strokeWidth={3} />
-          </svg>
-        </div>
+    <div className="auth-screen">
+      <div className="auth-card is-status" aria-live="polite">
+        <AuthLogo />
 
         {status === 'loading' && (
           <>
-            <div style={s.spinner} aria-hidden="true" />
-            <h1 style={s.heading}>กำลังเข้าสู่ระบบ…</h1>
-            <p style={s.body}>Signing you in… กรุณารอสักครู่</p>
+            <div className="auth-spinner" aria-hidden="true" />
+            <h1 className="auth-title">กำลังเข้าสู่ระบบ…</h1>
+            <p className="auth-body">Signing you in… กรุณารอสักครู่</p>
           </>
         )}
 
         {status === 'error' && (
           <>
-            <h1 style={s.heading}>ลิงก์หมดอายุ</h1>
-            <div style={s.error} data-testid="magic-error" role="alert">
+            <h1 className="auth-title">ลิงก์หมดอายุ</h1>
+            <div className="form-error" data-testid="magic-error" role="alert">
               {errorMessage || 'Link expired or already used'}
               <br />
               <small style={{ opacity: 0.8 }}>ลิงก์นี้ใช้ไปแล้วหรือหมดอายุแล้ว</small>
             </div>
-            <p style={s.body}>
+            <p className="auth-body">
               <Link
                 to="/login?tab=magic"
-                style={s.btn}
+                className="btn-primary"
                 data-testid="magic-retry-link"
               >
                 ขอลิงก์ใหม่ (Request a new link)
