@@ -88,7 +88,10 @@ const s = {
     background: 'var(--paper, #fff)',
   },
   radioRowActive: {
-    borderColor: 'var(--leaf, #6b8f5e)',
+    // Override the full `border` shorthand (not just borderColor) so the active
+    // state never mixes shorthand + longhand for the same element — React warns
+    // ("don't mix shorthand and non-shorthand") when those alternate on rerender.
+    border: '1px solid var(--leaf, #6b8f5e)',
     background: 'var(--leaf-soft, rgba(107,143,94,0.06))',
   },
   radioLabel: {
