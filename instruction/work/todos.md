@@ -4,6 +4,9 @@
 > Phase 0 foundation SHIPPED (focus-visible ring, overflow scope, reduced-motion, index.html meta).
 > Phase 3 hero tree-canvas overhaul SHIPPED + adversarially reviewed (3 lenses) + all real findings fixed.
 > MCP decision: add Chrome DevTools MCP; skip Tailwind-based tools; use frontend-design + Playwright loop.
+> **WARM HERITAGE visual redesign SHIPPED (2026-06-17)** — user said emerald wasn't pretty; chose vintage-album look.
+>   Re-themed whole app via :root (cream/espresso/gold + Trirong serif + paper grain). paper palette={} → :root drives all.
+>   verified live on prod (tree + login). Alternate palettes (Sage/Sky/Rose/Ocean) left cool — optional follow-up to warm them.
 
 ## Done — Hero tree canvas overhaul (2026-06-17)
 - [x] TreeCanvas: Pointer Events (mouse/touch/pen) + pinch-zoom; replaced mouse-only handlers
