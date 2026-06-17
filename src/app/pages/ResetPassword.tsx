@@ -154,7 +154,7 @@ export function ResetPassword() {
       <div style={s.page}>
         <div style={{ ...s.card, textAlign: 'center' }}>
           <h1 style={s.heading}>ลิงก์ไม่สมบูรณ์</h1>
-          <div style={s.error}>ไม่พบ token สำหรับรีเซ็ตในลิงก์นี้</div>
+          <div style={s.error} role="alert">ไม่พบ token สำหรับรีเซ็ตในลิงก์นี้</div>
           <Link to="/auth/reset" style={s.link}>ขอลิงก์ใหม่</Link>
         </div>
       </div>
@@ -179,7 +179,7 @@ export function ResetPassword() {
         <h1 style={s.heading}>ตั้งรหัสผ่านใหม่</h1>
         <p style={s.sub}>กรอกรหัสผ่านใหม่ที่ต้องการใช้</p>
 
-        {errorMsg && <div style={s.error}>{errorMsg}</div>}
+        {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
 
         <form onSubmit={handleSubmit}>
           <label style={s.label} htmlFor="rp-password">รหัสผ่านใหม่</label>

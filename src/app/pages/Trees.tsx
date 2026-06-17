@@ -185,10 +185,10 @@ export function Trees() {
           </button>
         </div>
 
-        {errorMsg && <div style={s.error}>{errorMsg}</div>}
+        {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
 
         {fetchLoading ? (
-          <p style={{ color: 'var(--ink-faint, #98a1b0)', fontFamily: FONT }}>กำลังโหลด…</p>
+          <p style={{ color: 'var(--ink-faint, #98a1b0)', fontFamily: FONT }} aria-live="polite">กำลังโหลด…</p>
         ) : (
           <>
             {/* Owned trees */}

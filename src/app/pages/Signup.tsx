@@ -169,14 +169,14 @@ export function Signup() {
         <p style={s.sub}>เริ่มเก็บเรื่องราวของครอบครัวคุณ</p>
 
         {done ? (
-          <div style={s.success}>
+          <div style={s.success} aria-live="polite">
             <strong>ตรวจสอบกล่องจดหมายของคุณ</strong>
             <br />
             ถ้าอีเมลนี้สามารถสมัครได้ เราได้ส่งลิงก์ยืนยันไปให้แล้ว
           </div>
         ) : (
           <>
-            {errorMsg && <div style={s.error}>{errorMsg}</div>}
+            {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
 
             <form onSubmit={handleSubmit}>
               <label style={s.label} htmlFor="signup-name">ชื่อ (ไม่บังคับ)</label>

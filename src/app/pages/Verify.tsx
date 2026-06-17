@@ -95,7 +95,7 @@ export function Verify() {
 
   return (
     <div style={s.page}>
-      <div style={s.card}>
+      <div style={s.card} aria-live="polite">
         <div style={s.logo}>
           <svg viewBox="0 0 56 56" width={40} height={40} aria-hidden="true">
             <path
@@ -125,7 +125,7 @@ export function Verify() {
         {status === 'error' && (
           <>
             <h1 style={s.heading}>ลิงก์หมดอายุ</h1>
-            <div style={s.error}>
+            <div style={s.error} role="alert">
               ลิงก์ยืนยันนี้ใช้ไปแล้วหรือหมดอายุแล้ว
             </div>
             <p style={s.body}>
@@ -139,7 +139,7 @@ export function Verify() {
         {status === 'missing' && (
           <>
             <h1 style={s.heading}>ลิงก์ไม่สมบูรณ์</h1>
-            <div style={s.error}>ไม่พบ token สำหรับยืนยันในลิงก์นี้</div>
+            <div style={s.error} role="alert">ไม่พบ token สำหรับยืนยันในลิงก์นี้</div>
             <p style={s.body}>
               <Link to="/login" style={s.link}>กลับไปหน้าเข้าสู่ระบบ</Link>
             </p>

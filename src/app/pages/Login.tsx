@@ -253,10 +253,10 @@ export function Login() {
         {activeTab === 'password' && (
           <>
             {justReset && (
-              <div style={s.success}>รีเซ็ตรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสใหม่</div>
+              <div style={s.success} aria-live="polite">รีเซ็ตรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสใหม่</div>
             )}
 
-            {errorMsg && <div style={s.error}>{errorMsg}</div>}
+            {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
 
             <form onSubmit={handlePasswordSubmit}>
               <label style={s.label} htmlFor="login-email">อีเมล</label>
@@ -301,10 +301,10 @@ export function Login() {
         {/* Magic link tab */}
         {activeTab === 'magic' && (
           <>
-            {magicError && <div style={s.error}>{magicError}</div>}
+            {magicError && <div style={s.error} role="alert">{magicError}</div>}
 
             {magicSent ? (
-              <div style={s.info} data-testid="magic-sent">
+              <div style={s.info} data-testid="magic-sent" aria-live="polite">
                 ถ้ามีบัญชีกับอีเมลนี้ เราได้ส่งลิงก์เข้าสู่ระบบให้แล้ว ตรวจสอบกล่องจดหมายของคุณ
                 <br />
                 <small style={{ opacity: 0.75 }}>

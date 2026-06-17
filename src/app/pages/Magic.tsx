@@ -130,7 +130,7 @@ export function Magic() {
   return (
     <div style={s.page}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <div style={s.card}>
+      <div style={s.card} aria-live="polite">
         <div style={s.logo}>
           <svg viewBox="0 0 56 56" width={40} height={40} aria-hidden="true">
             <path
@@ -154,7 +154,7 @@ export function Magic() {
         {status === 'error' && (
           <>
             <h1 style={s.heading}>ลิงก์หมดอายุ</h1>
-            <div style={s.error} data-testid="magic-error">
+            <div style={s.error} data-testid="magic-error" role="alert">
               {errorMessage || 'Link expired or already used'}
               <br />
               <small style={{ opacity: 0.8 }}>ลิงก์นี้ใช้ไปแล้วหรือหมดอายุแล้ว</small>

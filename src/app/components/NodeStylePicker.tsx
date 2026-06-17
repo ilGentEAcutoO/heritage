@@ -87,10 +87,10 @@ export function NodeStylePicker({ currentNodeStyle, onSelect, previewOnly = fals
             top: 'calc(100% + 6px)',
             right: 0,
             minWidth: 180,
-            background: 'var(--paper, #faf8f4)',
-            border: '1px solid var(--line, #ddd)',
-            borderRadius: 6,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            background: 'var(--paper)',
+            border: '1px solid var(--line)',
+            borderRadius: 'var(--radius)',
+            boxShadow: 'var(--shadow-lg)',
             zIndex: 1000,
             padding: '6px 0',
             fontFamily: '"Prompt", system-ui, sans-serif',
@@ -115,10 +115,10 @@ export function NodeStylePicker({ currentNodeStyle, onSelect, previewOnly = fals
                   width: '100%',
                   textAlign: 'left',
                   padding: '8px 14px',
-                  background: isActive ? 'var(--leaf-soft, rgba(107,143,94,0.15))' : 'transparent',
+                  background: isActive ? 'var(--leaf-soft)' : 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--ink, #2a1f14)',
+                  color: 'var(--ink)',
                   fontFamily: '"Prompt", system-ui, sans-serif',
                   fontSize: 14,
                   fontWeight: isActive ? 600 : 400,
@@ -134,7 +134,7 @@ export function NodeStylePicker({ currentNodeStyle, onSelect, previewOnly = fals
                     lineHeight: '18px',
                     textAlign: 'center',
                     fontSize: 16,
-                    color: 'var(--leaf, #6b8f5e)',
+                    color: 'var(--leaf)',
                     flexShrink: 0,
                   }}
                 >
@@ -144,7 +144,7 @@ export function NodeStylePicker({ currentNodeStyle, onSelect, previewOnly = fals
                 {isActive && (
                   <span
                     aria-hidden="true"
-                    style={{ marginLeft: 'auto', color: 'var(--leaf, #6b8f5e)', fontSize: 12 }}
+                    style={{ marginLeft: 'auto', color: 'var(--leaf)', fontSize: 12 }}
                   >
                     ✓
                   </span>
@@ -157,10 +157,10 @@ export function NodeStylePicker({ currentNodeStyle, onSelect, previewOnly = fals
               style={{
                 padding: '6px 14px 2px',
                 marginTop: 4,
-                borderTop: '1px solid var(--line, #eee)',
+                borderTop: '1px solid var(--line)',
                 fontSize: 11,
                 lineHeight: 1.4,
-                color: 'var(--ink-faint, #999)',
+                color: 'var(--ink-faint)',
               }}
             >
               👁 ลองดูเฉยๆ · ไม่บันทึก (เฉพาะเจ้าของ tree เปลี่ยนถาวรได้)

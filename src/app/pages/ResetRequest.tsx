@@ -150,10 +150,10 @@ export function ResetRequest() {
           เราจะส่งลิงก์รีเซ็ตให้คุณ
         </p>
 
-        {errorMsg && <div style={s.error}>{errorMsg}</div>}
+        {errorMsg && <div style={s.error} role="alert">{errorMsg}</div>}
 
         {done ? (
-          <div style={s.success}>
+          <div style={s.success} aria-live="polite">
             ถ้าอีเมลนี้มีบัญชีอยู่ในระบบ เราส่งลิงก์รีเซ็ตรหัสผ่านไปให้แล้ว
             <br />
             กรุณาตรวจสอบกล่องจดหมายของคุณ
