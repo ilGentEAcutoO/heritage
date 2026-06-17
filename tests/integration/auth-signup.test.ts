@@ -10,6 +10,7 @@ import { createSqliteD1, type SqliteD1Database } from '../helpers/sqlite-d1';
 import { createMockEnv } from '../helpers/mock-env';
 import * as schema from '../../src/db/schema';
 import { authRouter } from '../../src/worker/routes/auth';
+import { verifyPassword } from '../../src/worker/lib/password';
 import type { HonoEnv } from '../../src/worker/types';
 
 // ---------------------------------------------------------------------------
@@ -225,6 +226,55 @@ describe('POST /api/auth/signup', () => {
 
     // Email should have been sent again
     expect(ctx.env.EMAIL.send).toHaveBeenCalledOnce();
+  });
+
+  it('re-signup to an unverified email overwrites the password (pre-verification takeover defense)', async () => {
+    const ATTACKER_PW = 'attacker-pw-1234';
+    const VICTIM_PW = 'victim-real-pw-5678';
+
+    // 1. Attacker pre-registers the victim's email with a password they control.
+    await ctx.app.fetch(
+      makePostRequest('/api/auth/signup', {
+        email: 'victim@example.com',
+        password: ATTACKER_PW,
+      }),
+      asEnv(ctx.env),
+    );
+
+    const afterAttacker = await ctx.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, 'victim@example.com'))
+      .get();
+    expect(afterAttacker).toBeDefined();
+    expect(afterAttacker!.email_verified_at).toBeNull();
+    // Sanity: the attacker's password is what's stored at this point.
+    expect(
+      await verifyPassword(ATTACKER_PW, afterAttacker!.password_hash!, afterAttacker!.password_salt ?? ''),
+    ).toBe(true);
+
+    // 2. The real owner later signs up normally with their own password.
+    const res = await ctx.app.fetch(
+      makePostRequest('/api/auth/signup', {
+        email: 'victim@example.com',
+        password: VICTIM_PW,
+      }),
+      asEnv(ctx.env),
+    );
+    expect(res.status).toBe(201);
+
+    // 3. Stored credential must now be the VICTIM's password, not the attacker's.
+    const afterVictim = await ctx.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, 'victim@example.com'))
+      .get();
+    expect(
+      await verifyPassword(VICTIM_PW, afterVictim!.password_hash!, afterVictim!.password_salt ?? ''),
+    ).toBe(true);
+    expect(
+      await verifyPassword(ATTACKER_PW, afterVictim!.password_hash!, afterVictim!.password_salt ?? ''),
+    ).toBe(false);
   });
 
   it('existing verified email → 201, no email sent', async () => {

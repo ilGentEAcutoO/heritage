@@ -174,8 +174,28 @@ authRouter.post('/signup', async (c) => {
       // Don't fail signup if email send fails in dev/test
     }
   } else if (!existing.email_verified_at) {
-    // Existing unverified user: delete old unused verify tokens, resend
+    // Existing UNVERIFIED user: treat this as a fresh re-registration.
     const now = Math.floor(Date.now() / 1000);
+
+    // SECURITY — pre-verification account takeover (first-writer-wins password):
+    // overwrite the stored credential with THIS signup's password so the most
+    // recent signer owns the account once it is verified. A verify token is only
+    // ever emailed to the address itself, so an account can only be activated by
+    // whoever controls the inbox — and in the normal flow that person is the one
+    // who just set this password. Without the overwrite, an attacker who
+    // pre-registers a victim's email would keep a working password on the
+    // account even after the legitimate owner verifies it. Overwriting is safe
+    // because the row is still unverified: no session/access has been granted
+    // under the old credential yet.
+    const { hash, salt } = await hashPassword(password);
+    await db
+      .update(users)
+      .set({
+        password_hash: hash,
+        password_salt: salt,
+        display_name: displayName ?? existing.display_name ?? null,
+      })
+      .where(eq(users.id, existing.id));
 
     // Delete old unused verify tokens for this email
     await db
