@@ -1,8 +1,8 @@
 # Active Tasks
 
-> Last updated: 2026-06-17 07:35
+> Last updated: 2026-06-17 09:00
 > Workstream: 15-optional-followups — user picked all 3 optional items from workflow-todo (goal: "มีงานอะไรค้างบ้าง").
-> Order: (1) mobile slide-out nav ✅ SHIPPED → (3) per-tree node style [needs plan/brainstorm — NEXT] → (2) archive 09–14 via workflow-end.
+> Order: (1) mobile slide-out nav ✅ SHIPPED → (3) per-tree node style ✅ SHIPPED → (2) archive 09–14 via workflow-end [NEXT — final].
 
 ## TASK-15A — Mobile slide-out nav (≤820px)
 - Status: ✅ SHIPPED & LIVE on https://heritage.jairukchan.com
@@ -22,9 +22,36 @@
   `tests/unit/*mobile-nav*.test.tsx` (new source-assertion test), `tests/e2e/19-mobile-nav.spec.ts` (new).
 - Verify: typecheck 0 · `npm test` green · build · e2e + real-browser (Claude-in-Chrome) at mobile viewport.
 
-## TASK-15C — Per-tree node-shape "style" (needs plan)
-- Status: ⚪ pending (blocked on workflow-plan + brainstorm — no requirement yet)
-- Note: choose node shape/style per tree (persist on tree meta). Plan before code.
+## TASK-15C — Per-tree node style (mirror theme) — ✅ SHIPPED & LIVE
+- Status: ✅ SHIPPED & LIVE on https://heritage.jairukchan.com
+- impl 626/626 → Opus review FIX-FIRST (B1 BLOCKER: effectiveNodeStyle didn't drive render — TreeCanvas
+  `nodeStyle` prop was DEAD; shape came from body.shape-* via tweak only; unchanged CSS hash proved it) →
+  fix: apply shape at `.app` container (mirror theme's paletteStyle) — body.shape-* → .app.shape-* + shape
+  class on .app from effectiveNodeStyle + drop dead body shape-class in useTweaks + remove dead TreeCanvas
+  prop. + L1 (picker explicit 'circle' not null) + M1 (e2e asserts rendered .app shape class).
+- Proof: typecheck 0 · 630/630 vitest (58 files) · build OK + CSS hash CHANGED (DHUjzMuY→CrwA3k9z, proves
+  CSS effect) · CI 27660558953 green · prod D1 migrated 0008 (node_style col) · Deploy 27660604068 green ·
+  e2e 20-node-style NS1/NS2/NS3 green vs PROD (asserts rendered .app shape class + persist + ephemeral
+  preview) · VISUAL confirmed on prod (demo Square → nodes render square). Commit: 02e7b8d.
+- (design approved 2026-06-17: brainstorm → "Mirror theme: tree default + user override",
+  precedence "Tree wins": effectiveNodeStyle = previewNodeStyle ?? meta.nodeStyle ?? tweaks.nodeShape. No tweak
+  schema change. 3 shapes (circle/polaroid/square). Full ship incl. prod D1 migrate + deploy.)
+- Plan (clone theme through its 7 touchpoints):
+  1. `src/db/schema.ts`: add nullable `node_style TEXT` to trees → `pnpm db:generate` → migration 0008 → apply local.
+  2. `src/worker/lib/tree-query.ts`: select node_style. `src/app/lib/api.ts` adapt-tree: `nodeStyle: raw.tree.nodeStyle ?? null`.
+  3. PATCH `/api/tree/:slug/node-style` (owner-only, zod enum|null) — mirror the theme PATCH handler + cache purge.
+  4. `src/app/lib/api.ts`: meta type `nodeStyle: string|null` + `setNodeStyle(slug, v)`.
+  5. `NodeStylePicker.tsx` (clone ThemePicker; previewOnly for non-owner) in TreeView header.
+  6. TreeView: `previewNodeStyle` state + `handleSelectNodeStyle` + effectiveNodeStyle → TreeCanvas nodeStyle.
+  7. Tests: integration tree-node-style (401/owner/200/zod) · unit source-assertions · e2e 20-node-style (owner
+     persist + reload, demo/non-owner ephemeral preview, no console errors).
+- Verify: typecheck 0 · vitest green · build · CI → `pnpm db:migrate:remote` (prod D1) → Deploy → e2e vs prod.
+- Team: 1 implementer (Sonnet, vertical slice TDD) + 1 Opus adversarial reviewer (cross-review).
+
+## File Lock Registry (TASK-15C)
+| File | Locked by | Task | Since |
+|------|-----------|------|-------|
+| _(none — TASK-15C locks released after ship)_ | | | |
 
 ## TASK-15B — Archive workstreams 09–14 (workflow-end)
 - Status: ⚪ pending (do last — after 15A/15C ship so all new work archives together)
