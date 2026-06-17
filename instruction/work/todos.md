@@ -21,10 +21,19 @@
 - [ ] Move overrides localStorage write out of setState updater (dev-only StrictMode double-write; idempotent)
 - [ ] onPointerLeave ends drag at canvas edge (matches old onMouseLeave behavior; pointer-capture would smooth it)
 
-## Remaining UI plan (from the audit — not started)
-- Phase 1: purge stale sage/tan fallbacks + phantom fonts (sweep); build shared <Modal>/<Popover>/Field UI kit
-- Phase 2: auth-slice classes; ProfileDrawer re-tokenize + danger tokens; standalone pages off inline styles; TweaksPanel re-skin
-- Quick wins: fabricated "4 generations" stat; aria-live sweep; tabular-nums
+## Done — Wave A + B + a11y sweep (2026-06-17 14:30) — typecheck 0 · 631 tests each wave
+- [x] Wave A: phantom Sarabun/Cormorant fonts → Prompt; real generation count; tabular-nums; ellipsis
+- [x] Wave B: <Modal> shell (focus-trap/ESC/restore/entrance) + .field-*/.segmented/.btn-danger + --danger tokens
+- [x] Wave B: migrate CreateTreeDialog, ShareDialog, AddPersonDialog onto Modal (net -302 lines)
+- [x] Wave B: ThemePicker/NodeStylePicker popovers tokenized (radius/shadow tokens, dead fallbacks dropped)
+- [x] a11y: role=alert on errors + aria-live on status across all auth pages + Trees
+
+## Remaining Wave C (NOT done — verification is auth-gated; scoped for a focused follow-up)
+- [ ] ProfileDrawer re-tokenize (874 lines, ~half hardcoded inline styles + raw delete reds) → --danger tokens + .btn-danger
+- [ ] Standalone pages off inline styles + JS-hover → CSS classes: Landing, Trees, UserMenu, NotFound
+- [ ] TweaksPanel re-skin to soft-modern (currently wireframe: hard border, 6px radius, uppercase EN labels)
+- [ ] Auth slice .auth-card/.auth-input/.auth-btn/.auth-link classes + single <AuthLogo> (Phase 0 ring already covers focus)
+- [ ] Optional: extract a real <Popover> primitive (pickers already work + are tokenized)
 
 ## File Lock Registry
 | File | Locked by | Task | Since |
