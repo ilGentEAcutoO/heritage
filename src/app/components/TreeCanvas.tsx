@@ -11,7 +11,7 @@
  * - Zoom controls bottom-right with reset button when overrides exist
  */
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { z } from 'zod';
 import type { TreeData } from '@app/lib/types';
 import { layoutTree, branchPath, toLayoutPerson } from '@app/lib/layout';
@@ -107,6 +107,21 @@ export function TreeCanvas({
   );
 
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  // Live pointers (mouse / touch / pen) keyed by pointerId — drives unified
+  // single-pointer pan and two-pointer pinch-zoom.
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  // Snapshot taken when a two-finger pinch begins.
+  const pinchRef = useRef<
+    | { startDist: number; startK: number; startX: number; startY: number; midX: number; midY: number }
+    | null
+  >(null);
+  // Set true once a node drag actually moves, so the trailing click won't select.
+  const suppressClickRef = useRef(false);
+
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+  const K_MIN = 0.5;
+  const K_MAX = 2.5;
 
   // ── Effective positions (base + overrides) ────────────────────────────────
   const effectivePositions = useMemo(() => {
@@ -124,52 +139,170 @@ export function TreeCanvas({
     writeLocal(OVERRIDES_KEY, next, OverridesSchema);
   };
 
-  // ── Event handlers ────────────────────────────────────────────────────────
-
-  const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const delta = -e.deltaY * 0.001;
-    setTransform(t => ({
-      ...t,
-      k: Math.max(0.5, Math.min(2.5, t.k + delta)),
-    }));
+  // ── Zoom helpers ──────────────────────────────────────────────────────────
+  // .tree-inner is left:50% margin-left:-600 width:1200 transform-origin:center-top,
+  // so its base-left + origin collapse to canvasWidth/2 (cx0). For a canvas-local
+  // point: screenX = cx0 + x + k*(localX-600), screenY = y + k*localY — and the
+  // -600/origin constants cancel in the zoom-to-point solve below, leaving:
+  //   x' = (sx-cx0) - ((sx-cx0)-x)*f,  y' = sy - (sy-y)*f   (f = newK/oldK)
+  // zoomAt keeps the point (sx, sy) pinned on screen while scaling by `factor`.
+  const zoomAt = (factor: number, sx: number, sy: number) => {
+    setTransform(t => {
+      const k = clamp(t.k * factor, K_MIN, K_MAX);
+      const f = k / t.k;
+      const cx0 = (canvasRef.current?.clientWidth ?? 0) / 2;
+      return {
+        k,
+        x: (sx - cx0) - ((sx - cx0) - t.x) * f,
+        y: sy - (sy - t.y) * f,
+      };
+    });
   };
 
-  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only start pan drag if not clicking on a person node
-    if ((e.target as HTMLElement).closest('[data-person]')) return;
-    setPanDrag({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+  const zoomCenter = (factor: number) => {
+    const el = canvasRef.current;
+    zoomAt(factor, (el?.clientWidth ?? 0) / 2, (el?.clientHeight ?? 0) / 2);
   };
 
-  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // ── Wheel / trackpad zoom, anchored at the cursor ─────────────────────────
+  // MUST be a native non-passive listener: React 18 registers onWheel as passive,
+  // so e.preventDefault() inside a React onWheel handler is a no-op — the whole
+  // page would zoom on ctrl/trackpad-pinch (which arrives as wheel + ctrlKey).
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      const sx = e.clientX - r.left;
+      const sy = e.clientY - r.top;
+      const factor = Math.exp(-e.deltaY * 0.0015);
+      setTransform(t => {
+        const k = clamp(t.k * factor, K_MIN, K_MAX);
+        const f = k / t.k;
+        const cx0 = el.clientWidth / 2;
+        return { k, x: (sx - cx0) - ((sx - cx0) - t.x) * f, y: sy - (sy - t.y) * f };
+      });
+    };
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Pointer events: one code path for mouse, touch, and pen ───────────────
+  const beginPinch = () => {
+    const pts = [...pointersRef.current.values()];
+    if (pts.length < 2) return;
+    const r = canvasRef.current?.getBoundingClientRect();
+    pinchRef.current = {
+      startDist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y),
+      startK: transform.k,
+      startX: transform.x,
+      startY: transform.y,
+      midX: (pts[0].x + pts[1].x) / 2 - (r?.left ?? 0),
+      midY: (pts[0].y + pts[1].y) / 2 - (r?.top ?? 0),
+    };
+    // A pinch supersedes any in-flight single-finger pan / node drag.
+    setPanDrag(null);
+    setNodeDrag(null);
+  };
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    // Always track the pointer first so a two-finger pinch counts correctly even
+    // when one finger lands on a control; controls still own their own click.
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const onControl = !!(target.closest('.zoom-controls') || target.closest('.upstream-btn'));
+
+    if (pointersRef.current.size >= 2) {
+      beginPinch();
+      return;
+    }
+    if (onControl) return;
+
+    suppressClickRef.current = false;
+    // Single pointer: drag a node if we pressed on one, else pan the canvas.
+    const nodeEl = target.closest('[data-person]') as HTMLElement | null;
+    if (nodeEl) {
+      const id = nodeEl.getAttribute('data-person')!;
+      setNodeDrag({
+        id,
+        mouseX: e.clientX,
+        mouseY: e.clientY,
+        startDx: overrides[id]?.dx ?? 0,
+        startDy: overrides[id]?.dy ?? 0,
+        moved: false,
+      });
+    } else {
+      setPanDrag({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointersRef.current.has(e.pointerId)) {
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    // Pinch-zoom (two pointers) — anchored at the original pinch midpoint.
+    const pinch = pinchRef.current;
+    if (pinch && pointersRef.current.size >= 2) {
+      const pts = [...pointersRef.current.values()];
+      const r = canvasRef.current?.getBoundingClientRect();
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const midX = (pts[0].x + pts[1].x) / 2 - (r?.left ?? 0);
+      const midY = (pts[0].y + pts[1].y) / 2 - (r?.top ?? 0);
+      const k = clamp(pinch.startK * (dist / pinch.startDist), K_MIN, K_MAX);
+      const cx0 = (canvasRef.current?.clientWidth ?? 0) / 2;
+      const worldX = (pinch.midX - cx0 - pinch.startX) / pinch.startK;
+      const worldY = (pinch.midY - pinch.startY) / pinch.startK;
+      setTransform({ k, x: midX - cx0 - worldX * k, y: midY - worldY * k });
+      return;
+    }
+
+    // Node drag
     if (nodeDrag) {
       const dx = (e.clientX - nodeDrag.mouseX) / transform.k;
       const dy = (e.clientY - nodeDrag.mouseY) / transform.k;
-      const moved = nodeDrag.moved || Math.abs(dx) > 3 || Math.abs(dy) > 3;
+      // Threshold in SCREEN px so the dead-zone feels identical at any zoom level.
+      const moved =
+        nodeDrag.moved ||
+        Math.hypot(e.clientX - nodeDrag.mouseX, e.clientY - nodeDrag.mouseY) > 3;
       if (moved) {
+        suppressClickRef.current = true;
         setNodeDrag({ ...nodeDrag, moved: true });
         setOverrides(prev => ({
           ...prev,
-          [nodeDrag.id]: {
-            dx: nodeDrag.startDx + dx,
-            dy: nodeDrag.startDy + dy,
-          },
+          [nodeDrag.id]: { dx: nodeDrag.startDx + dx, dy: nodeDrag.startDy + dy },
         }));
       }
       return;
     }
-    if (!panDrag) return;
-    setTransform(t => ({
-      ...t,
-      x: e.clientX - panDrag.x,
-      y: e.clientY - panDrag.y,
-    }));
+
+    // Pan
+    if (panDrag) {
+      setTransform(t => ({ ...t, x: e.clientX - panDrag.x, y: e.clientY - panDrag.y }));
+    }
   };
 
-  const onMouseUp = () => {
+  const endPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    pointersRef.current.delete(e.pointerId);
+
+    if (pointersRef.current.size >= 1) {
+      // Dropped from a two-finger pinch to one finger: end the pinch but hand the
+      // surviving finger straight to pan, so the user isn't stranded until re-press.
+      if (pinchRef.current) {
+        pinchRef.current = null;
+        const [pt] = [...pointersRef.current.values()];
+        if (pt) setPanDrag({ x: pt.x - transform.x, y: pt.y - transform.y });
+      }
+      return;
+    }
+
+    // Last pointer up — settle everything.
+    pinchRef.current = null;
     if (nodeDrag) {
       if (nodeDrag.moved) {
-        // Persist final overrides state after React commits
+        // Persist final overrides after React commits.
         setOverrides(cur => {
           writeLocal(OVERRIDES_KEY, cur, OverridesSchema);
           return cur;
@@ -178,60 +311,64 @@ export function TreeCanvas({
       setNodeDrag(null);
     }
     setPanDrag(null);
+    // Self-heal the click guard: a trailing click (if the pointer ended on a node)
+    // fires synchronously right after pointerup and is still suppressed; clearing it
+    // on the next macrotask keeps a later keyboard/click activation from being eaten.
+    if (suppressClickRef.current) {
+      setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
+    }
   };
 
-  const onNodeMouseDown = (e: React.MouseEvent<HTMLDivElement>, id: string) => {
-    e.stopPropagation();
-    setNodeDrag({
-      id,
-      mouseX: e.clientX,
-      mouseY: e.clientY,
-      startDx: overrides[id]?.dx ?? 0,
-      startDy: overrides[id]?.dy ?? 0,
-      moved: false,
-    });
+  // Select on tap/click/keyboard — unless the press turned into a node drag.
+  const activateNode = (id: string) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    onSelect(id);
   };
 
-  // ── Build edges from effective positions ──────────────────────────────────
-  const edges: Array<{
-    from: { x: number; y: number };
-    to: { x: number; y: number };
-    key: string;
-  }> = [];
+  // ── Keyboard: arrows pan, +/− zoom, 0 resets (canvas must be focused) ──────
+  const PAN_STEP = 64;
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (e.key) {
+      case 'ArrowUp': e.preventDefault(); setTransform(t => ({ ...t, y: t.y + PAN_STEP })); break;
+      case 'ArrowDown': e.preventDefault(); setTransform(t => ({ ...t, y: t.y - PAN_STEP })); break;
+      case 'ArrowLeft': e.preventDefault(); setTransform(t => ({ ...t, x: t.x + PAN_STEP })); break;
+      case 'ArrowRight': e.preventDefault(); setTransform(t => ({ ...t, x: t.x - PAN_STEP })); break;
+      case '+': case '=': e.preventDefault(); zoomCenter(1.2); break;
+      case '-': case '_': e.preventDefault(); zoomCenter(1 / 1.2); break;
+      case '0': e.preventDefault(); setTransform({ x: 0, y: 0, k: 1 }); break;
+    }
+  };
 
-  const coupleLinks: Array<{
-    a: { x: number; y: number };
-    b: { x: number; y: number };
-    key: string;
-  }> = [];
+  // ── Build edges from effective positions (memoized — was rebuilt every render) ──
+  const { edges, coupleLinks } = useMemo(() => {
+    const edges: Array<{ from: { x: number; y: number }; to: { x: number; y: number }; key: string }> = [];
+    const coupleLinks: Array<{ a: { x: number; y: number }; b: { x: number; y: number }; key: string }> = [];
 
-  for (const p of data.people) {
-    // Parent-child edges
-    if (p.parents && p.parents.length) {
-      const pr = p.parents
-        .map(pid => effectivePositions[pid])
-        .filter((pos): pos is { x: number; y: number } => pos != null);
-      if (pr.length && effectivePositions[p.id]) {
-        const midX = pr.reduce((s, pp) => s + pp.x, 0) / pr.length;
-        const midY = pr.reduce((s, pp) => s + pp.y, 0) / pr.length + 40;
-        edges.push({
-          from: { x: midX, y: midY },
-          to: effectivePositions[p.id]!,
-          key: `e-${p.id}`,
-        });
+    for (const p of data.people) {
+      // Parent-child edges
+      if (p.parents && p.parents.length) {
+        const pr = p.parents
+          .map(pid => effectivePositions[pid])
+          .filter((pos): pos is { x: number; y: number } => pos != null);
+        if (pr.length && effectivePositions[p.id]) {
+          const midX = pr.reduce((s, pp) => s + pp.x, 0) / pr.length;
+          const midY = pr.reduce((s, pp) => s + pp.y, 0) / pr.length + 40;
+          edges.push({ from: { x: midX, y: midY }, to: effectivePositions[p.id]!, key: `e-${p.id}` });
+        }
+      }
+      // Spouse links
+      if (p.spouseOf && effectivePositions[p.id] && effectivePositions[p.spouseOf]) {
+        coupleLinks.push({ a: effectivePositions[p.id]!, b: effectivePositions[p.spouseOf]!, key: `c-${p.id}` });
       }
     }
-    // Spouse links
-    if (
-      p.spouseOf &&
-      effectivePositions[p.id] &&
-      effectivePositions[p.spouseOf]
-    ) {
-      const a = effectivePositions[p.id]!;
-      const b = effectivePositions[p.spouseOf]!;
-      coupleLinks.push({ a, b, key: `c-${p.id}` });
-    }
-  }
+
+    return { edges, coupleLinks };
+  }, [data.people, effectivePositions]);
 
   // ── Highlight path set ────────────────────────────────────────────────────
   const pathIds = new Set<string>(highlightPath ?? []);
@@ -257,11 +394,17 @@ export function TreeCanvas({
     <div
       className="tree-canvas"
       data-testid="tree-canvas"
-      onWheel={onWheel}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
+      ref={canvasRef}
+      tabIndex={0}
+      role="application"
+      aria-roledescription="แผนผังครอบครัวแบบโต้ตอบ"
+      aria-label="แผนผังครอบครัว — เมื่อโฟกัสแล้ว ใช้ปุ่มลูกศรเลื่อนมุมมอง, ปุ่ม + และ − เพื่อซูม, ปุ่ม 0 เพื่อรีเซ็ต"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endPointer}
+      onPointerCancel={endPointer}
+      onPointerLeave={endPointer}
+      onKeyDown={onKeyDown}
       style={{ cursor: panDrag ? 'grabbing' : 'grab' }}
     >
       {/* Background paper texture */}
@@ -393,15 +536,7 @@ export function TreeCanvas({
               label={label}
               dragging={isDragging}
               expanded={expandedLineages.has(p.id)}
-              onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
-                onNodeMouseDown(e, p.id)
-              }
-              onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-                e.stopPropagation();
-                // Suppress click if the node was dragged
-                if (nodeDrag && nodeDrag.id === p.id && nodeDrag.moved) return;
-                onSelect(p.id);
-              }}
+              onActivate={() => activateNode(p.id)}
               onToggleUpstream={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 onToggleLineage(p.id);
@@ -430,9 +565,6 @@ export function TreeCanvas({
               position={pos}
               bridgeNick={bridgeNick}
               dragging={isDragging}
-              onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
-                onNodeMouseDown(e, n.renderId)
-              }
             />
           );
         })}
@@ -440,28 +572,24 @@ export function TreeCanvas({
 
       {/* ── Zoom controls (bottom-right) ── */}
       <div className="zoom-controls">
-        <button
-          onClick={() =>
-            setTransform(t => ({ ...t, k: Math.min(2.5, t.k + 0.15) }))
-          }
-        >
+        <button type="button" aria-label="ซูมเข้า" onClick={() => zoomCenter(1.2)}>
           +
         </button>
-        <button
-          onClick={() =>
-            setTransform(t => ({ ...t, k: Math.max(0.5, t.k - 0.15) }))
-          }
-        >
+        <button type="button" aria-label="ซูมออก" onClick={() => zoomCenter(1 / 1.2)}>
           −
         </button>
         <button
+          type="button"
+          aria-label="รีเซ็ตมุมมอง"
+          title="รีเซ็ตมุมมอง"
           onClick={() => setTransform({ x: 0, y: 0, k: 1 })}
-          title="Reset view"
         >
           ⟲
         </button>
         {Object.keys(overrides).length > 0 && (
           <button
+            type="button"
+            aria-label="รีเซ็ตตำแหน่งโหนด"
             onClick={() => saveOverrides({})}
             title="รีเซ็ตตำแหน่งโหนด"
             style={{ fontSize: 11, padding: '6px 8px', lineHeight: 1 }}

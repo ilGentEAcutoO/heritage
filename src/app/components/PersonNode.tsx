@@ -17,8 +17,7 @@ export interface PersonNodeProps {
   label: string;               // computed upstream — nick or relation label
   dragging: boolean;
   expanded: boolean;           // lineage expanded?
-  onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onActivate: () => void;      // select this person (tap / click / Enter / Space)
   onToggleUpstream: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
@@ -32,11 +31,20 @@ export function PersonNode({
   label,
   dragging,
   expanded,
-  onMouseDown,
-  onClick,
+  onActivate,
   onToggleUpstream,
 }: PersonNodeProps) {
   const alive = !person.deceased;
+
+  // Spoken by screen readers — name, relation/label, birth year, and life status.
+  const ariaLabel = [
+    person.name || person.nick || 'บุคคล',
+    label && label !== person.nick ? `(${label})` : '',
+    person.born ? `เกิด ${person.born}` : '',
+    !alive ? 'เสียชีวิตแล้ว' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const classNames = [
     'person-node',
@@ -59,9 +67,19 @@ export function PersonNode({
         top: position.y,
         cursor: dragging ? 'grabbing' : 'move',
       }}
-      onMouseDown={onMouseDown}
-      onClick={onClick}
     >
+      {/* Transparent overlay = the real, focusable select control. A native
+          <button> gives Enter/Space + the focus-visible ring for free. It is a
+          SIBLING of .node-photo (which holds the upstream <button>), so we never
+          nest a button inside a button. Drag is delegated to the canvas via the
+          data-person attribute on this container. */}
+      <button
+        type="button"
+        className="node-select"
+        aria-pressed={isSelected}
+        aria-label={ariaLabel}
+        onClick={onActivate}
+      />
       <div className="node-photo">
         <svg viewBox="0 0 60 60" width="60" height="60">
           <defs>
@@ -104,7 +122,7 @@ export function PersonNode({
             x="30"
             y="36"
             textAnchor="middle"
-            fontFamily="Cormorant Garamond, serif"
+            fontFamily="Prompt, system-ui, sans-serif"
             fontSize="22"
             fontWeight="600"
             fill="var(--ink)"

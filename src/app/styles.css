@@ -26,11 +26,31 @@
   --shadow: 0 1px 3px rgba(20,28,46,.06), 0 8px 24px rgba(20,28,46,.06);
   --shadow-lg: 0 16px 50px rgba(20,28,46,.16);
   --accent-grad: linear-gradient(135deg, #20c997, #0ca678);
+  /* soft emerald focus glow, available to components that want it on inputs */
+  --focus-ring: 0 0 0 3px rgba(18, 184, 134, 0.28);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body { height: 100%; overflow: hidden; }
+html, body { height: 100%; }
+
+/* Lock scrolling to the tree app shell only. Standalone pages (auth, landing, trees,
+   404) use full-page minHeight:100vh layouts and MUST scroll on short/landscape
+   viewports or when the on-screen keyboard shrinks the visible area. */
+body:has(.app) { overflow: hidden; }
+
+/* ── Accessibility foundation ──
+   One emerald focus ring for keyboard users, app-wide. Inline-styled pages can't
+   express :focus-visible, so this is the single source of truth. :where() carries
+   zero specificity, so any component can intentionally override it later. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--leaf);
+  outline-offset: 2px;
+}
+:where(a, button, [role="button"], select, summary, label) {
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
   font-family: "Prompt", system-ui, -apple-system, sans-serif;
@@ -290,6 +310,9 @@ body {
   overflow: hidden;
   background: var(--bg);
   user-select: none;
+  /* Own all gestures: stop the browser from panning/zooming the page so our
+     pointer handlers drive pan + pinch-zoom directly (essential on touch). */
+  touch-action: none;
 }
 
 .paper-bg {
@@ -335,6 +358,21 @@ body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.18);
 }
 .person-node { user-select: none; }
+
+/* Transparent, focusable select overlay covering the node (photo + label).
+   Sits above the photo (z:1) but below the upstream toggle (z:4), so both stay
+   independently clickable. The global :focus-visible ring draws around it. */
+.node-select {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: inherit;
+  border-radius: 14px;
+}
 
 .node-photo {
   position: relative;
@@ -1454,7 +1492,15 @@ body.theme-blueprint {
   .drawer { top: 60px; right: 6px; left: 6px; bottom: 6px; padding: 20px 16px; border-radius: 16px; }
 }
 
-/* Respect reduced-motion preference — skip the slide but keep visibility toggling */
+/* Respect reduced-motion: neutralize animations/transitions app-wide — covers the
+   infinite .person-node.highlighted pulse on the hero, the drawer/pathfinder/lineage
+   entrances, photo fade-ins, etc. — while preserving end-state and the sidebar toggle. */
 @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
   .sidebar { transition: visibility 0s; }
 }

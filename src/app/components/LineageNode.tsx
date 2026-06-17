@@ -12,7 +12,6 @@ export interface LineageNodeProps {
   position: { x: number; y: number };
   bridgeNick: string;
   dragging: boolean;
-  onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export function LineageNode({
@@ -20,7 +19,6 @@ export function LineageNode({
   position,
   bridgeNick,
   dragging,
-  onMouseDown,
 }: LineageNodeProps) {
   return (
     <div
@@ -35,7 +33,6 @@ export function LineageNode({
         .filter(Boolean)
         .join(' ')}
       style={{ left: position.x, top: position.y, cursor: 'move' }}
-      onMouseDown={onMouseDown}
       title={`ต้นสายฝั่ง ${bridgeNick}`}
     >
       <div className="node-photo lineage-photo">
@@ -57,7 +54,7 @@ export function LineageNode({
             x="22"
             y="27"
             textAnchor="middle"
-            fontFamily="Cormorant Garamond, serif"
+            fontFamily="Prompt, system-ui, sans-serif"
             fontSize="14"
             fontWeight="500"
             fill="var(--ink)"
