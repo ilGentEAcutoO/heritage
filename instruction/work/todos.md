@@ -33,12 +33,15 @@
 - [x] TweaksPanel re-skin to soft-modern + Thai labels + aria-pressed; ⚙ toggle aria-label
 - [x] Dead CSS-variable fallback sweep app-wide (71 removed; the stale sage/tan palette is gone everywhere)
 
-## Remaining (the last polish layer — structural inline→class, needs NEW css + is auth-gated to verify)
-- [ ] Standalone pages: move Landing / Trees / UserMenu off inline styles + JS-hover onto CSS classes
-      (need new .menu/.menu-item + .tree-row classes for real :hover/:focus-visible; colors already tokenized)
-- [ ] Auth slice: extract .auth-card/.auth-input/.auth-btn/.auth-link + single <AuthLogo> across the 6 auth pages
-      (Phase 0 focus ring + aria-live already landed; remaining gain is hover states + one logo source)
-- [ ] Optional: extract a real <Popover> primitive (the two pickers already work + are tokenized)
+## Last polish layer — DONE (2026-06-17, deployed)
+- [x] Auth slice: .auth-screen/.auth-card/.auth-title/.auth-tab/.auth-link + single <AuthLogo> across all 6 auth pages
+      (resolves card radius/shadow + link-green + logo-stem drift; adds hover; verified live on prod /login + /signup)
+- [x] Standalone pages: .menu/.menu-item/.tree-row classes; UserMenu/Trees/Landing off inline styles; JS-hover hacks removed
+
+## Nothing outstanding in the audit plan. Optional future polish:
+- [ ] Extract a real <Popover> primitive (the two pickers already work + are tokenized — low priority)
+- [ ] Hero canvas: roving tabindex on nodes (only matters on very large trees) — see hero deferred list above
+- [ ] (chore) emails in src/worker/lib/email.ts still use the old sage #6b8f5e brand colour — out of UI scope, decide separately
 
 ## File Lock Registry
 | File | Locked by | Task | Since |
