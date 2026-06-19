@@ -218,8 +218,9 @@ export const apiClient = {
       body: JSON.stringify(body),
     }),
 
+  // Session probe — returns { user: null } (200) for anonymous callers.
   me: () =>
-    api<{ user: AuthUser }>('/api/auth/me'),
+    api<{ user: AuthUser | null }>('/api/auth/me'),
 
   requestMagicLink: (email: string) =>
     api<MagicRequestResponse>('/api/auth/magic/request', {

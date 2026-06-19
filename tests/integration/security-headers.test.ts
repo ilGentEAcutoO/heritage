@@ -63,8 +63,8 @@ async function hit(
 const EXPECTED_CSP = [
   "default-src 'self'",
   "img-src 'self' blob: data:",
-  "font-src 'self' fonts.gstatic.com",
-  "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+  "font-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline' static.cloudflareinsights.com",
   "connect-src 'self' static.cloudflareinsights.com",
   "frame-ancestors 'none'",

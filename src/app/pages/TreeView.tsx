@@ -7,7 +7,7 @@
  * Used for both the anonymous demo (/demo/wongsuriya) and auth'd trees (/tree/:slug).
  */
 
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 import { useTree } from '@app/hooks/useTree';
@@ -19,15 +19,18 @@ import { paletteStyle } from '@app/lib/palettes';
 
 import { TreeCanvas } from '@app/components/TreeCanvas';
 import { ProfileDrawer } from '@app/components/ProfileDrawer';
-import { PathFinder } from '@app/components/PathFinder';
-import { ShareDialog } from '@app/components/ShareDialog';
+
+// On-demand panels — never on the initial render path (only after a click), so
+// they load as separate chunks and stay out of the TreeView critical bundle.
+const PathFinder = lazy(() => import('@app/components/PathFinder').then((m) => ({ default: m.PathFinder })));
+const ShareDialog = lazy(() => import('@app/components/ShareDialog').then((m) => ({ default: m.ShareDialog })));
+const AddPersonDialog = lazy(() => import('@app/components/AddPersonDialog').then((m) => ({ default: m.AddPersonDialog })));
 
 // Components that may not yet be in the barrel — import directly
 import { Sidebar } from '@app/components/Sidebar';
 import { ActiveViewPill } from '@app/components/ActiveViewPill';
 import { TweaksPanel } from '@app/components/TweaksPanel';
 import { UserMenu } from '@app/components/UserMenu';
-import { AddPersonDialog } from '@app/components/AddPersonDialog';
 import { ThemePicker } from '@app/components/ThemePicker';
 import { NodeStylePicker } from '@app/components/NodeStylePicker';
 import type { NodeStyleValue } from '@app/components/NodeStylePicker';
@@ -380,7 +383,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           style={{
             padding: '0.65rem 1.5rem',
             borderRadius: '6px',
-            background: 'var(--leaf)',
+            background: 'var(--leaf-strong)',
             color: '#fff',
             textDecoration: 'none',
             fontWeight: 500,
@@ -416,6 +419,13 @@ export function TreeView({ treeSlug }: TreeViewProps) {
 
   return (
     <div className={`app${effectiveNodeStyle && effectiveNodeStyle !== 'circle' ? ` shape-${effectiveNodeStyle}` : ''}`} style={paletteStyle(effectiveTheme)}>
+      {/* Page-level heading for assistive tech. Visually hidden (the visual tree
+          name lives in the header and is hidden on phones), but always present so
+          every viewport exposes a single <h1> at the top of the heading order. */}
+      <h1 className="sr-only">
+        {data.meta.treeName} — แผนผังครอบครัว (Family tree) · Heritage
+      </h1>
+
       {/* Header */}
       <header className="app-header" data-screen-label="App Header">
         {/* Hamburger — visible only on mobile (≤820px), hidden on desktop via CSS */}
@@ -511,7 +521,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
               to="/login"
               className="header-btn"
               data-testid="header-login"
-              style={{ background: 'var(--leaf)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}
+              style={{ background: 'var(--leaf-strong)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}
             >
               เข้าสู่ระบบ
             </Link>
@@ -588,18 +598,20 @@ export function TreeView({ treeSlug }: TreeViewProps) {
         />
       )}
 
-      {/* PathFinder */}
+      {/* PathFinder (lazy chunk — opened on demand) */}
       {showPath && meId && (
-        <PathFinder
-          data={{ ...data, people: mergedPeople }}
-          meId={meId}
-          targetId={pathTarget}
-          onTarget={setPathTarget}
-          onClose={() => {
-            setShowPath(false);
-            setPathTarget(null);
-          }}
-        />
+        <Suspense fallback={null}>
+          <PathFinder
+            data={{ ...data, people: mergedPeople }}
+            meId={meId}
+            targetId={pathTarget}
+            onTarget={setPathTarget}
+            onClose={() => {
+              setShowPath(false);
+              setPathTarget(null);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Tweaks panel */}
@@ -611,29 +623,33 @@ export function TreeView({ treeSlug }: TreeViewProps) {
         }
       />
 
-      {/* Share dialog — owner only; only rendered when data is available */}
+      {/* Share dialog — owner only; only rendered when data is available (lazy chunk) */}
       {shareOpen && data && slug && (
-        <ShareDialog
-          slug={slug}
-          currentVisibility={data.meta.visibility ?? 'public'}
-          open={shareOpen}
-          onClose={() => setShareOpen(false)}
-        />
+        <Suspense fallback={null}>
+          <ShareDialog
+            slug={slug}
+            currentVisibility={data.meta.visibility ?? 'public'}
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+          />
+        </Suspense>
       )}
 
-      {/* Add person dialog — owner only */}
+      {/* Add person dialog — owner only (lazy chunk) */}
       {addPersonOpen && canEdit && slug && (
-        <AddPersonDialog
-          slug={slug}
-          relativeTo={selected ?? null}
-          onClose={() => setAddPersonOpen(false)}
-          onCreated={(newPerson) => {
-            setAddPersonOpen(false);
-            refetch();
-            // Select the newly created person after refetch
-            setSelectedId(newPerson.id);
-          }}
-        />
+        <Suspense fallback={null}>
+          <AddPersonDialog
+            slug={slug}
+            relativeTo={selected ?? null}
+            onClose={() => setAddPersonOpen(false)}
+            onCreated={(newPerson) => {
+              setAddPersonOpen(false);
+              refetch();
+              // Select the newly created person after refetch
+              setSelectedId(newPerson.id);
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );

@@ -55,11 +55,12 @@ function setStore(partial: Partial<SessionState>) {
 async function fetchMe(): Promise<void> {
   setStore({ loading: true, error: null });
   try {
+    // /me returns 200 { user: null } for anonymous callers (no thrown error).
     const data = await apiClient.me();
-    setStore({ user: data.user as SessionUser, loading: false, error: null });
+    setStore({ user: (data.user as SessionUser) ?? null, loading: false, error: null });
   } catch (e) {
     const err = e as ApiError;
-    // 401 → not logged in; not an error state, just no user
+    // Defensive: older deployments answered 401 for anon — treat as "no user".
     if (err.status === 401) {
       setStore({ user: null, loading: false, error: null });
     } else {

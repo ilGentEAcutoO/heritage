@@ -10,6 +10,11 @@ import { ResetRequest } from './pages/ResetRequest';
 import { ResetPassword } from './pages/ResetPassword';
 import { Trees } from './pages/Trees';
 
+// NOTE: routes are eagerly imported on purpose. Route-level code splitting was
+// measured to *hurt* the heavy tree routes on mobile (entry → route-chunk
+// waterfall) without helping the already-tiny auth pages, because the React core
+// dominates first paint. On-demand panels are still lazy where it's pure win:
+// the dialogs/PathFinder in TreeView and CreateTreeDialog in Trees load on click.
 export function App() {
   return (
     <BrowserRouter>

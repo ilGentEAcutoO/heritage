@@ -49,10 +49,12 @@ async function hit(
 describe('deleted routes → 404', () => {
   const env = makeEnv();
 
-  // /api/auth/me is now a live route — unauthenticated requests get 401.
-  test('GET /api/auth/me → 401 (route live, no session)', async () => {
+  // /api/auth/me is a live session probe — unauthenticated requests get
+  // 200 { user: null } (not 401, which logged a browser console error).
+  test('GET /api/auth/me → 200 { user: null } (route live, no session)', async () => {
     const res = await hit('GET', '/api/auth/me', env);
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
+    expect((await res.json() as { user: unknown }).user).toBeNull();
   });
 
   // /api/auth/request is NOT a real route (only /request-reset is). Since

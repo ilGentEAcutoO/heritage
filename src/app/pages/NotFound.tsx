@@ -24,15 +24,16 @@ export function NotFound() {
           fontFamily: '"Prompt", system-ui, sans-serif',
           fontSize: '4rem',
           margin: 0,
-          opacity: 0.25,
+          // Muted but AA-legible (large text ≥3:1); opacity-dimming dropped to 1.58:1 before.
+          color: 'var(--ink-faint)',
         }}
       >
         404
       </h1>
-      <p style={{ margin: 0, opacity: 0.6 }}>ไม่พบหน้านี้</p>
+      <p style={{ margin: 0, color: 'var(--ink-soft)' }}>ไม่พบหน้านี้</p>
       <Link
         to="/"
-        style={{ color: 'var(--leaf)', textDecoration: 'underline' }}
+        style={{ color: 'var(--leaf-ink)', textDecoration: 'underline' }}
       >
         กลับหน้าหลัก
       </Link>

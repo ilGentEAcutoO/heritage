@@ -156,10 +156,11 @@ test.describe('UserMenu', () => {
       await expect(page.getByTestId('user-menu')).toBeVisible({ timeout: 5_000 });
       await page.getByTestId('user-menu-item-logout').click();
 
-      // Session must be cleared — /api/auth/me returns 401
+      // Session must be cleared — /api/auth/me returns 200 { user: null }
       await expect(async () => {
         const meAfter = await ctx.request.get('/api/auth/me');
-        expect(meAfter.status()).toBe(401);
+        expect(meAfter.status()).toBe(200);
+        expect((await meAfter.json()).user).toBeNull();
       }).toPass({ timeout: 10_000 });
 
       // After logout: guest login link should appear and user-menu-trigger should be gone

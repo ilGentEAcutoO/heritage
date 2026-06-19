@@ -161,13 +161,14 @@ describe('fixtures end-to-end: GET /api/auth/me with seeded session cookie', () 
     expect(body.user.email).toBe('realuser@example.com');
   });
 
-  it('request without cookie → 401', async () => {
+  it('request without cookie → 200 { user: null }', async () => {
     const app = makeApp(db);
     const res = await app.request('/api/auth/me', {}, env);
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
+    expect((await res.json() as { user: unknown }).user).toBeNull();
   });
 
-  it('expired session → 401', async () => {
+  it('expired session → 200 { user: null }', async () => {
     const user = await seedUser(d1, {
       email: 'expired@example.com',
       verified: true,
@@ -181,7 +182,9 @@ describe('fixtures end-to-end: GET /api/auth/me with seeded session cookie', () 
       { headers: { Cookie: session.cookieHeader } },
       env,
     );
-    expect(res.status).toBe(401);
+    // Expired session is treated as anonymous → 200 { user: null }.
+    expect(res.status).toBe(200);
+    expect((await res.json() as { user: unknown }).user).toBeNull();
   });
 });
 

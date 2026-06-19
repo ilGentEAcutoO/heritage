@@ -22,8 +22,10 @@ export function ActiveViewPill({
 }: ActiveViewPillProps) {
   return (
     <div className="active-view-pill">
-      <div className="avp-label">มองจากมุมของ</div>
+      <div className="avp-label" id="avp-label">มองจากมุมของ</div>
       <select
+        aria-labelledby="avp-label"
+        aria-label="มองจากมุมของบุคคล (เลือกมุมมองความสัมพันธ์)"
         value={activeViewId || ''}
         onChange={e => onChange(e.target.value || null)}
       >

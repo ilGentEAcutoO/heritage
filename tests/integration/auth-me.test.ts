@@ -77,11 +77,19 @@ describe('GET /api/auth/me', () => {
     });
   });
 
-  it('without user (c.var.user = null) → 401 unauthorized', async () => {
+  it('without user (c.var.user = null) → 200 { user: null }', async () => {
+    // /me is a session probe: "not logged in" is a normal 200 result with a
+    // null user, not a 401 error. Returning 401 made browsers log a console
+    // error on every public page (Lighthouse best-practices) and leaked nothing.
     const res = await ctx.app.request('/api/auth/me', {}, ctx.env);
-    expect(res.status).toBe(401);
-    const body = await res.json() as { error: string };
-    expect(body.error).toBe('unauthorized');
+    expect(res.status).toBe(200);
+    const body = await res.json() as { user: unknown };
+    expect(body.user).toBeNull();
+  });
+
+  it('sets Cache-Control: no-store so the per-session answer is never cached', async () => {
+    const res = await ctx.app.request('/api/auth/me', {}, ctx.env);
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
   });
 
   it('returns all expected user fields', async () => {

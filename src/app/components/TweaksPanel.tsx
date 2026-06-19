@@ -17,7 +17,7 @@ export function TweaksPanel({ open, tweaks, onChange }: TweaksPanelProps) {
 
   return (
     <div className="tweaks-panel">
-      <h4>ปรับแต่ง</h4>
+      <h2>ปรับแต่ง</h2>
 
       {/* Theme */}
       <div className="tweak-row">

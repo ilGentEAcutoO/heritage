@@ -3,12 +3,16 @@
  * been shared with. Requires auth; redirects to /login if not logged in.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useSession } from '@app/hooks/useSession';
 import { apiClient } from '@app/lib/api';
 import type { TreeSummary } from '@app/lib/api';
-import { CreateTreeDialog } from '@app/components/CreateTreeDialog';
+
+// Opened only on a button click → load as a separate chunk.
+const CreateTreeDialog = lazy(() =>
+  import('@app/components/CreateTreeDialog').then((m) => ({ default: m.CreateTreeDialog })),
+);
 
 const FONT = '"Prompt", system-ui, sans-serif';
 const s = {
@@ -165,10 +169,12 @@ export function Trees() {
       </div>
 
       {dialogOpen && (
-        <CreateTreeDialog
-          onClose={() => setDialogOpen(false)}
-          onCreated={(tree) => navigate(`/tree/${tree.slug}`)}
-        />
+        <Suspense fallback={null}>
+          <CreateTreeDialog
+            onClose={() => setDialogOpen(false)}
+            onCreated={(tree) => navigate(`/tree/${tree.slug}`)}
+          />
+        </Suspense>
       )}
     </div>
   );

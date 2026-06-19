@@ -27,10 +27,10 @@ const IGNORED_SUBSTRINGS: string[] = [
   'Download the React DevTools',
   // Source-map fetch 404 from Vite dev artefacts that shipped to prod
   'DevTools failed to load source map',
-  // Chrome emits a resource-load error for every fetch 4xx/5xx. Our /api/auth/me
-  // endpoint INTENTIONALLY returns 401 when no session exists (that IS the
-  // protocol — anon users get 401, not 200 {user: null}). The console message
-  // is automatic Chrome noise, not a bug.
+  // Chrome emits a resource-load error for every fetch 4xx/5xx. /api/auth/me now
+  // returns 200 { user: null } for anon (so it no longer trips this), but other
+  // tests deliberately probe protected endpoints that DO return 401 (e.g. a
+  // mutation without a session). That console message is automatic Chrome noise.
   'the server responded with a status of 401',
   // Same rationale for 404 from bogus-slug fetches (S13 uses this deliberately).
   'the server responded with a status of 404',

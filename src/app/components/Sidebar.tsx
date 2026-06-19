@@ -41,7 +41,7 @@ export function Sidebar({
     <aside id="sidebar-nav" className={`sidebar${open ? ' open' : ''}`}>
       {/* Search */}
       <div className="sidebar-section">
-        <h4>ค้นหา / Search</h4>
+        <h2>ค้นหา / Search</h2>
         <div className="sidebar-search">
           <input
             placeholder="ชื่อ, ชื่อเล่น, บ้านเกิด…"
@@ -53,7 +53,7 @@ export function Sidebar({
 
       {/* People list */}
       <div className="sidebar-section">
-        <h4 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0 }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0 }}>
           <span>คนในตระกูล ({filteredPeople.length})</span>
           {onAddPerson && (
             <button
@@ -63,8 +63,8 @@ export function Sidebar({
               style={{
                 padding: '0.2rem 0.55rem',
                 borderRadius: '5px',
-                border: '1px solid var(--leaf)',
-                background: 'var(--leaf)',
+                border: '1px solid var(--leaf-strong)',
+                background: 'var(--leaf-strong)',
                 color: '#fff',
                 cursor: 'pointer',
                 fontFamily: '"Prompt", system-ui, sans-serif',
@@ -76,7 +76,7 @@ export function Sidebar({
               + เพิ่มคน
             </button>
           )}
-        </h4>
+        </h2>
         <div className="people-list">
           {sorted.map(p => (
             <button
@@ -96,7 +96,7 @@ export function Sidebar({
 
       {/* Stats grid */}
       <div className="sidebar-section">
-        <h4>สถิติ</h4>
+        <h2>สถิติ</h2>
         <div className="sidebar-stats">
           <div className="stat-card">
             <div className="num">{stats.total}</div>
@@ -119,7 +119,7 @@ export function Sidebar({
 
       {/* Legend */}
       <div className="sidebar-section">
-        <h4>Legend</h4>
+        <h2>Legend</h2>
         <div className="legend">
           <div className="legend-row">
             <span className="legend-sw me" />

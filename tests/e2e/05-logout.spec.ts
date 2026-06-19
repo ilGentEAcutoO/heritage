@@ -37,9 +37,10 @@ test.describe('Logout', () => {
       await expect(page.getByRole('link', { name: /เข้าสู่ระบบ/ })).toBeVisible({ timeout: 10_000 });
       await expect(logoutBtn).toBeHidden();
 
-      // /me → 401
+      // /me → 200 { user: null } (session probe; anon is a normal 200)
       const meAfter = await ctx.request.get('/api/auth/me');
-      expect(meAfter.status()).toBe(401);
+      expect(meAfter.status()).toBe(200);
+      expect((await meAfter.json()).user).toBeNull();
 
       expect(consoleMsgs.errors).toEqual([]);
       expect(consoleMsgs.warnings).toEqual([]);

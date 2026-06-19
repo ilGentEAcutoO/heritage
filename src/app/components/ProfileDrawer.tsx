@@ -634,7 +634,7 @@ export function ProfileDrawer({
           <div className="relation-grid">
             {parents.length > 0 && (
               <div className="rel-section">
-                <h4>พ่อแม่ · Parents</h4>
+                <h3>พ่อแม่ · Parents</h3>
                 <div className="rel-chips">
                   {parents.map(p => (
                     <button
@@ -650,7 +650,7 @@ export function ProfileDrawer({
             )}
             {spouse && (
               <div className="rel-section">
-                <h4>คู่ครอง · Partner</h4>
+                <h3>คู่ครอง · Partner</h3>
                 <div className="rel-chips">
                   <button
                     className="rel-chip heart"
@@ -663,7 +663,7 @@ export function ProfileDrawer({
             )}
             {siblings.length > 0 && (
               <div className="rel-section">
-                <h4>พี่น้อง · Siblings</h4>
+                <h3>พี่น้อง · Siblings</h3>
                 <div className="rel-chips">
                   {siblings.map(p => (
                     <button
@@ -679,7 +679,7 @@ export function ProfileDrawer({
             )}
             {children.length > 0 && (
               <div className="rel-section">
-                <h4>ลูก · Children</h4>
+                <h3>ลูก · Children</h3>
                 <div className="rel-chips">
                   {children.map(p => (
                     <button
@@ -710,7 +710,7 @@ export function ProfileDrawer({
                   <div className="timeline-year">{s.year}</div>
                   <div className="timeline-dot" />
                   <div className="timeline-body">
-                    <h5>{s.title}</h5>
+                    <h4>{s.title}</h4>
                     <p>{s.body}</p>
                   </div>
                 </div>

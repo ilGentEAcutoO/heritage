@@ -546,12 +546,16 @@ authRouter.post('/reset', async (c) => {
 // ---------------------------------------------------------------------------
 
 authRouter.get('/me', (c) => {
-  // Inline auth check — coordinator wires sessionMiddleware separately
+  // Session probe — coordinator wires sessionMiddleware separately.
+  // Returns 200 { user: null } for anonymous callers rather than 401: this
+  // endpoint's job is to *report* auth state, so "not logged in" is a normal
+  // 200 result, not an error. Returning 401 made the browser log a console
+  // error on every public page load (flagged by Lighthouse best-practices) and
+  // leaked nothing extra. The body is unchanged for authenticated users.
+  // Never cache the per-session answer at any layer.
+  c.header('Cache-Control', 'no-store');
   const user = c.var.user;
-  if (!user) {
-    return c.json({ error: 'unauthorized' }, 401);
-  }
-  return c.json({ user });
+  return c.json({ user: user ?? null });
 });
 
 // ---------------------------------------------------------------------------

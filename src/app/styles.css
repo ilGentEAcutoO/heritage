@@ -1,3 +1,38 @@
+/* Self-hosted Prompt + Trirong (subset: latin, latin-ext, thai). Generated — do not edit by hand. */
+@font-face{font-family:'Prompt';font-style:italic;font-weight:400;font-display:swap;src:url('/fonts/prompt-thai-400i.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Prompt';font-style:italic;font-weight:400;font-display:swap;src:url('/fonts/prompt-latin-ext-400i.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Prompt';font-style:italic;font-weight:400;font-display:swap;src:url('/fonts/prompt-latin-400i.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Prompt';font-style:italic;font-weight:500;font-display:swap;src:url('/fonts/prompt-thai-500i.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Prompt';font-style:italic;font-weight:500;font-display:swap;src:url('/fonts/prompt-latin-ext-500i.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Prompt';font-style:italic;font-weight:500;font-display:swap;src:url('/fonts/prompt-latin-500i.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/prompt-thai-300.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/prompt-latin-ext-300.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/prompt-latin-300.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/prompt-thai-400.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/prompt-latin-ext-400.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/prompt-latin-400.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/prompt-thai-500.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/prompt-latin-ext-500.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/prompt-latin-500.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/prompt-thai-600.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/prompt-latin-ext-600.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Prompt';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/prompt-latin-600.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Trirong';font-style:italic;font-weight:400;font-display:swap;src:url('/fonts/trirong-thai-400i.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Trirong';font-style:italic;font-weight:400;font-display:swap;src:url('/fonts/trirong-latin-ext-400i.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Trirong';font-style:italic;font-weight:400;font-display:swap;src:url('/fonts/trirong-latin-400i.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Trirong';font-style:italic;font-weight:500;font-display:swap;src:url('/fonts/trirong-thai-500i.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Trirong';font-style:italic;font-weight:500;font-display:swap;src:url('/fonts/trirong-latin-ext-500i.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Trirong';font-style:italic;font-weight:500;font-display:swap;src:url('/fonts/trirong-latin-500i.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/trirong-thai-400.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/trirong-latin-ext-400.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/trirong-latin-400.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/trirong-thai-500.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/trirong-latin-ext-500.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/trirong-latin-500.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/trirong-thai-600.woff2') format('woff2');unicode-range:U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/trirong-latin-ext-600.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Trirong';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/trirong-latin-600.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
 :root {
   /* Warm Heritage — a vintage family-album system. Warm cream surfaces, espresso
      ink, brass/gold primary accent, olive tree foliage, terracotta highlights.
@@ -8,12 +43,16 @@
   --paper-2: #f5ecdb;       /* subtle hover / inset surface */
   --ink: #3a2e24;           /* espresso */
   --ink-soft: #6f5f4d;
-  --ink-faint: #a89274;
+  /* --ink-faint darkened from #a89274 to clear WCAG AA 4.5:1 on every surface
+     (was 2.5:1 on cream — the app-wide cause of contrast failures on micro-labels). */
+  --ink-faint: #75604a;
   --bark: #7e8a57;          /* tree connectors / foliage strokes (olive) */
-  --leaf: #b08945;          /* primary accent (brass / gold) */
+  --leaf: #b08945;          /* primary accent (brass / gold) — fills/borders/decoration */
   --leaf-strong: #8f6c2f;
+  --leaf-ink: #7e5e28;      /* gold for TEXT on light surfaces (AA 4.5:1 on cream) */
   --leaf-soft: #efe3c8;
-  --blossom: #bb6a43;       /* secondary accent (terracotta) */
+  --blossom: #bb6a43;       /* secondary accent (terracotta) — fills/decoration */
+  --blossom-ink: #a04e28;   /* terracotta for TEXT on light surfaces (AA 4.5:1 on cream) */
   --blossom-soft: #f1ddcf;
   --sepia: #a89274;
   --line: #e6dcc6;
@@ -46,6 +85,19 @@ html, body { height: 100%; }
    404) use full-page minHeight:100vh layouts and MUST scroll on short/landscape
    viewports or when the on-screen keyboard shrinks the visible area. */
 body:has(.app) { overflow: hidden; }
+
+/* Screen-reader-only: visually hidden but present in the a11y tree. Used for the
+   tree-page <h1> so every route exposes a top-level heading (heading-order) without
+   altering the visual header. */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ── Accessibility foundation ──
    One emerald focus ring for keyboard users, app-wide. Inline-styled pages can't
@@ -124,7 +176,7 @@ body {
 }
 .header-logo small {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px; font-weight: 400;
+  font-size: 12px; font-weight: 400;
   color: var(--ink-faint);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -140,7 +192,7 @@ body {
 }
 .tree-title-kicker {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -218,9 +270,9 @@ body {
   display: flex; flex-direction: column; gap: 20px;
 }
 
-.sidebar-section h4 {
+.sidebar-section h2 {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -243,7 +295,7 @@ body {
   transition: border-color 140ms, box-shadow 140ms, background 140ms;
 }
 .sidebar-search input:focus {
-  outline: none; border-color: var(--leaf); background: var(--paper);
+  outline: none; border-color: var(--leaf-ink); background: var(--paper);
   box-shadow: 0 0 0 3px rgba(176, 137, 69, 0.15);
 }
 .sidebar-search::before {
@@ -283,7 +335,7 @@ body {
 .people-item .name { flex: 1; }
 .people-item .yr {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
 }
 
@@ -302,11 +354,11 @@ body {
   font-size: 26px;
   font-weight: 600;
   line-height: 1;
-  color: var(--leaf);
+  color: var(--leaf-ink);
 }
 .stat-card .lbl {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -314,7 +366,7 @@ body {
 }
 
 .legend {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-soft);
   display: flex; flex-direction: column; gap: 6px;
 }
@@ -417,7 +469,7 @@ body {
   transform: translateX(-50%);
   background: var(--blossom);
   color: var(--paper);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 8px;
@@ -436,11 +488,11 @@ body {
   position: absolute;
   top: -14px; left: 50%;
   transform: translateX(-50%);
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   border-radius: 50%;
   background: var(--paper);
   border: 1.5px solid var(--leaf);
-  color: var(--leaf);
+  color: var(--leaf-ink);
   cursor: pointer;
   padding: 0;
   display: flex; align-items: center; justify-content: center;
@@ -479,7 +531,7 @@ body {
 .up-close {
   position: absolute;
   top: 8px; right: 8px;
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   border: none; background: transparent;
   color: var(--ink-faint);
   font-size: 16px; cursor: pointer;
@@ -488,10 +540,10 @@ body {
 .up-head { margin-bottom: 10px; }
 .up-head-kicker {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--leaf);
+  color: var(--leaf-ink);
   margin-bottom: 4px;
 }
 .up-head-title {
@@ -503,7 +555,7 @@ body {
 }
 .up-head-en {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
   margin-top: 3px;
 }
@@ -519,12 +571,12 @@ body {
 }
 .up-status {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
 }
-.up-status .mono { color: var(--blossom); }
-.up-status.linked { color: var(--leaf); }
-.up-status.linked span { color: var(--leaf); }
+.up-status .mono { color: var(--blossom-ink); }
+.up-status.linked { color: var(--leaf-ink); }
+.up-status.linked span { color: var(--leaf-ink); }
 .up-empty {
   color: var(--ink-soft);
   margin: 10px 0;
@@ -574,7 +626,7 @@ body {
 }
 .node-dates {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--ink-faint);
   letter-spacing: 0.05em;
   margin-top: 1px;
@@ -652,7 +704,7 @@ body {
   background: var(--accent-grad);
   color: #fff;
   border: 2px solid var(--paper);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
@@ -664,10 +716,10 @@ body {
 .profile-ident { flex: 1; min-width: 0; }
 .profile-role {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--blossom);
+  color: var(--blossom-ink);
   margin-bottom: 4px;
 }
 .profile-name {
@@ -689,7 +741,7 @@ body {
 }
 .meta-chip {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   padding: 4px 10px;
   background: var(--paper-2);
   border: 1px solid var(--line);
@@ -701,7 +753,7 @@ body {
   color: var(--ink-faint);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-size: 9px;
+  font-size: 12px;
 }
 .meta-chip.passed { color: var(--ink-soft); font-style: italic; }
 
@@ -729,7 +781,7 @@ body {
 }
 .tab-count {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   padding: 2px 8px;
   background: var(--paper-2);
@@ -737,15 +789,15 @@ body {
   color: var(--ink-soft);
 }
 .tab-caret { color: var(--ink-faint); font-size: 14px; width: 14px; text-align: center; }
-.tab.open .tab-head { color: var(--leaf); }
+.tab.open .tab-head { color: var(--leaf-ink); }
 .tab.open .tab-label { color: var(--ink); }
 .tab-body { padding: 4px 0 20px; }
 
 /* Relation section */
 .relation-grid { display: flex; flex-direction: column; gap: 14px; }
-.rel-section h4 {
+.rel-section h3 {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -766,7 +818,7 @@ body {
 }
 .rel-chip:hover { background: var(--paper-2); border-color: var(--ink-soft); }
 .rel-chip.heart { border-color: var(--blossom-soft); }
-.rel-chip.heart::before { content: '♡'; color: var(--blossom); }
+.rel-chip.heart::before { content: '♡'; color: var(--blossom-ink); }
 .rel-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-soft); }
 
 /* Timeline */
@@ -791,7 +843,7 @@ body {
   left: -60px;
   top: 14px;
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-faint);
   width: 40px;
   text-align: right;
@@ -805,7 +857,7 @@ body {
   border: 2px solid var(--paper);
   box-shadow: 0 0 0 1px var(--blossom);
 }
-.timeline-item h5 {
+.timeline-item h4 {
   font-family: "Prompt", system-ui, sans-serif;
   font-size: 17px;
   font-weight: 500;
@@ -846,7 +898,7 @@ body {
 .photo-tile-label {
   position: absolute; bottom: 4px; left: 6px;
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--ink);
   background: rgba(255, 255, 255, 0.8);
   padding: 1px 5px;
@@ -890,7 +942,7 @@ body {
 }
 .memo-meta {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--ink-faint);
   margin-bottom: 6px;
   display: flex; gap: 6px;
@@ -907,7 +959,7 @@ body {
 }
 .memo-duration {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--ink-faint);
   text-align: right;
   margin-top: 2px;
@@ -990,7 +1042,7 @@ body {
   transition: border-color 140ms ease, background 140ms ease;
 }
 .field-input:hover { border-color: var(--rule); }
-.field-input:focus { border-color: var(--leaf); background: var(--paper); }
+.field-input:focus { border-color: var(--leaf-ink); background: var(--paper); }
 .field-hint { font-size: 0.75rem; color: var(--ink-faint); margin-top: 0.25rem; }
 .form-error {
   background: var(--danger-soft);
@@ -1088,7 +1140,7 @@ body {
 .auth-tab.active {
   font-weight: 600;
   color: var(--leaf-strong);
-  border-bottom-color: var(--leaf);
+  border-bottom-color: var(--leaf-ink);
 }
 
 /* Secondary links (forgot password, sign up, switch tab, …) */
@@ -1098,7 +1150,7 @@ body {
   font-weight: 500;
   transition: color 140ms ease;
 }
-.auth-link:hover { color: var(--leaf); text-decoration: underline; }
+.auth-link:hover { color: var(--leaf-ink); text-decoration: underline; }
 
 /* Footer row of secondary links under the form */
 .auth-footer {
@@ -1154,7 +1206,7 @@ body {
   width: 1.5rem;
   height: 1.5rem;
   border: 3px solid var(--line);
-  border-top-color: var(--leaf);
+  border-top-color: var(--leaf-ink);
   border-radius: 50%;
   margin: 0 auto 1rem;
   animation: authSpin 0.8s linear infinite;
@@ -1180,7 +1232,7 @@ body {
 }
 .segmented-btn:hover { border-color: var(--rule); background: var(--paper-2); }
 .segmented-btn[aria-pressed="true"] {
-  border-color: var(--leaf); background: var(--leaf-soft);
+  border-color: var(--leaf-ink); background: var(--leaf-soft);
   color: var(--leaf-strong); font-weight: 600; box-shadow: none;
 }
 
@@ -1275,7 +1327,7 @@ body {
   opacity: 0.45; font-weight: 400; margin-left: 0.4rem; font-size: 0.9em;
 }
 .tree-row .tree-row-badge {
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.03em;
   padding: 0.25rem 0.6rem;
@@ -1285,7 +1337,7 @@ body {
   white-space: nowrap;
 }
 .tree-row .tree-row-badge.owner { background: var(--leaf-soft); color: var(--leaf-strong); }
-.tree-row .tree-row-badge.editor { background: var(--blossom-soft); color: var(--blossom); }
+.tree-row .tree-row-badge.editor { background: var(--blossom-soft); color: var(--blossom-ink); }
 
 /* ─────── PathFinder ─────── */
 .pathfinder {
@@ -1308,7 +1360,7 @@ body {
   margin-bottom: 12px;
 }
 .pf-close {
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -1350,28 +1402,28 @@ body {
 }
 .pf-relation strong {
   font-weight: 600;
-  color: var(--blossom);
+  color: var(--blossom-ink);
   font-style: normal;
   font-family: "Prompt", system-ui, sans-serif;
   font-size: 16px;
 }
 .pf-hops {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
   margin-top: 4px;
 }
-.pf-hint { color: var(--blossom); }
+.pf-hint { color: var(--blossom-ink); }
 
 /* ─────── Merge drawer ─────── */
 .merge-drawer { width: 460px; }
 .merge-header { margin-bottom: 20px; }
 .merge-kicker {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--blossom);
+  color: var(--blossom-ink);
   margin-bottom: 6px;
 }
 .merge-header h2 {
@@ -1401,7 +1453,7 @@ body {
 }
 .merge-tabs button.active {
   color: var(--ink);
-  border-bottom-color: var(--blossom);
+  border-bottom-color: var(--blossom-ink);
 }
 
 .invite-card {
@@ -1413,7 +1465,7 @@ body {
 }
 .invite-kicker {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -1436,7 +1488,7 @@ body {
   color: var(--ink-soft);
   margin-bottom: 14px;
 }
-.invite-code strong { color: var(--blossom); }
+.invite-code strong { color: var(--blossom-ink); }
 
 .invite-flow { display: flex; flex-direction: column; gap: 10px; }
 .flow-step {
@@ -1445,13 +1497,13 @@ body {
   color: var(--ink-soft);
 }
 .flow-step span {
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   border-radius: 50%;
   background: var(--ink);
   color: var(--paper);
   display: flex; align-items: center; justify-content: center;
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   flex-shrink: 0;
 }
 
@@ -1480,7 +1532,7 @@ body {
 
 .suggest-intro {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -1504,13 +1556,13 @@ body {
 }
 .suggest-meta {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
   margin-top: 2px;
 }
 .suggest-badge {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   padding: 3px 8px;
   border-radius: 10px;
   letter-spacing: 0.08em;
@@ -1538,7 +1590,7 @@ body {
   box-shadow: var(--shadow-lg);
   animation: slideIn 200ms ease-out;
 }
-.tweaks-panel h4 {
+.tweaks-panel h2 {
   font-family: "Prompt", system-ui, sans-serif;
   font-size: 15px;
   font-weight: 600;
@@ -1568,7 +1620,7 @@ body {
   background: transparent;
   border: none;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ink-soft);
   cursor: pointer;
@@ -1650,7 +1702,7 @@ body.theme-blueprint {
 }
 .avp-label {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -1661,13 +1713,13 @@ body.theme-blueprint {
   font-family: "Prompt", system-ui, sans-serif;
   font-style: italic;
   font-size: 16px;
-  color: var(--blossom);
+  color: var(--blossom-ink);
   cursor: pointer;
   padding: 4px 6px;
 }
 .active-view-pill select:focus { outline: none; }
 .avp-clear {
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   border: 1px solid var(--line);
   background: transparent;
   border-radius: 50%;
@@ -1695,7 +1747,7 @@ body.theme-blueprint {
   width: 44px; height: 44px;
 }
 .person-node.lineage .node-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink);
 }
 .person-node.lineage .node-nick {
@@ -1707,7 +1759,7 @@ body.theme-blueprint {
 }
 .person-node.lineage .node-dates {
   font-family: "Prompt", system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   opacity: 0.5;
 }
 
@@ -1720,7 +1772,7 @@ body.theme-blueprint {
 .upstream-btn.expanded {
   background: var(--leaf);
   color: var(--paper);
-  border-color: var(--leaf);
+  border-color: var(--leaf-ink);
   box-shadow: 0 2px 10px oklch(0.55 0.12 145 / 0.4);
 }
 .upstream-btn.expanded:hover {
@@ -1752,12 +1804,12 @@ body.theme-blueprint {
   margin-bottom: 2px;
 }
 .ll-meta {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-soft);
   letter-spacing: 0.02em;
 }
 .ll-status {
-  font-size: 10px;
+  font-size: 12px;
   padding: 3px 8px;
   border-radius: 99px;
   background: var(--paper);
@@ -1771,11 +1823,11 @@ body.theme-blueprint {
 .ll-status.linked {
   background: var(--leaf);
   color: var(--paper);
-  border-color: var(--leaf);
+  border-color: var(--leaf-ink);
 }
 .ll-hint {
   margin-top: 10px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-soft);
   line-height: 1.55;
   font-style: italic;
@@ -1855,7 +1907,7 @@ body.theme-blueprint {
   .tree-title { display: none; }
   .header-logo { font-size: 20px; gap: 6px; }
   .header-logo small { display: none; }
-  .header-btn { padding: 6px 9px; font-size: 11px; gap: 4px; }
+  .header-btn { padding: 6px 9px; font-size: 12px; gap: 4px; }
   .sidebar { top: 54px; }
   .nav-backdrop { top: 54px; }
   .drawer { top: 60px; right: 6px; left: 6px; bottom: 6px; padding: 20px 16px; border-radius: 16px; }

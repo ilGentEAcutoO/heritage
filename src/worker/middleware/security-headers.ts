@@ -31,8 +31,11 @@ import type { HonoEnv } from '../types';
 const CSP = [
   "default-src 'self'",
   "img-src 'self' blob: data:",
-  "font-src 'self' fonts.gstatic.com",
-  "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+  // Fonts are self-hosted under /fonts/*.woff2 — same-origin only.
+  "font-src 'self'",
+  // 'unsafe-inline' here is for React inline `style={}` attributes, not a
+  // stylesheet origin — Google Fonts is no longer used.
+  "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline' static.cloudflareinsights.com",
   "connect-src 'self' static.cloudflareinsights.com",
   "frame-ancestors 'none'",

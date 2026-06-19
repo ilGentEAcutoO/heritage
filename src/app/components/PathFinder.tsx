@@ -75,6 +75,7 @@ export function PathFinder({
         <div className="pf-arrow">→</div>
         <select
           className="pf-select"
+          aria-label="เลือกบุคคลปลายทางเพื่อหาความสัมพันธ์"
           value={targetId || ''}
           onChange={e => onTarget(e.target.value)}
         >

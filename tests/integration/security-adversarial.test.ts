@@ -451,8 +451,9 @@ describe('originCheck — CSRF defense-in-depth (N-R3-2 remediation)', () => {
       }),
       asEnv(ctx.env),
     );
-    // /me returns 401 (no session) — critically, NOT 403 forbidden_origin.
-    expect(res.status).toBe(401);
+    // /me returns 200 { user: null } (no session) — critically, NOT 403
+    // forbidden_origin: originCheck is method-scoped and must let GET ride through.
+    expect(res.status).toBe(200);
     expect(res.status).not.toBe(403);
   });
 
