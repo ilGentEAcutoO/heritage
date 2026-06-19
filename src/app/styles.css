@@ -1640,7 +1640,8 @@ body.theme-forest {
   --paper-2: oklch(0.94 0.016 135);
   --ink: oklch(0.30 0.02 150);
   --ink-soft: oklch(0.46 0.025 150);
-  --ink-faint: oklch(0.62 0.02 150);
+  /* darkened from L=0.62 (3.3:1) to clear WCAG AA 4.5:1 on this theme's paper + cream canvas */
+  --ink-faint: oklch(0.46 0.02 150);
   --bark: oklch(0.50 0.03 120);
   --leaf: oklch(0.62 0.07 145);
   --leaf-soft: oklch(0.85 0.045 145);
@@ -1656,7 +1657,8 @@ body.theme-blueprint {
   --paper-2: oklch(0.94 0.016 240);
   --ink: oklch(0.30 0.025 250);
   --ink-soft: oklch(0.46 0.03 250);
-  --ink-faint: oklch(0.62 0.025 250);
+  /* darkened from L=0.62 (3.4:1) to clear WCAG AA 4.5:1 on this theme's paper + cream canvas */
+  --ink-faint: oklch(0.46 0.025 250);
   --bark: oklch(0.50 0.04 250);
   --leaf: oklch(0.60 0.08 240);
   --leaf-soft: oklch(0.85 0.05 240);
