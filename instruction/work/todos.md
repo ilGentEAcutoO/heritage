@@ -21,10 +21,14 @@ Updated: 2026-06-19 09:35 · Live on https://heritage.jairukchan.com (commit 2f4
 2. (optional) Disable Cloudflare Web Analytics beacon → recover the other half of TBT.
 3. Add SSR/prerendering for the heavy tree pages → mobile Performance 100.
 
+## Universal-design clause: COMPLETE (all in code, deployed)
+- [x] Theme variants (forest/blueprint) --ink-faint darkened to AA (commit b06c90b, live)
+- [x] Default palette AA · Modal focus-trap/ESC/restore · headings · labels · target-size · reduced-motion
+
 ## Optional follow-ups (not blocking; not done)
 - Darken --accent-grad so .btn-primary white text passes AA (axe skips gradients, so
   Lighthouse-clean today, but a real low-contrast spot). Brand change → ask first.
-- Theme variants (forest/blueprint) contrast not re-audited (default Warm Heritage is AA).
+- Semantic <main>/<nav> landmarks (a11y already 100; TreeView grid makes <main> wrap risky).
 - Re-theme transactional emails (still old sage #6b8f5e) — from prior session.
 
 ## File Lock Registry
