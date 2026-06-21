@@ -249,6 +249,11 @@ body {
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
+  /* Pill buttons must never wrap — a long label (e.g. the PathFinder button)
+     squeezed on a narrow header would otherwise break onto multiple lines and
+     blow up the header height. On phones the label is hidden entirely (below). */
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 140ms ease;
 }
 .header-btn:hover { background: var(--paper-2); border-color: var(--rule); color: var(--ink); }
@@ -1909,7 +1914,28 @@ body.theme-blueprint {
   .tree-title { display: none; }
   .header-logo { font-size: 20px; gap: 6px; }
   .header-logo small { display: none; }
+  /* Phone: show the leaf logomark only — the "Heritage" wordmark is dropped to
+     reclaim ~95px of header width (the page <h1> + document title still carry
+     the name, so this is a visual-only compaction). */
+  .logo-word { display: none; }
+  .header-actions { gap: 4px; }
   .header-btn { padding: 6px 9px; font-size: 12px; gap: 4px; }
+  /* Phone: collapse header tool buttons to icon-only (the ⚙ Tweaks button is
+     already iconic). The accessible name is preserved via each button's
+     aria-label, so this is purely a visual compaction. Keeps the action row
+     inside the viewport instead of overflowing/clipping off the right edge. */
+  .header-btn .btn-label { display: none; }
+  /* Phone: the theme/node-style dropdowns are anchored right:0 to their (now
+     narrow, icon-only) trigger button, which sits well left of the screen edge
+     — a 180px popover would clip off the LEFT edge. Pin them to the viewport's
+     right edge instead so they always stay fully on-screen. !important beats
+     the component's inline absolute positioning. */
+  .header-menu {
+    position: fixed !important;
+    top: 58px !important;
+    right: 10px !important;
+    left: auto !important;
+  }
   .sidebar { top: 54px; }
   .nav-backdrop { top: 54px; }
   .drawer { top: 60px; right: 6px; left: 6px; bottom: 6px; padding: 20px 16px; border-radius: 16px; }

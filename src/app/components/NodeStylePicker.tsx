@@ -70,18 +70,21 @@ export function NodeStylePicker({ currentNodeStyle, onSelect, previewOnly = fals
         type="button"
         data-testid="node-style-picker-button"
         className="header-btn"
+        aria-label="โหนด"
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((prev) => !prev)}
         title={previewOnly ? 'ลองรูปโหนด (พรีวิว — ไม่บันทึก)' : 'เลือกรูปโหนด'}
       >
-        <span style={{ opacity: 0.7 }}>▢</span> โหนด
+        <span style={{ opacity: 0.7 }}>▢</span>
+        <span className="btn-label">โหนด</span>
       </button>
 
       {open && (
         <div
           role="listbox"
           aria-label="เลือกรูปโหนด"
+          className="header-menu"
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',

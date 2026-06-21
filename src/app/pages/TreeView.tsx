@@ -454,7 +454,7 @@ export function TreeView({ treeSlug }: TreeViewProps) {
             <circle cx="14" cy="10" r="3" fill="var(--blossom)" />
             <path d="M14 13 L14 26" stroke="var(--bark)" strokeWidth={1.5} />
           </svg>
-          Heritage
+          <span className="logo-word">Heritage</span>
           <small>v0.3</small>
         </div>
 
@@ -478,8 +478,11 @@ export function TreeView({ treeSlug }: TreeViewProps) {
           <button
             className="header-btn"
             onClick={() => setShowPath((s) => !s)}
+            aria-label="เราเกี่ยวกันยังไง?"
+            aria-expanded={showPath}
           >
-            <span style={{ opacity: 0.6 }}>◈</span> เราเกี่ยวกันยังไง?
+            <span style={{ opacity: 0.6 }}>◈</span>
+            <span className="btn-label">เราเกี่ยวกันยังไง?</span>
           </button>
           {/* Theme picker — everyone can try palettes; owner persists, others
               get an ephemeral local preview (previewOnly). */}
@@ -499,10 +502,13 @@ export function TreeView({ treeSlug }: TreeViewProps) {
             <button
               className="header-btn"
               onClick={() => setShareOpen(true)}
+              aria-label="แชร์"
+              aria-haspopup="dialog"
               title="จัดการการแชร์"
               style={{ color: 'var(--leaf)' }}
             >
-              แชร์
+              <span style={{ opacity: 0.7 }}>⤴</span>
+              <span className="btn-label">แชร์</span>
             </button>
           )}
           <button

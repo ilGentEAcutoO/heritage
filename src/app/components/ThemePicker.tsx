@@ -66,18 +66,21 @@ export function ThemePicker({ currentTheme, onSelect, previewOnly = false }: The
         type="button"
         data-testid="theme-picker-button"
         className="header-btn"
+        aria-label="ธีม"
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((prev) => !prev)}
         title={previewOnly ? 'ลองธีม (พรีวิว — ไม่บันทึก)' : 'เลือกธีมสี'}
       >
-        <span style={{ opacity: 0.7 }}>🎨</span> ธีม
+        <span style={{ opacity: 0.7 }}>🎨</span>
+        <span className="btn-label">ธีม</span>
       </button>
 
       {open && (
         <div
           role="listbox"
           aria-label="เลือกธีมสี"
+          className="header-menu"
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
