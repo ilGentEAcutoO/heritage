@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sendShareInvitationEmail, escapeHtml } from '../../src/worker/lib/email';
+import { sendShareInvitationEmail, escapeHtml, sanitizeHeaderValue } from '../../src/worker/lib/email';
 
 describe('escapeHtml', () => {
   it('escapes all HTML metacharacters', () => {
@@ -7,6 +7,22 @@ describe('escapeHtml', () => {
   });
   it('is a no-op for plain text', () => {
     expect(escapeHtml('บ้านวงศ์สุริยา 123')).toBe('บ้านวงศ์สุริยา 123');
+  });
+});
+
+describe('sanitizeHeaderValue', () => {
+  it('strips CR/LF so a value cannot break out of an email header', () => {
+    const injected = 'Family\r\nBcc: attacker@evil.com';
+    const out = sanitizeHeaderValue(injected);
+    expect(out).not.toMatch(/[\r\n]/);
+    expect(out).toBe('Family Bcc: attacker@evil.com');
+  });
+  it('strips other control characters (NUL, tab, DEL)', () => {
+    expect(sanitizeHeaderValue('a\x00b\tc\x7fd')).toBe('a b c d');
+  });
+  it('is a no-op for a normal tree name', () => {
+    expect(sanitizeHeaderValue('บ้านวงศ์สุริยา')).toBe('บ้านวงศ์สุริยา');
+    expect(sanitizeHeaderValue('Test Tree')).toBe('Test Tree');
   });
 });
 
@@ -35,5 +51,24 @@ describe('sendShareInvitationEmail — HTML-injection safety', () => {
     // …they must appear escaped instead.
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(html).toContain('&lt;img src=x onerror');
+  });
+
+  it('strips CR/LF from the tree name before it reaches the Subject header', async () => {
+    let sent: { subject?: string } | null = null;
+    const binding = {
+      send: async (m: { subject?: string }) => {
+        sent = m;
+      },
+    };
+
+    await sendShareInvitationEmail(binding, {
+      to: 'victim@example.com',
+      treeName: 'Family\r\nBcc: attacker@evil.com',
+      treeSlug: 'demo',
+      appUrl: 'https://heritage.jairukchan.com',
+    });
+
+    expect(sent).not.toBeNull();
+    expect(sent!.subject ?? '').not.toMatch(/[\r\n]/);
   });
 });

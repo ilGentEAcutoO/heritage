@@ -58,6 +58,18 @@ export function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
+/**
+ * Strip CR/LF and other control characters from a user-controlled value before
+ * it is interpolated into an email header (e.g. Subject). Defence-in-depth
+ * against header injection: the only free-text value that reaches a header is
+ * the tree name on share invites, which is validated for length but not for
+ * newlines. Runs of whitespace collapse to a single space.
+ */
+export function sanitizeHeaderValue(s: string): string {
+  // eslint-disable-next-line no-control-regex
+  return s.replace(/[\r\n\t\x00-\x1f\x7f]/g, ' ').replace(/ {2,}/g, ' ').trim();
+}
+
 // ---------------------------------------------------------------------------
 // Verification email
 // ---------------------------------------------------------------------------
@@ -333,6 +345,9 @@ export async function sendShareInvitationEmail(
   const treeUrl = `${opts.appUrl}/tree/${opts.treeSlug}`;
   const inviterLabel = opts.inviterName ?? 'เจ้าของต้นไม้ / the tree owner';
 
+  // Header-safe tree name for the Subject (strip CR/LF/control chars).
+  const subjectTreeName = sanitizeHeaderValue(opts.treeName);
+
   // HTML-escape every user-controlled value before embedding it in the HTML body.
   const safeTreeName = escapeHtml(opts.treeName);
   const safeTreeUrl = escapeHtml(treeUrl);
@@ -423,7 +438,7 @@ export async function sendShareInvitationEmail(
     to: opts.to,
     from: { email: FROM_ADDRESS, name: FROM_NAME },
     replyTo: REPLY_TO,
-    subject: `Heritage — คุณได้รับเชิญให้เข้าถึง "${opts.treeName}" / You're invited to "${opts.treeName}"`,
+    subject: `Heritage — คุณได้รับเชิญให้เข้าถึง "${subjectTreeName}" / You're invited to "${subjectTreeName}"`,
     text,
     html,
   });
